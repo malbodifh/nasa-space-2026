@@ -25,6 +25,7 @@
 - [Reglas y organización del equipo](docs/00-equipo-y-reglas.md)
 - [Los 14 retos: comparación, fichas y votación](docs/02-challenges-2026.md)
 - [Investigación: alerta temprana de desastres con datos NASA](docs/22-investigacion-desastres.md)
+- [Plan de la app web (Next.js + TypeScript + Tailwind)](docs/23-plan-app.md)
 - [Workflow del equipo](docs/18-workflow.md)
 - [Herramientas del repo](docs/19-herramientas.md)
 - [Bitácora del reinicio](docs/bitacora/2026-11-14.md)
@@ -100,6 +101,7 @@ NASA SPACEAPPS/
 | 2026-11-14 | Elegir el reto con votación 3-2-1 (ver `docs/02`) | Decidir por intuición | Equipo | **Abierta** |
 | 2026-11-14 | La documentación vive en `.md`; `guides/` solo maqueta | Documentar en PDF | Equipo | **Aprobada** |
 | 2026-11-14 | Explorar alerta temprana de desastres con datos NASA | Otras ideas | Equipo | **En investigación** |
+| 2026-11-14 | Stack de la app: Next.js + TypeScript + Tailwind + MapLibre | Vanilla JS, React+Vite | Equipo | **Aprobada** |
 
 ---
 
