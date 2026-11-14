@@ -1,0 +1,11 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+requests>=2.32
+numpy>=2.0
+pillow>=10.0
+astropy>=7.0
+astropy-healpix>=1.1
+reproject>=0.14
+astroalign>=2.5
+python-multipart>=0.0.9
+pydantic-settings>=2.4

@@ -1,0 +1,11 @@
+# Reemplazar por los handles reales de GitHub del equipo.
+# Mientras no estén, el lead revisa todo.
+*                   @andy
+
+/docs/              @andy
+/guides/            @leo
+/src/backend/       @david
+/src/frontend/      @samuel
+/data/              @david
+/scripts/           @david
+/documentacion.md   @andy

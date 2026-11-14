@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: NASA Space Apps 2026
+    url: https://www.spaceappschallenge.org/2026/
+    about: Reglas, challenges y fechas oficiales.
+  - name: Documentación del equipo
+    url: https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/
+    about: Leer documentacion.md y docs/00-equipo-y-reglas.md antes de abrir un issue.

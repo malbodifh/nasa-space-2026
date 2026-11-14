@@ -1,0 +1,50 @@
+name: Decisión
+description: Registrar una decisión de arquitectura, producto o alcance (ADR corto)
+title: "[DECISIÓN] "
+labels: ["decision"]
+body:
+  - type: input
+    id: decision
+    attributes:
+      label: Decisión
+      description: En una frase.
+      placeholder: "Usar SIA2 + cutouts en vez de TAP para el demo"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto
+      description: ¿Por qué hay que decidir? ¿Qué restricciones hay?
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Opciones consideradas
+      placeholder: |
+        A) ...
+        B) ...
+        C) ...
+    validations:
+      required: true
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consecuencias
+      description: Qué ganamos, qué perdemos, qué queda pendiente.
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Dueño
+  - type: dropdown
+    id: status
+    attributes:
+      label: Estado
+      options:
+        - Propuesta
+        - Aprobada
+        - Rechazada
+        - Reemplazada

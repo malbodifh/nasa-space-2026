@@ -1,0 +1,42 @@
+# Entorno
+.venv/
+venv/
+.env
+.env.*
+__pycache__/
+*.py[cod]
+node_modules/
+dist/
+build/
+.next/
+
+# Datos pesados (no se commitean)
+data/cache/
+*.fits
+*.fits.gz
+*.fit
+*.png
+!assets/**/*.png
+!docs/**/*.png
+!data/samples/**/*.png
+
+# Salidas temporales
+tmp/
+*.log
+*.tmp
+*.zip
+
+# Sistema
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Excepción: los PDF de las guías sí se versionan (links desde documentacion.md)
+!guides/dist/
+!guides/dist/*.pdf
+
+# Secretos
+*.key
+*.pem
+secrets/

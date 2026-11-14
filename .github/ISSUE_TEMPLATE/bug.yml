@@ -1,0 +1,32 @@
+name: Bug
+description: Algo no funciona como debería
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Qué pasa
+      description: Comportamiento actual vs esperado.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Cómo reproducirlo
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / capturas
+      description: Pegá el error o una captura.
+  - type: input
+    id: env
+    attributes:
+      label: Entorno
+      placeholder: "Linux / Python 3.12 / Chrome"
