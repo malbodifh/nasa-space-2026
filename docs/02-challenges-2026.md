@@ -21,6 +21,10 @@
 **Regla que no se negocia:** si no hay dato NASA accesible, el reto no se elige por lindo
 que sea el demo. Sin dato, no hay problema.
 
+> ¿La idea es alerta temprana de desastres? Antes de votar, leer
+> [`22-investigacion-desastres.md`](22-investigacion-desastres.md): qué datos existen, qué
+> latencia tienen y en qué reto oficial encaja.
+
 ---
 
 ## 1. Comparación rápida
