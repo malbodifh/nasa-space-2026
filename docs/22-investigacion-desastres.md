@@ -3,6 +3,10 @@
 > **Fecha:** 14/11/2026. Todo lo marcado como “probado” se consultó contra el endpoint real ese día.
 > **Esto no es una promesa de producto.** Es el inventario de datos y límites para decidir la idea.
 > La verdad del proyecto sigue en [`documentacion.md`](../documentacion.md) y `docs/*.md`.
+>
+> **Actualización 14/11 22:30 UTC:** los endpoints, cuotas y el recorte “core NASA” están
+> verificados en [`25-api-research.md`](25-api-research.md). Este documento queda como
+> inventario científico; para contratos de datos y fallbacks, usar el 25.
 
 ---
 
