@@ -102,7 +102,7 @@ Commits:
 add SIA2 query
 fix cutout timeout
 docs workflow
-data precompute wise0855
+data agregar preguntas de salud
 ```
 
 ### Regla
@@ -182,7 +182,7 @@ SIA2 → CSV → cutouts → FITS → PNG/manifest → caché → frontend
 
 ### Comandos
 ```bash
-make precompute     # WISE 0855 + Barnard's Star
+make check          # ruff + pytest
 make backend        # API
 ```
 

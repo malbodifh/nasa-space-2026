@@ -52,12 +52,12 @@ Objetivo: 5*.30 + 4*.20 + 4*.20 + 4*.20 + 5*.10 = 4.40 / 5 = 88/100
 ### Creatividad (20%)
 - [ ] La demo muestra **la combinación**: blink → diferencia → 102 bandas → candidato.
 - [ ] No es “otro Aladin”: es un flujo guiado.
-- [ ] Una frase de posicionamiento: “el Backyard Worlds de SPHEREx”.
+- [ ] Una frase de posicionamiento: “la trivia donde equivocarte te enseña por qué”.
 - [ ] Un detalle memorable: slider 102 bandas o trayectoria de centroides.
 
 ### Viabilidad (20%)
 - [ ] Datos reales, no mock.
-- [ ] Pipeline reproducible (`make precompute`).
+- [ ] Pipeline reproducible (`make check`).
 - [ ] Fallback si IRSA falla (caché/CSV).
 - [ ] No prometer lo que no tenemos (Rubin, Gaia, exoplanetas).
 - [ ] Mostrar arquitectura simple en una slide.
@@ -85,7 +85,7 @@ Objetivo: 5*.30 + 4*.20 + 4*.20 + 4*.20 + 5*.10 = 4.40 / 5 = 88/100
 | Tiempo | Contenido | Criterio que empuja |
 |---|---|---|
 | 0:00–0:05 | Hook + problema (1B objetos, 102 bandas, nadie puede mirar a mano) | **Impacto 30%** |
-| 0:05–0:10 | Nombre + tagline + “el Backyard Worlds de SPHEREx” | **Creatividad 20%** |
+| 0:05–0:10 | Nombre + tagline + “la trivia donde equivocarte te enseña por qué” | **Creatividad 20%** |
 | 0:10–0:20 | Demo: coordenada → blink → diferencia → 102 bandas → candidato | **Prototipo 20% + Viabilidad 20%** |
 | 0:20–0:27 | Impacto: ciencia ciudadana, educación, descubrimiento | **Impacto 30%** |
 | 0:27–0:30 | Cierre memorable + créditos | **Presentación 10%** |

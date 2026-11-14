@@ -39,7 +39,6 @@ make lint        # ruff check
 make format      # ruff format
 make check       # lint + tests (lo mismo que CI)
 make guides      # compila Typst a PDF/PNG
-make precompute  # baja y procesa WISE 0855 + Barnard
 make clean       # limpia cachés de herramientas
 ```
 
@@ -123,9 +122,7 @@ make guides
 ```text
 guides/dist/
 ├── 01-rubrica.pdf
-├── 02-benchmark.pdf
 ├── 03-plan-48h.pdf
-├── 04-pitch.pdf
 ├── 05-ideas.pdf
 ├── 01-rubrica-1.png
 ├── ...
@@ -134,9 +131,7 @@ guides/dist/
 ### Editar
 - `guides/theme.typ` — colores, tipografía, tarjetas.
 - `guides/01-rubrica.typ` — rúbrica y prioridades.
-- `guides/02-benchmark.typ` — competidores y diferenciación.
 - `guides/03-plan-48h.typ` — cronograma y roles.
-- `guides/04-pitch.typ` — storyboard del video de 30 s.
 - `guides/05-ideas.typ` — las 14 ideas en una página, para la votación.
 
 ### Requisito
@@ -217,5 +212,5 @@ Settings:
 - [Workflow](18-workflow.md)
 - [Reglas del equipo](00-equipo-y-reglas.md)
 - [Backlog](14-backlog.md)
-- [APIs](04-apis.md)
-- [SPHEREx técnico](03-spherex-tecnico.md)
+- [APIs](04-datos-nasa.md)
+- [Concepto del juego](03-concepto-trivia.md)

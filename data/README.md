@@ -1,20 +1,12 @@
 # data/
 
-Datos locales del proyecto.
+| Archivo | Qué es | ¿Se commitea? |
+|---|---|---|
+| `questions.json` | Banco de 24 preguntas con fuente NASA | ✅ Sí |
+| `cache/` | Datos pesados de la idea SPHEREx (archivada) | ❌ No |
 
-## Carpetas
-- `cache/` — datos descargados y procesados. **Gitignored.** No se commitea.
-- `samples/` — muestras chicas que sí se pueden commitear (1–2 frames, JSON de ejemplo).
+## Reglas
 
-## Regla
-**Nunca** subir FITS grandes, videos o cachés al repo. Si alguien necesita los datos, se regeneran con `scripts/precompute.py` o se comparten por link.
-
-## Convención
-```text
-data/cache/<target_slug>/
-├── manifest.json
-├── frame_000.png
-├── frame_001.png
-├── diff_000.png
-└── README.md
-```
+- `questions.json` es la **fuente única de contenido** del juego.
+- El contrato está en `docs/08-contenido-y-datos.md`; la validación corre en `make check`.
+- Nada de FITS, videos ni cachés en el repo.

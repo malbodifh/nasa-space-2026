@@ -97,7 +97,7 @@ Una tarea está lista cuando:
 5. **No mezclar unidades** sin decirlo: MJy/sr, µJy, µm, arcsec.
 6. **No recortar imágenes para exagerar** un resultado. Si se usa un stretch, decirlo.
 7. **Guardar la versión del dataset** (DR1, QR3, fecha de descarga).
-8. **No usar datos propietarios** sin permiso. SPHEREx/IRSA son públicos.
+8. **No usar datos propietarios** sin permiso. Los datos abiertos de NASA son públicos.
 9. **Contrato de datos obligatorio:** toda feature declara dataset, API/endpoint, campos, caché y fallback. Sin contrato, no entra al backlog.
 10. **No prometer datos que no tenemos:** si la misión/API no está en el inventario (`docs/08`, tabla 0.1), no se usa ni se menciona como si la tuviéramos.
 
@@ -147,7 +147,7 @@ NASA Space Apps 2026 permite usar IA/SI, pero exige declararlo. Reglas del equip
 
 ## 10. Checklist de reglas para votar con el equipo
 
-- [ ] ¿Aprobamos el challenge Planet X and SPHEREx?
+- [ ] ¿Aprobamos el challenge Junior Astronaut Trainer (trivia)?
 - [ ] ¿Aprobamos los roles propuestos?
 - [ ] ¿Aprobamos los horarios de standup?
 - [ ] ¿Aprobamos el corte de alcance a T-12 h?

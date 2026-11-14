@@ -102,7 +102,7 @@ Qué puedo afirmar:
 Qué NO puedo afirmar:
 ```
 
-Sin esto, no se mergea. Ver [`docs/08-problemas-astrofisica.md`](docs/08-problemas-astrofisica.md), sección 0.4.
+Sin esto, no se mergea. Ver [`docs/08-contenido-y-datos.md`](docs/08-contenido-y-datos.md), sección 0.4.
 
 ---
 

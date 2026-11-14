@@ -1,131 +1,67 @@
-# 01 — Decisión del challenge
+# 01 — Decisión del reto
 
-> **Estado:** propuesta. El equipo debe votar.
-> **Recomendación:** **Planet X and SPHEREx**.
-> **Fecha:** 2026-11-14.
-
----
-
-## 1. Cómo decidimos (criterios)
-
-Para un hackathon de 48 h no alcanza con “me gusta el tema”. Evaluamos:
-
-1. **Elegibilidad:** ¿responde a un challenge oficial? (obligatorio para Global Judging).
-2. **Datos listos:** ¿se puede acceder hoy, sin permisos especiales, con APIs públicas?
-3. **Factibilidad 48 h:** ¿un equipo de 5 personas puede tener un demo funcional?
-4. **Impacto:** ¿resuelve un problema real y se entiende en 30 segundos?
-5. **Wow visual:** ¿el demo se ve impresionante sin explicar 10 minutos de ciencia?
-6. **Encaje con el equipo:** ¿podemos aportar algo diferencial?
-7. **Riesgo:** ¿qué probabilidad hay de que los datos/APIs fallen en vivo?
-8. **Dato disponible (data-first):** ¿el dataset/API existe, responde hoy y está en el inventario? Si no, no es candidato. Ver [08-problemas-astrofisica.md](08-problemas-astrofisica.md), tabla 0.1.
+> **Decisión:** reto **#3 Build a Junior Astronaut Mission Trainer**, implementado como
+> **trivia educativa con consecuencias y fuentes NASA**.
+> Fecha: 14/11/2026 · Equipo: Astral Codes.
 
 ---
 
-## 2. Matriz de los 14 challenges
+## 1. El reto, en una frase
 
-Puntajes: **F** = factibilidad 48 h, **I** = impacto, **D** = datos listos, **W** = wow visual. Escala 1–5. Total /20.
-*(Evaluación inicial de Andy; el equipo puede ajustar.)*
+Diseñar una experiencia que enseñe **qué implica sobrevivir y trabajar en el espacio**
+—soporte vital, energía, radiación, salud, comida, emergencias— a chicos que sueñan con
+ser astronautas.
 
-| # | Challenge | Dificultad | Qué pide | Datos/API | F | I | D | W | Total |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | **Abandoned but not Forgotten** | Intermediate | Contar la historia del hardware abandonado en Luna/Marte para estudiantes | Imágenes NASA, modelos 3D, archivos históricos | 3 | 3 | 4 | 3 | 13 |
-| 2 | **Be An Earth System Trend Detective!** | Advanced | Encontrar y visualizar tendencias significativas en variables de Earth science | Earthdata/GES DISC, Giovanni, NetCDF/Zarr | 2 | 5 | 3 | 3 | 13 |
-| 3 | **Build a Junior Astronaut Mission Trainer** | Intermediate | Juego de gestión de un outpost lunar/marciano con trade-offs | Datos NASA de soporte vital, radiación, energía | 4 | 3 | 3 | 4 | 14 |
-| 4 | **Create Health Monitoring Software for Astronauts** | Intermediate | Software que recolecta indicadores de salud y ayuda a decidir | Datos análogos/sintéticos, literatura NASA | 4 | 3 | 2 | 3 | 12 |
-| 5 | **Dancing with the SARs** | Advanced | Visualizar cambios de superficie con radar NISAR | ASF DAAC, NISAR, InSAR; requiere Earthdata login | 2 | 4 | 2 | 4 | 12 |
-| 6 | **Field Shift: Adapting Farms with NASA Data** | Advanced | Herramienta de rotación de cultivos con datos NASA + suelo | SMAP, MODIS, SoilGrids, datos locales | 2 | 4 | 2 | 3 | 11 |
-| 7 | **Flame in Freefall (SI)** | Advanced | Dashboard con IA que resume datos de combustión en microgravedad | Papers/datos NASA de combustión | 3 | 3 | 3 | 3 | 12 |
-| 8 | **Harmonization of MODIS and VIIRS Hot Spots** | Advanced | Calendario de incendios que armoniza MODIS y VIIRS | FIRMS API (CSV), shapefiles | 4 | 4 | 5 | 3 | 16 |
-| 9 | **Earth Analogs for Moon/Mars Bases** | Advanced | Identificar y caracterizar análogos terrestres | Earthdata, USGS, MOLA, CTX, OpenStreetMap | 2 | 3 | 3 | 3 | 11 |
-| 10 | **Interplanetary Survival Guide: Martian Map** | Intermediate | Mapa multicapa para planificar un Marswalk | USGS Mars, CTX/HiRISE, MOLA, Mars Trek | 4 | 4 | 4 | 5 | **17** |
-| 11 | **Lunar Landing Site Navigator** | Advanced/Intermediate | Comparar sitios de alunizaje con posiciones Sol/Tierra | SPICE, LOLA, LRO, efemérides | 3 | 4 | 4 | 5 | **16** |
-| 12 | **Planet X and SPHEREx** | Advanced | Herramienta pública para ver imágenes SPHEREx y sus cambios | SIA2, cutouts, TAP, HiPS, AWS | 4 | 5 | 5 | 5 | **19** |
-| 13 | **Space Mission Design Game** | Intermediate | Juego para diseñar y simular una misión completa | Modelos físicos, datos de cohetes/presupuestos | 4 | 3 | 2 | 4 | 13 |
-| 14 | **The Earth Information Jukebox** | Intermediate | Sonificar visualizaciones del Earth Information Center | EIC frames/videos, Web Audio | 4 | 3 | 4 | 5 | **16** |
+## 2. Nuestra interpretación
 
----
+No es un curso ni un simulador físico. Es una **trivia con narrativa de misión**:
 
-## 3. Recomendación: Planet X and SPHEREx
+- Sos **cadete** en un puesto lunar.
+- Cada respuesta correcta **mantiene un sistema vivo** (O2, energía, agua, comida).
+- Cada error **tiene una consecuencia** y muestra **por qué** (con cita NASA).
+- Al final recibís un **informe de misión**: rango, sistemas que fallaste y qué estudiar.
 
-### Por qué gana
-1. **Datos públicos y probados:** SIA2 responde, los cutouts se descargan, el HiPS cube tiene 102 capas PNG. No dependemos de permisos.
-2. **El demo se explica solo:** “elegís una coordenada y ves el cielo cambiar” se entiende en 5 segundos.
-3. **Ciencia real y ciudadana:** proper motion, variables, asteroides, enanas marrones. Es el corazón del challenge.
-4. **Encaja con lo que ya investigamos:** las 14 APIs que juntó el equipo son casi todas de este ecosistema.
-5. **Margen de diferenciación:** blink + diferencia + slider de 102 bandas + espectro + astrometría sub-píxel.
-6. **Premios a los que apunta:** Best Use of Data, Best Use of Science, Galactic Impact, Most Inspirational.
+**Frase de posicionamiento:** *“La trivia donde equivocarte te enseña por qué.”*
 
-### Riesgos y mitigación
-| Riesgo | Probabilidad | Mitigación |
+## 3. Por qué este reto y no SPHEREx
+
+| Criterio | SPHEREx (descartado) | Trivia Junior Astronaut |
 |---|---|---|
-| IRSA/TAP intermitente (502) | Alta | Usar SIA2 + cutouts; cachear; fallback a datos precomputados |
-| Cutouts pesados (~4 MB por ePSF) | Alta | Bajar pocas épocas; cachear; ignorar ePSF |
-| Objetos débiles (WISE 0855) | Media | Stacking de épocas; usar Barnard/RW Aur para el wow |
-| Movimiento sub-píxel (6.15″/px) | Alta | Diferencia de imágenes + centroides + gráfico de trayectoria |
-| Imágenes espectrales (no broadband) | Media | Mostrar el cutout tal cual + “colapsar longitudes de onda” simple |
-| Falla el deploy en vivo | Media | Demo precomputada + video de respaldo |
+| Demo en 30 s | Difícil: hay que explicar el dato | **Inmediato**: se juega en vivo |
+| Dependencia de APIs | Alta (IRSA devolvió 502) | **Ninguna en vivo** |
+| Impacto educativo | Medio (público científico) | **Alto** (escuelas, familias) |
+| Riesgo técnico | Alto (FITS, alineación, WCS) | **Bajo** (web, JSON) |
+| Creatividad | Media (visor más) | **Alta** (consecuencias + citas) |
 
-### MVP propuesto (48 h)
-1. **Blink player:** coordenada → lista de épocas → play/pause/slider.
-2. **Modo diferencia:** época A − época B, con realce.
-3. **Slider 102 bandas:** HiPS cube por capas PNG (contexto espectral).
-4. **Ficha de objeto:** nombre, RA/Dec, época, banda, flags, fuente.
-5. **Bonus:** espectro del objeto y trayectoria de centroides.
-6. **Bonus:** URL compartible con coordenadas.
+El trabajo de SPHEREx quedó archivado en [`backups/ideas/spherex/`](../backups/ideas/spherex/README.md).
 
-### Lo que NO haremos en 48 h
-- Pipeline científico completo de cubos espectrales.
-- Astrometría de precisión publicable.
-- Búsqueda de planetas.
-- Integración con Rubin/LSST en vivo.
-- Login, base de datos de usuarios, mobile app nativa.
+## 4. Alcance del MVP
 
----
+**Sí entra:**
+- 1 escenario: **puesto lunar Artemis**.
+- 6 categorías × 4 preguntas = **24 preguntas**.
+- Barra de recursos (O2, energía, agua, moral) que baja con los errores.
+- Explicación + fuente NASA en **cada** respuesta.
+- Informe final con rango y tarjeta compartible.
+- Funciona **offline** (sin red, sin login).
 
-## 4. Alternativas si el equipo no quiere SPHEREx
+**No entra:**
+- Multijugador online.
+- Cuentas, ranking global, base de datos.
+- 3D, modelos físicos, simulación de fluidos.
+- Contenido en inglés dentro del juego (sí en subtítulos del video).
 
-### A. Interplanetary Survival Guide: Martian Map (17/20)
-**Por qué:** mapas, capas, visión 3D, datos USGS/NASA accesibles, demo muy visual.
-**Riesgo:** integrar muchas fuentes y que el mapa se vea genérico.
-**Si el equipo es fuerte en frontend/geo:** es la mejor alternativa.
+## 5. Criterios de éxito
 
-### B. Lunar Landing Site Navigator (16/20)
-**Por qué:** Sol/Tierra sobre el horizonte lunar es un problema concreto y visual; SPICE da datos.
-**Riesgo:** SPICE y geometría; requiere cuidado científico.
-**Si hay alguien fuerte en Python/SPICE:** muy buen proyecto.
+1. Un chico de 10 años entiende la primera pregunta sin ayuda.
+2. El jurado completa 3 preguntas en menos de 30 s durante el demo.
+3. Cada respuesta puede rastrearse a una fuente NASA.
+4. El juego corre desde un archivo local, sin internet.
 
-### C. Harmonization of MODIS and VIIRS Hot Spots (16/20)
-**Por qué:** FIRMS API es fácil, el calendario de incendios es visual y útil.
-**Riesgo:** menos “wow” y más “dashboard”; la armonización requiere justificar bien el método.
-**Si el equipo es fuerte en datos/estadística:** opción sólida.
+## 6. Decision Log relacionado
 
-### D. The Earth Information Jukebox (16/20)
-**Por qué:** creativo, multisensorial, bueno para Art & Technology / Best Storytelling.
-**Riesgo:** depende de diseño/audio; la ciencia puede quedar superficial.
-**Si Leo/Samuel son fuertes en arte/audio:** considerar.
-
----
-
-## 5. ¿Y un “Custom Challenge”?
-
-**No lo recomiendo si quieren Global Judging.**
-- NASA permite “Create Your Own Challenge”, pero **no es elegible para Global Judging** y no compite por Global Awards.
-- Algunos eventos locales dan premios locales a esa categoría.
-- En 2026 la lista oficial tiene **14 challenges** y no aparece “Custom”.
-
-**Estrategia híbrida:** si les gusta una idea propia (por ejemplo, un asistente de datos para científicos), **encajenla dentro de un challenge oficial**. Así conservan elegibilidad global y hacen algo diferente.
-Ver [docs/09-custom-challenge.md](09-custom-challenge.md).
-
----
-
-## 6. Voto del equipo
-
-| Persona | ¿SPHEREx? | Alternativa preferida | Comentario |
-|---|---|---|---|
-| Andy | ✅ | Martian Map | — |
-| David | ⬜ | | |
-| Samuel | ⬜ | | |
-| Jorge | ⬜ | | |
-| Leo | ⬜ | | |
-
-**Regla:** si hay empate, decide Andy y se registra en `documentacion.md`.
+| Fecha | Decisión | Motivo |
+|---|---|---|
+| 14/11 | Elegir reto #3 (trivia) | Mejor demo, menor riesgo, mayor impacto |
+| 14/11 | Archivar SPHEREx en `backups/ideas/` | No borrar trabajo; permite volver |
+| 14/11 | Frontend estático sin build | `npm` no está disponible; demo primero |

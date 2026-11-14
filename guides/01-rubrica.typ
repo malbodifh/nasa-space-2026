@@ -2,7 +2,7 @@
 
 #title_block(
   "RÚBRICA OFICIAL 2026",
-  "Cómo ganar con SkyBlink",
+  "Cómo ganar con Mission Trainer",
   "Impacto 30% · Creatividad 20% · Viabilidad 20% · Prototipo 20% · Presentación 10%",
 )
 
@@ -70,7 +70,7 @@
     espectro + candidatos.
     #v(2pt)
     #text(size: 8.5pt)[
-      *Frase:* “el Backyard Worlds de SPHEREx”.
+      *Frase:* “la trivia donde equivocarte te enseña por qué”.
     ]
   ], color: cyan),
   card("Viabilidad · 20%", [

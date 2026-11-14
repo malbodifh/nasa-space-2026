@@ -1,87 +1,47 @@
-# 14 — Backlog de tareas
+# 14 — Backlog
 
-> **Cómo usarlo:** cada tarea tiene prioridad, dueño tentativo y estimación. Se toma una, se abre un issue, se hace un PR.
-> **Regla:** si una tarea no está acá, no se hace (o se agrega primero).
-
----
-
-## P0 — Imprescindible para el demo
-
-| ID | Tarea | Dueño | Est. | Depende de |
-|---|---|---|---|---|
-| P0-01 | Crear repo, README y ramas | Andy | 15 min | — |
-| P0-02 | Script `query_sia2.py` que devuelve CSV | David | 1 h | — |
-| P0-03 | Script `fetch_cutouts.py` que baja N cutouts | David | 2 h | P0-02 |
-| P0-04 | Script `precompute.py` que genera PNGs + manifest | David | 3 h | P0-03 |
-| P0-05 | Backend FastAPI con `/api/targets` y `/api/frames` | David | 2 h | P0-04 |
-| P0-06 | Frontend: layout + búsqueda + presets | Samuel | 2 h | — |
-| P0-07 | Blink player (canvas, play/pause/slider) | Samuel | 3 h | P0-05, P0-06 |
-| P0-08 | Modo diferencia | Samuel | 2 h | P0-07 |
-| P0-09 | Ficha de objeto (RA/Dec, fecha, banda, flags) | Andy | 1 h | P0-05 |
-| P0-10 | Precomputar los 5 targets | David | 3 h | P0-04 |
-| P0-11 | Deploy (frontend + backend) | Andy | 2 h | P0-07 |
-| P0-12 | Video de 30 s + subtítulos | Leo | 3 h | P0-07 |
-| P0-13 | Submission en inglés | Andy | 2 h | Todos |
-| P0-14 | QA de los 5 targets | Jorge | 2 h | P0-10 |
-
-**Total estimado:** ~30 h de trabajo. Con 5 personas en 2 días, es factible si se paraleliza.
+> Prioridad: **P0** = sin esto no hay demo · **P1** = diferenciador · **P2** = bonus.
+> Un issue = una tarea = un dueño.
 
 ---
 
-## P1 — Diferenciadores (si hay tiempo)
+## P0 — Demo mínimo
 
-| ID | Tarea | Dueño | Est. | Depende de |
-|---|---|---|---|---|
-| P1-01 | Slider 102 bandas con HiPS PNG | Samuel | 2 h | P0-06 |
-| P1-02 | Espectro quick-look (WCS-WAVE) | David | 3 h | P0-04 |
-| P1-03 | Trayectoria de centroides | Jorge | 3 h | P0-08 |
-| P1-04 | URL compartible `?ra=&dec=` | Samuel | 30 min | P0-06 |
-| P1-05 | Overlay de flags de contaminación | Andy | 1 h | P0-09 |
-| P1-06 | Ficha “¿hay un exoplaneta acá?” | Jorge | 1 h | P0-09 |
-| P1-07 | Modo oscuro / pulido visual | Leo | 1 h | P0-06 |
-| P1-08 | GIF de blink para el pitch | Leo | 30 min | P0-07 |
-
----
-
-## P2 — Bonus (solo si sobra tiempo)
-
-| ID | Tarea | Dueño | Est. |
+| # | Tarea | Dueño | Estado |
 |---|---|---|---|
-| P2-01 | Modo live para cualquier coordenada | David | 3 h |
-| P2-02 | Aladin Lite con Gaia/WISE overlay | Samuel | 2 h |
-| P2-03 | MOST: asteroides/cometas conocidos | Jorge | 2 h |
-| P2-04 | Landing con APOD/NASA Images | Leo | 1 h |
-| P2-05 | Exportar el blink como GIF/MP4 | Samuel | 1 h |
-| P2-06 | Tests automatizados | David | 2 h |
-| P2-07 | Accesibilidad (teclado, contraste) | Leo | 1 h |
+| P0-01 | Banco de 24 preguntas con fuente NASA | Jorge | ✅ Hecho |
+| P0-02 | API `/api/quiz`, `/api/answer`, `/api/categories` | David | ✅ Hecho |
+| P0-03 | Pantalla de juego con opciones y feedback | Samuel | ✅ Hecho |
+| P0-04 | Recursos (O₂, energía, agua, moral) | Samuel | ✅ Hecho |
+| P0-05 | Informe de misión con rango | Samuel | ✅ Hecho |
+| P0-06 | Deploy público con link sin login | David | 🔴 Pendiente |
+| P0-07 | Video de 30 s con subtítulos | Leo | 🔴 Pendiente |
+| P0-08 | Deck de 7 slides | Leo | 🔴 Pendiente |
+| P0-09 | Submission en inglés | Andy | 🔴 Pendiente |
+
+## P1 — Diferenciador
+
+| # | Tarea | Dueño | Estado |
+|---|---|---|---|
+| P1-01 | Tarjeta compartible del informe (imagen o URL) | Samuel | 🔴 |
+| P1-02 | Sonido/animación de sistema fallando | Leo | 🔴 |
+| P1-03 | Más categorías: comida, traje, reentrada | Jorge | 🔴 |
+| P1-04 | Explicación con “sabías que” y link a HRP | Jorge | 🔴 |
+| P1-05 | Modo aula (sin puntaje, solo aprender) | Andy | 🔴 |
+
+## P2 — Bonus
+
+| # | Tarea | Dueño | Estado |
+|---|---|---|---|
+| P2-01 | Ranking local (solo en el dispositivo) | David | 🔴 |
+| P2-02 | Preguntas en inglés | Leo | 🔴 |
+| P2-03 | Ilustraciones propias por categoría | Leo | 🔴 |
+| P2-04 | Exportar informe a PDF | David | 🔴 |
 
 ---
 
-## Cómo se toma una tarea
+## Reglas
 
-1. Elegí una tarea **P0** que no esté tomada.
-2. Abrí un issue con el ID (`P0-03`).
-3. Creá una rama `feat/p0-03-fetch-cutouts`.
-4. Hacé el cambio más chico que funcione.
-5. Abrí un PR y pedí review.
-6. Cuando se mergea, mové la tarjeta a “Done”.
-
----
-
-## Definition of Ready (para tomar una tarea)
-
-- [ ] Está clara la salida (qué archivo/función/pantalla).
-- [ ] Sé cómo probarla.
-- [ ] No depende de algo que no existe.
-- [ ] Está en el backlog con prioridad.
-- [ ] Tiene **contrato de datos**: dataset, API/endpoint, campos, caché y fallback.
-- [ ] Usa solo datos del inventario (`docs/08`, tabla 0.1) o justifica uno nuevo.
-
-## Definition of Done
-
-- [ ] Funciona en la demo.
-- [ ] Está documentada en una línea.
-- [ ] No rompe `main`.
-- [ ] Tiene PR mergeado.
-- [ ] Si usa datos, hay script/caché identificable.
-- [ ] Si usa IA, está declarado.
+- Si una tarea P0 no está lista al checkpoint, se recorta alcance (no calidad).
+- Cada tarea entra por un issue con la plantilla **Tarea**.
+- Si toca datos, lleva el contrato de `docs/08-contenido-y-datos.md`.

@@ -79,10 +79,11 @@ Completar:
 
 | Dato/recurso | Misión/archivo | URL | Uso en el proyecto |
 |---|---|---|---|
-| SPHEREx DR1 | NASA SPHEREx / IRSA | https://irsa.ipac.caltech.edu/ | Imágenes y cutouts |
-| SIA2 | IVOA/IRSA | https://irsa.ipac.caltech.edu/SIA | Búsqueda de imágenes |
-| HiPS cube | NASA SPHEREx / IRSA | https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube | 102 bandas |
-| *(otros)* | | | |
+| NASA Human Research Program | HRP | https://www.nasa.gov/hrp/ | Salud, hueso, sueño, visión |
+| NASA NTRS | NTRS | https://ntrs.nasa.gov/ | Papers de soporte vital y combustión |
+| ISS / ECLSS | NASA | https://www.nasa.gov/international-space-station/ | Atmósfera, agua, oxígeno |
+| Artemis | NASA | https://www.nasa.gov/artemis/ | Contexto de misión y Luna |
+| NASA Image Library | NASA | https://images.nasa.gov/ | Imágenes de apoyo |
 
 **Regla:** al menos uno debe ser **central** para la solución, no decorativo.
 
@@ -105,18 +106,19 @@ Responder:
 
 Listar **todo**:
 - Código de terceros (Astropy, NumPy, Pillow, React, etc.).
-- Datos (NASA/SPHEREx, IRSA, catálogos).
-- Imágenes (NASA Images, APOD, capturas propias).
+- Datos (NASA HRP, NTRS, ECLSS, Artemis).
+- Imágenes (NASA Images, capturas propias).
 - Papers o documentación.
 - Herramientas de IA.
 - Música (si hay, libre de derechos).
 
 **Formato sugerido:**
 ```text
-- NASA/SPHEREx DR1, IRSA/Caltech. https://irsa.ipac.caltech.edu/
-- Astropy Collaboration et al. (2022). https://www.astropy.org/
-- React, Vite, Tailwind CSS. https://react.dev/
-- Imagen de portada: NASA/JPL-Caltech (dominio público).
+- NASA Human Research Program. https://www.nasa.gov/hrp/
+- NASA Technical Reports Server (NTRS). https://ntrs.nasa.gov/
+- NASA — International Space Station / ECLSS. https://www.nasa.gov/international-space-station/
+- FastAPI. https://fastapi.tiangolo.com/
+- Imagen de portada: NASA (dominio público).
 ```
 
 ---
@@ -124,10 +126,10 @@ Listar **todo**:
 ## 8. Textos listos para copiar/pegar
 
 ### High-Level Summary (borrador)
-> SkyBlink is a public web tool that lets anyone explore how the sky changes over time using NASA's SPHEREx mission. Enter a coordinate and watch a movie of that patch across epochs, toggle difference mode, and slide through 102 infrared bands. SkyBlink flags moving candidates and extracts quick-look spectra, turning billions of SPHEREx measurements into a discovery experience for students, educators, and citizen scientists.
+> Mission Trainer is a short, playable trivia that teaches what it takes to keep a lunar outpost alive. Players act as a junior astronaut: every wrong answer shuts down a system (oxygen, power, water, morale) and NASA-sourced explanations show why. In under two minutes, students learn the real constraints of living in space, and leave with a mission report and the systems they should review.
 
 ### Detailed Description (borrador)
-> SPHEREx maps the entire sky every six months in 102 near-infrared bands, producing images of more than a billion objects. Finding moving objects—asteroids, comets, brown dwarfs—or variable stars by eye is impossible at this scale. SkyBlink addresses this by combining IRSA's SIA2 image search, the SPHEREx cutout service, and the all-sky HiPS cube into a single public interface. Users select a sky patch, browse a time-ordered sequence of images, and use a blink comparator and difference mode to spot changes. A 102-band slider provides spectral context, and a candidate panel highlights moving sources with centroid tracks. The tool is built with FastAPI, Astropy, React, and cached precomputed frames so it works reliably during demonstrations. All data comes from NASA's SPHEREx archive at IRSA.
+> Space education is usually reading or watching. Missions are decided by trade-offs, so we built a game where decisions have consequences. Mission Trainer presents 24 questions across six systems — atmosphere, life support, power, health, fire and communications — written from NASA Human Research Program, NTRS, ISS/ECLSS and Artemis material. Each question includes an explanation, the operational consequence of getting it wrong, and a link to the NASA source. Four resources react to the player's answers, and a final mission report assigns a rank and lists the systems to study. The game is a static web client served by FastAPI, with the question bank stored as a validated JSON file, so it runs offline in classrooms with no accounts, no tracking and no build step.
 
 ### Use of SI (borrador)
 > We used SI tools for code scaffolding, documentation drafting, and translation. All scientific results, data processing, and final decisions were reviewed by the team. SI-generated images (if any) are watermarked. No SI tool was used to generate scientific data or to replace the team's analysis.

@@ -6,6 +6,11 @@
 
 ---
 
+## Reto elegido
+
+> **Elegido:** #3 **Build a Junior Astronaut Mission Trainer**, en formato trivia.
+> El resto de los retos queda como referencia y como plan B.
+
 ## Estado de esta documentación
 
 | Nivel | Qué incluye | Cobertura |

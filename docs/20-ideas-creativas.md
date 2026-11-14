@@ -1,6 +1,7 @@
 # 20 — 14 ideas creativas (una por reto)
 
 > **Regla:** cada idea tiene que ser **coherente con el reto** pero **no la solución obvia**. Buscamos un “twist” que haga que el jurado recuerde el proyecto, sin perder ciencia ni datos.
+> **Resultado de la votación:** #3 *Delay* derivó en el reto elegido, **Junior Astronaut Mission Trainer en formato trivia**. Ver [01-decision-challenge.md](01-decision-challenge.md).
 > **Versión visual:** [`guides/dist/05-ideas.pdf`](../guides/dist/05-ideas.pdf) — las 14 ideas en una página, para votar en equipo.
 > **Cómo leer:** Idea → Twist → Interacción → Dato NASA → Demo 30 s → Fit con el reto → Riesgo.
 

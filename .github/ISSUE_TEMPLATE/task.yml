@@ -31,11 +31,11 @@ body:
       label: Contrato de datos
       description: Dataset, API/endpoint, campos, caché y fallback.
       placeholder: |
-        Dataset: SPHEREx DR1
-        API: SIA2 + Cutout
-        Campos: obs_id, t_min, access_url, IMAGE, FLAGS
-        Caché: data/cache/<slug>/
-        Fallback: CSV + FITS cacheados
+        Dataset: NASA HRP / NTRS
+        API: /api/quiz + /api/answer
+        Campos: id, category, prompt, options, answer, source
+        Archivo: data/questions.json
+        Fallback: banco local, sin red
         Qué puedo afirmar:
         Qué NO puedo afirmar:
     validations:

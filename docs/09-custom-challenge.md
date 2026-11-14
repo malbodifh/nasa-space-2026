@@ -124,7 +124,7 @@ Si la idea depende de uno de estos, **no se puede hacer con lo que tenemos**.
 - [ ] Igual documentar uso de IA.
 
 ### 4.2 Cómo elegir el problema
-1. Elegir un **dolor operativo** (Parte B de [08-problemas-astrofisica.md](08-problemas-astrofisica.md)), no una pregunta científica grande.
+1. Elegir un **dolor operativo** (Parte B de [08-contenido-y-datos.md](08-contenido-y-datos.md)), no una pregunta científica grande.
 2. Verificar que los datos estén disponibles **hoy**.
 3. Poder explicarlo en una frase.
 4. Poder mostrar algo funcionando en 48 h.

@@ -9,7 +9,7 @@
 
 1. Leer [`documentacion.md`](../documentacion.md) — estado y decisiones.
 2. Leer [`docs/00-equipo-y-reglas.md`](00-equipo-y-reglas.md) — cómo trabajamos.
-3. Leer [`docs/01-decision-challenge.md`](01-decision-challenge.md) — por qué SPHEREx.
+3. Leer [`docs/01-decision-challenge.md`](01-decision-challenge.md) — por qué la trivia de astronauta junior.
 
 ---
 
@@ -19,7 +19,7 @@
 |---|---|---|
 | Python, datos, FITS | Backend/datos | `scripts/query_sia2.py`, `src/backend/` |
 | React, diseño de UI | Frontend | `src/frontend/` |
-| Astronomía, validar | Ciencia/QA | `docs/03-spherex-tecnico.md`, targets |
+| Ciencia/validar | Ciencia/QA | `docs/04-datos-nasa.md`, `data/questions.json` |
 | Diseño, video, pitch | Diseño/storytelling | `docs/07-pitch-30s.md`, `assets/` |
 | Organizar, integrar | Lead/producto | `documentacion.md`, `docs/06-plan-48h.md` |
 

@@ -14,7 +14,7 @@
   paper: "a4",
   margin: (x: 1.3cm, y: 1.15cm),
   footer: align(center)[
-    #text(size: 7.5pt, fill: muted)[Astral Codes · NASA Space Apps Challenge 2026 · SkyBlink]
+    #text(size: 7.5pt, fill: muted)[Astral Codes · NASA Space Apps Challenge 2026 · Mission Trainer]
   ],
 )
 #set text(font: ("Noto Sans", "DejaVu Sans"), size: 9.4pt, fill: ink)

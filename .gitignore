@@ -40,3 +40,6 @@ Thumbs.db
 *.key
 *.pem
 secrets/
+
+# Backups de ideas descartadas (solo local, no se versiona)
+backups/*/*/cache/

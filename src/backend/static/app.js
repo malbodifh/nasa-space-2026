@@ -1,0 +1,175 @@
+// Mission Trainer — estado del cliente y render.
+const RESOURCES = ["o2", "energia", "agua", "moral"];
+const PENALTY = 10;
+
+const state = {
+  questions: [],
+  index: 0,
+  score: 0,
+  streak: 0,
+  maxStreak: 0,
+  resources: { o2: 100, energia: 100, agua: 100, moral: 100 },
+  answered: [],
+  locked: false,
+};
+
+const $ = (id) => document.getElementById(id);
+const screens = { start: $("start"), game: $("game"), report: $("report") };
+
+function show(name) {
+  for (const [key, el] of Object.entries(screens)) el.hidden = key !== name;
+  $("hud").hidden = name === "start";
+}
+
+function reset() {
+  state.questions = [];
+  state.index = 0;
+  state.score = 0;
+  state.streak = 0;
+  state.maxStreak = 0;
+  state.resources = { o2: 100, energia: 100, agua: 100, moral: 100 };
+  state.answered = [];
+  state.locked = false;
+  renderResources();
+}
+
+function renderResources() {
+  for (const key of RESOURCES) {
+    const el = document.querySelector(`.resource[data-resource="${key}"]`);
+    const value = Math.max(0, state.resources[key]);
+    el.querySelector("i").style.width = `${value}%`;
+    el.classList.toggle("low", value <= 30);
+  }
+}
+
+async function start() {
+  const count = Number($("count").value);
+  const res = await fetch(`/api/quiz?n=${count}`);
+  const data = await res.json();
+  reset();
+  state.questions = data.questions;
+  show("game");
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = state.questions[state.index];
+  state.locked = false;
+  $("progress").textContent = `Pregunta ${state.index + 1} de ${state.questions.length} · ${q.category_label}`;
+  $("streak").textContent = state.streak >= 2 ? `racha ×${state.streak}` : "";
+  $("prompt").textContent = q.prompt;
+  $("feedback").hidden = true;
+
+  const options = $("options");
+  options.innerHTML = "";
+  q.options.forEach((text, i) => {
+    const btn = document.createElement("button");
+    btn.className = "option";
+    btn.textContent = `${i + 1}. ${text}`;
+    btn.addEventListener("click", () => answer(q, i, btn));
+    options.appendChild(btn);
+  });
+}
+
+async function answer(question, choice, button) {
+  if (state.locked) return;
+  state.locked = true;
+  for (const btn of $("options").querySelectorAll("button")) btn.disabled = true;
+
+  const res = await fetch("/api/answer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: question.id, choice }),
+  });
+  const data = await res.json();
+
+  if (data.correct) {
+    state.streak += 1;
+    state.maxStreak = Math.max(state.maxStreak, state.streak);
+    state.score += 100 + (state.streak >= 3 ? 25 * state.streak : 0);
+    button.classList.add("correct");
+  } else {
+    state.streak = 0;
+  state.maxStreak = 0;
+    button.classList.add("wrong");
+    state.resources[data.resource] -= PENALTY;
+    const correctBtn = $("options").querySelectorAll("button")[data.answer];
+    if (correctBtn) correctBtn.classList.add("correct");
+    state.answered.push({
+      category: question.category_label,
+      prompt: question.prompt,
+      source: data.source.url,
+    });
+  }
+
+  renderResources();
+
+  const verdict = $("verdict");
+  verdict.textContent = data.correct ? "Correcto. Sistema estable." : "Ahí falló un sistema.";
+  verdict.className = `verdict ${data.correct ? "ok" : "bad"}`;
+  $("explanation").textContent = data.explanation;
+  $("consequence").textContent = data.consequence;
+  $("source").href = data.source.url;
+  $("source").textContent = `Fuente: ${data.source.title} →`;
+  $("feedback").hidden = false;
+  $("next").textContent = state.index === state.questions.length - 1 ? "Ver informe" : "Siguiente";
+}
+
+function next() {
+  state.index += 1;
+  if (state.index >= state.questions.length) return report();
+  renderQuestion();
+}
+
+function report() {
+  const total = state.questions.length;
+  const hits = total - state.answered.length;
+  const rank =
+    hits >= 18 ? "Comandante" :
+    hits >= 12 ? "Oficial de misión" :
+    hits >= 6 ? "Especialista" : "Cadete";
+  const message =
+    hits >= 18 ? "Listo para Artemis." :
+    hits >= 12 ? "El puesto confía en vos." :
+    hits >= 6 ? "Ya podés cuidar un sistema." : "Todo astronauta empieza acá.";
+
+  $("rank").textContent = `${rank} · ${hits}/${total} aciertos`;
+  $("rank-msg").textContent = message;
+  $("score").textContent = `${state.score} puntos · racha máxima ×${state.maxStreak}`;
+
+  const list = $("failed");
+  list.innerHTML = "";
+  if (state.answered.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "Ninguno: misión perfecta.";
+    list.appendChild(li);
+  } else {
+    const seen = new Set();
+    for (const a of state.answered) {
+      if (seen.has(a.category)) continue;
+      seen.add(a.category);
+      const li = document.createElement("li");
+      li.textContent = `${a.category}: ${a.prompt}`;
+      list.appendChild(li);
+    }
+  }
+  show("report");
+}
+
+$("start-btn").addEventListener("click", start);
+$("next").addEventListener("click", next);
+$("again").addEventListener("click", () => {
+  reset();
+  show("start");
+});
+
+document.addEventListener("keydown", (event) => {
+  if (!screens.game.hidden) {
+    if (event.key === "Enter" && !$("feedback").hidden) next();
+    const n = Number(event.key);
+    if (n >= 1 && n <= 4) {
+      const btn = $("options").querySelectorAll("button")[n - 1];
+      if (btn && !btn.disabled) btn.click();
+    }
+  }
+});
