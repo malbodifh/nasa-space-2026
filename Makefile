@@ -45,10 +45,12 @@ guides: ## Compilar las guías Typst a PDF y PNG
 	$(TYPST) compile guides/02-benchmark.typ guides/dist/02-benchmark.pdf
 	$(TYPST) compile guides/03-plan-48h.typ guides/dist/03-plan-48h.pdf
 	$(TYPST) compile guides/04-pitch.typ guides/dist/04-pitch.pdf
+	$(TYPST) compile guides/05-ideas.typ guides/dist/05-ideas.pdf
 	$(TYPST) compile --format png --ppi 200 guides/01-rubrica.typ "guides/dist/01-rubrica-{p}.png"
 	$(TYPST) compile --format png --ppi 200 guides/02-benchmark.typ "guides/dist/02-benchmark-{p}.png"
 	$(TYPST) compile --format png --ppi 200 guides/03-plan-48h.typ "guides/dist/03-plan-48h-{p}.png"
 	$(TYPST) compile --format png --ppi 200 guides/04-pitch.typ "guides/dist/04-pitch-{p}.png"
+	$(TYPST) compile --format png --ppi 200 guides/05-ideas.typ "guides/dist/05-ideas-{p}.png"
 	@echo "Guías en guides/dist/"
 
 precompute: ## Precomputar WISE 0855 y Barnard's Star (requiere red)

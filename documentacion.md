@@ -48,6 +48,7 @@
 - [Benchmark — qué existe y nuestro hueco](guides/dist/02-benchmark.pdf)
 - [Plan 48 h — quién hace qué](guides/dist/03-plan-48h.pdf)
 - [Pitch — storyboard de 30 s](guides/dist/04-pitch.pdf)
+- [Ideas — 14 retos en una página](guides/dist/05-ideas.pdf)
 
 ---
 

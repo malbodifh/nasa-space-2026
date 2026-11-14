@@ -126,6 +126,7 @@ guides/dist/
 ├── 02-benchmark.pdf
 ├── 03-plan-48h.pdf
 ├── 04-pitch.pdf
+├── 05-ideas.pdf
 ├── 01-rubrica-1.png
 ├── ...
 ```
@@ -136,6 +137,7 @@ guides/dist/
 - `guides/02-benchmark.typ` — competidores y diferenciación.
 - `guides/03-plan-48h.typ` — cronograma y roles.
 - `guides/04-pitch.typ` — storyboard del video de 30 s.
+- `guides/05-ideas.typ` — las 14 ideas en una página, para la votación.
 
 ### Requisito
 Typst 0.15+ (`typst --version`).
