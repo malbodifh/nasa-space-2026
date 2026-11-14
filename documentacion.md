@@ -26,6 +26,7 @@
 - [Los 14 retos: comparación, fichas y votación](docs/02-challenges-2026.md)
 - [Investigación: alerta temprana de desastres con datos NASA](docs/22-investigacion-desastres.md)
 - [Plan de la app web (Next.js + TypeScript + Tailwind)](docs/23-plan-app.md)
+- [Arquitectura de la app (capas, contratos y deploy)](docs/24-arquitectura-app.md)
 - [Workflow del equipo](docs/18-workflow.md)
 - [Herramientas del repo](docs/19-herramientas.md)
 - [Bitácora del reinicio](docs/bitacora/2026-11-14.md)
@@ -102,6 +103,7 @@ NASA SPACEAPPS/
 | 2026-11-14 | La documentación vive en `.md`; `guides/` solo maqueta | Documentar en PDF | Equipo | **Aprobada** |
 | 2026-11-14 | Explorar alerta temprana de desastres con datos NASA | Otras ideas | Equipo | **En investigación** |
 | 2026-11-14 | Stack de la app: Next.js + TypeScript + Tailwind + MapLibre | Vanilla JS, React+Vite | Equipo | **Aprobada** |
+| 2026-11-14 | Arquitectura: monolito Next con Route Handlers, sin base de datos | Backend aparte, Postgres | Equipo | **Aprobada** |
 
 ---
 

@@ -2,6 +2,8 @@
 
 > **Stack decidido:** Next.js + TypeScript + Tailwind CSS.
 > **Estado:** planificación. No hay código todavía.
+> **Arquitectura:** [`24-arquitectura-app.md`](24-arquitectura-app.md) define capas, contratos,
+> caché y deploy. Este documento define el producto, el flujo y el plan de 12 h.
 > **Supuesto de trabajo:** la app es una cáscara multi-riesgo, pero el MVP implementa **un**
 > hazard. El hazard y la región se eligen antes de escribir la primera línea.
 
