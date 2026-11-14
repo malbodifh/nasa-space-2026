@@ -100,7 +100,7 @@ NASA SPACEAPPS/
 ├── src/backend/
 │   ├── app/                   # FastAPI: main.py, quiz.py
 │   └── static/                # juego: index.html, app.js, styles.css
-├── data/questions.json        # banco de 24 preguntas (contrato en docs/08)
+├── data/questions.json        # banco de 32 preguntas (contrato en docs/08)
 ├── tests/                     # contrato del banco + endpoints
 └── .venv/                     # entorno local (gitignored)
 ```
@@ -126,7 +126,7 @@ NASA SPACEAPPS/
 - Se revisaron los 14 challenges oficiales 2026 y se descartó “Create Your Own Challenge” para Global Judging.
 - Se validó el pipeline de SPHEREx (SIA2 + cutouts + alineación) y se archivó en `backups/ideas/spherex/`.
 - **Decisión: reto #3 Junior Astronaut Mission Trainer, en formato trivia.**
-- Se armó el banco de 24 preguntas con fuente NASA, la API y un frontend jugable sin `npm`.
+- Se armó el banco de 32 preguntas con fuente NASA, la API y un frontend jugable sin `npm`.
 - Pendiente: roles, deploy, video de 30 s y submission.
 
 Detalle completo en [docs/bitacora/2026-11-14.md](docs/bitacora/2026-11-14.md).
@@ -168,7 +168,7 @@ Detalle completo en [docs/bitacora/2026-11-14.md](docs/bitacora/2026-11-14.md).
 | Docs | 🟢 Actualizadas | 21 documentos + guías visuales |
 | Equipo/roles | 🟡 Parcial | Falta confirmar disponibilidad |
 | Repo | 🟢 Operativo | 8 ramas, CI activo en `main` |
-| Contenido | 🟢 24 preguntas | 6 categorías × 4, con fuente |
+| Contenido | 🟢 32 preguntas | 7 categorías, con fuente y gancho |
 | Backend | 🟢 Funcional | `/api/quiz`, `/api/answer`, `/api/categories` |
 | Frontend | 🟢 Jugable | HTML+JS estático, verificado en navegador |
 | Deploy | 🔴 Pendiente | — |

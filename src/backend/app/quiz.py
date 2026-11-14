@@ -18,13 +18,14 @@ CATEGORY_LABELS = {
     "salud": "Salud",
     "fuego": "Fuego",
     "comms": "Comunicaciones",
+    "entrenamiento": "Entrenamiento",
 }
 
 RANKS = [
-    (18, "Comandante", "Listo para Artemis."),
-    (12, "Oficial de misión", "El puesto confía en vos."),
-    (6, "Especialista", "Ya podés cuidar un sistema."),
-    (0, "Cadete", "Todo astronauta empieza acá."),
+    (0.75, "Comandante", "Listo para Artemis."),
+    (0.50, "Oficial de misión", "El puesto confía en vos."),
+    (0.25, "Especialista", "Ya podés cuidar un sistema."),
+    (0.0, "Cadete", "Todo astronauta empieza acá."),
 ]
 
 
@@ -77,17 +78,20 @@ def check_answer(question: dict, choice: int) -> dict:
         "answer": question["answer"],
         "explanation": question["explanation"],
         "consequence": question["consequence"],
+        "scenario": question.get("scenario", ""),
+        "hook": question.get("hook", ""),
         "resource": question["resource"],
         "source": question["source"],
     }
 
 
-def rank_for(score: int) -> dict:
-    """Rango final según aciertos (0-24)."""
+def rank_for(hits: int, total: int) -> dict:
+    """Rango final según proporción de aciertos (sirve para cualquier largo de partida)."""
+    ratio = hits / total if total else 0.0
     for threshold, name, message in RANKS:
-        if score >= threshold:
-            return {"name": name, "message": message, "next_threshold": threshold}
-    return {"name": "Cadete", "message": "Todo astronauta empieza acá.", "next_threshold": 0}
+        if ratio >= threshold:
+            return {"name": name, "message": message, "ratio": round(ratio, 2)}
+    return {"name": "Cadete", "message": "Todo astronauta empieza acá.", "ratio": 0.0}
 
 
 def validate_bank(questions: list[dict]) -> list[str]:
@@ -111,6 +115,10 @@ def validate_bank(questions: list[dict]) -> list[str]:
             errors.append(f"{qid}: prompt > 140 caracteres")
         if len(q.get("explanation", "")) > 240:
             errors.append(f"{qid}: explanation > 240 caracteres")
+        if len(q.get("scenario", "")) > 160:
+            errors.append(f"{qid}: scenario > 160 caracteres")
+        if len(q.get("hook", "")) > 90:
+            errors.append(f"{qid}: hook > 90 caracteres")
         if not q.get("source", {}).get("url", "").startswith("https://"):
             errors.append(f"{qid}: source.url inválida")
     return errors

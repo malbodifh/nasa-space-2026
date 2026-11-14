@@ -47,8 +47,9 @@ Si un recurso llega a 0, se dispara un **evento de emergencia** (una pregunta ex
 | 8 | Fuego | Seguridad | ¿Cómo es una llama en microgravedad? |
 | 9 | Comms | Latencia | ¿Cuánto tarda una señal a Marte? |
 | 10 | Regreso | Reentrada | ¿Qué protege la cápsula al volver? |
+| 11 | Preparación | Entrenamiento | ¿Para qué se entrena bajo el agua? |
 
-El MVP implementa **6 categorías** (3 a 8) y deja el resto como P1.
+El MVP implementa **7 categorías** (3 a 8 + entrenamiento) y deja reentrada como P1.
 
 ## 5. Puntaje y rangos
 
@@ -60,10 +61,10 @@ error = 0 pts y -10 al recurso de la categoría
 
 | Rango | Aciertos | Mensaje |
 |---|---|---|
-| **Cadete** | 0–5 | “Todo astronauta empieza acá.” |
-| **Especialista** | 6–11 | “Ya podés cuidar un sistema.” |
-| **Oficial de misión** | 12–17 | “El puesto confía en vos.” |
-| **Comandante** | 18–24 | “Listo para Artemis.” |
+| **Cadete** | < 25 % | “Todo astronauta empieza acá.” |
+| **Especialista** | ≥ 25 % | “Ya podés cuidar un sistema.” |
+| **Oficial de misión** | ≥ 50 % | “El puesto confía en vos.” |
+| **Comandante** | ≥ 75 % | “Listo para Artemis.” |
 
 ## 6. Informe de misión (final)
 
@@ -84,3 +85,34 @@ error = 0 pts y -10 al recurso de la categoría
 - No es un examen: no hay nota ni vergüenza pública.
 - No es un juego de reflejos: el tiempo no penaliza.
 - No inventa ciencia: si no hay fuente, la pregunta no entra.
+
+
+---
+
+## 9. Feedback en tres capas (el “gancho”)
+
+La pregunta no enseña: enseña lo que pasa **después** de responder. Cada respuesta muestra:
+
+```text
+[1] VEREDICTO      "Correcto. Sistema estable." / "Ahí falló un sistema."
+[2] ESCENARIO      Una situación concreta: "Estás en el módulo Columbus y suena la alarma…"
+[3] POR QUÉ        Una línea de explicación + la consecuencia operativa
+[4] DATO ANCLA     Un dato corto y memorable ("★ El agua es el escudo más barato que existe")
+[5] FUENTE         Link NASA con la afirmación
+```
+
+### Reglas para que no se sienta estudiar
+
+1. **Una idea por respuesta.** Si necesita dos párrafos, es otra pregunta.
+2. **Escenario antes que teoría.** Primero “estás ahí”, después el concepto.
+3. **Máximo 3 bloques de texto** y ninguno de más de 2 líneas.
+4. **El error no reta, contextualiza:** “ahí falló un sistema”, nunca “mal”.
+5. **Dato ancla en cada respuesta**, incluso cuando acertás: el que acierta también aprende.
+6. **Sin jerga sin traducir:** si aparece “ECLSS”, se explica en la misma tarjeta.
+7. **Progresión:** fácil → media → difícil dentro de la partida.
+
+### Por qué funciona
+
+- El jugador **decide** (generación de efecto) antes de leer la explicación.
+- La consecuencia conecta el dato con una situación real (transferencia).
+- El dato ancla da una frase repetible para contar después (retención).

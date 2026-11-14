@@ -9,7 +9,7 @@
 
 | # | Tarea | Dueño | Estado |
 |---|---|---|---|
-| P0-01 | Banco de 24 preguntas con fuente NASA | Jorge | ✅ Hecho |
+| P0-01 | Banco de 32 preguntas con fuente NASA | Jorge | ✅ Hecho |
 | P0-02 | API `/api/quiz`, `/api/answer`, `/api/categories` | David | ✅ Hecho |
 | P0-03 | Pantalla de juego con opciones y feedback | Samuel | ✅ Hecho |
 | P0-04 | Recursos (O₂, energía, agua, moral) | Samuel | ✅ Hecho |

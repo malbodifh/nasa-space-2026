@@ -39,7 +39,7 @@ El trabajo de SPHEREx quedó archivado en [`backups/ideas/spherex/`](../backups/
 
 **Sí entra:**
 - 1 escenario: **puesto lunar Artemis**.
-- 6 categorías × 4 preguntas = **24 preguntas**.
+- 7 categorías, **32 preguntas** (entrenamiento aporta 8).
 - Barra de recursos (O2, energía, agua, moral) que baja con los errores.
 - Explicación + fuente NASA en **cada** respuesta.
 - Informe final con rango y tarjeta compartible.

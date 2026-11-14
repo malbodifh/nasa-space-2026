@@ -11,6 +11,7 @@ const state = {
   resources: { o2: 100, energia: 100, agua: 100, moral: 100 },
   answered: [],
   locked: false,
+  loading: false,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -43,13 +44,20 @@ function renderResources() {
 }
 
 async function start() {
-  const count = Number($("count").value);
-  const res = await fetch(`/api/quiz?n=${count}`);
-  const data = await res.json();
-  reset();
-  state.questions = data.questions;
-  show("game");
-  renderQuestion();
+  if (state.loading) return;
+  state.loading = true;
+  try {
+    const count = Number($("count").value);
+    const res = await fetch(`/api/quiz?n=${count}`);
+    const data = await res.json();
+    reset();
+    state.questions = data.questions;
+    state.index = 0;
+    show("game");
+    renderQuestion();
+  } finally {
+    state.loading = false;
+  }
 }
 
 function renderQuestion() {
@@ -82,6 +90,7 @@ async function answer(question, choice, button) {
     body: JSON.stringify({ id: question.id, choice }),
   });
   const data = await res.json();
+  if (data.id !== question.id) return; // respuesta de otra partida: se ignora
 
   if (data.correct) {
     state.streak += 1;
@@ -107,8 +116,11 @@ async function answer(question, choice, button) {
   const verdict = $("verdict");
   verdict.textContent = data.correct ? "Correcto. Sistema estable." : "Ahí falló un sistema.";
   verdict.className = `verdict ${data.correct ? "ok" : "bad"}`;
+  $("scenario").textContent = data.scenario;
   $("explanation").textContent = data.explanation;
   $("consequence").textContent = data.consequence;
+  $("hook").textContent = data.hook;
+  $("hook").hidden = !data.hook;
   $("source").href = data.source.url;
   $("source").textContent = `Fuente: ${data.source.title} →`;
   $("feedback").hidden = false;
@@ -124,14 +136,15 @@ function next() {
 function report() {
   const total = state.questions.length;
   const hits = total - state.answered.length;
+  const ratio = total ? hits / total : 0;
   const rank =
-    hits >= 18 ? "Comandante" :
-    hits >= 12 ? "Oficial de misión" :
-    hits >= 6 ? "Especialista" : "Cadete";
+    ratio >= 0.75 ? "Comandante" :
+    ratio >= 0.5 ? "Oficial de misión" :
+    ratio >= 0.25 ? "Especialista" : "Cadete";
   const message =
-    hits >= 18 ? "Listo para Artemis." :
-    hits >= 12 ? "El puesto confía en vos." :
-    hits >= 6 ? "Ya podés cuidar un sistema." : "Todo astronauta empieza acá.";
+    ratio >= 0.75 ? "Listo para Artemis." :
+    ratio >= 0.5 ? "El puesto confía en vos." :
+    ratio >= 0.25 ? "Ya podés cuidar un sistema." : "Todo astronauta empieza acá.";
 
   $("rank").textContent = `${rank} · ${hits}/${total} aciertos`;
   $("rank-msg").textContent = message;

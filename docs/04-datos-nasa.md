@@ -15,6 +15,7 @@
 | **NASA Image and Video Library** (`images-api.nasa.gov`) | Fotos para el juego y el pitch | API pública | ✅ 200 |
 | **NASA Artemis / Gateway** | Contexto de misión y nombres | Web público | ✅ |
 | **NASA Glenn / ISS ECLSS** | Reciclado de agua, atmósfera | Web público | ✅ |
+| **NASA Astronaut Training** (NBL, HERA, NEEMO, T-38) | Cómo se prepara la tripulación | Web público | ✅ |
 
 ## 2. Lo que NO usamos (y por qué)
 

@@ -69,8 +69,21 @@ def test_pick_quiz_respects_size_and_category() -> None:
     assert all(q["category"] == "salud" for q in picked)
 
 
-def test_rank_thresholds() -> None:
-    assert rank_for(0)["name"] == "Cadete"
-    assert rank_for(6)["name"] == "Especialista"
-    assert rank_for(12)["name"] == "Oficial de misión"
-    assert rank_for(20)["name"] == "Comandante"
+def test_rank_is_relative_to_mission_length() -> None:
+    # La misma proporción da el mismo rango en partidas de 10 o de 32.
+    assert rank_for(0, 10)["name"] == "Cadete"
+    assert rank_for(3, 10)["name"] == "Especialista"
+    assert rank_for(5, 10)["name"] == "Oficial de misión"
+    assert rank_for(8, 10)["name"] == "Comandante"
+    assert rank_for(24, 32)["name"] == "Comandante"
+
+
+def test_every_question_has_scenario_and_hook() -> None:
+    for question in load_questions():
+        assert question["scenario"].strip(), question["id"]
+        assert question["hook"].strip(), question["id"]
+
+
+def test_training_category_exists() -> None:
+    questions = load_questions()
+    assert sum(q["category"] == "entrenamiento" for q in questions) >= 6

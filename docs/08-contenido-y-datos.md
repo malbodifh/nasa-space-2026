@@ -18,6 +18,8 @@ Cada pregunta de `data/questions.json` debe cumplir:
 | `answer` | int | 0–3 |
 | `explanation` | string | ≤ 240 caracteres, explica el **por qué** |
 | `consequence` | string | qué pasa en la misión si fallás |
+| `scenario` | string | situación concreta, ≤ 160 caracteres |
+| `hook` | string | dato ancla memorable, ≤ 90 caracteres |
 | `resource` | `o2 \| energia \| agua \| moral` | recurso que baja |
 | `source` | `{title, url}` | NASA/HRP/NTRS obligatorio |
 | `tags` | string[] | para filtrar y para el informe |
@@ -40,6 +42,7 @@ Cada pregunta de `data/questions.json` debe cumplir:
 | Salud | Moral | Sueño, aislamiento, carga física |
 | Fuego | O₂ | Consumo y riesgo |
 | Comms | Moral | Aislamiento y retraso |
+| Entrenamiento | Moral | Confianza y preparación |
 
 ## 4. Contrato de la API
 
@@ -47,7 +50,7 @@ Cada pregunta de `data/questions.json` debe cumplir:
 |---|---|---|
 | `GET /api/categories` | lista con nombre y cantidad | — |
 | `GET /api/quiz?n=10` | preguntas sin `answer`/`explanation` | la respuesta |
-| `POST /api/answer` | `correct`, `explanation`, `consequence`, `source` | datos de otros jugadores |
+| `POST /api/answer` | `correct`, `scenario`, `explanation`, `consequence`, `hook`, `source` | datos de otros jugadores |
 | `GET /api/questions` | banco completo (debug) | — |
 
 **Qué puedo afirmar:** el juego enseña conceptos publicados por NASA y cita cada uno.

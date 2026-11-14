@@ -2,7 +2,7 @@
 
 | Archivo | Qué es | ¿Se commitea? |
 |---|---|---|
-| `questions.json` | Banco de 24 preguntas con fuente NASA | ✅ Sí |
+| `questions.json` | Banco de 32 preguntas con fuente NASA | ✅ Sí |
 | `cache/` | Datos pesados de la idea SPHEREx (archivada) | ❌ No |
 
 ## Reglas

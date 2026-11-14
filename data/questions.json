@@ -4,316 +4,837 @@
     "category": "atmosfera",
     "difficulty": "facil",
     "prompt": "¿Qué mezcla de gases se respira en la Estación Espacial Internacional?",
-    "options": ["Oxígeno puro al 100 %", "21 % oxígeno y 79 % nitrógeno", "50 % oxígeno y 50 % helio", "Aire con 5 % de CO₂"],
+    "options": [
+      "Oxígeno puro al 100 %",
+      "21 % oxígeno y 79 % nitrógeno",
+      "50 % oxígeno y 50 % helio",
+      "Aire con 5 % de CO₂"
+    ],
     "answer": 1,
     "explanation": "La ISS usa una mezcla parecida al aire de la Tierra: 21 % de oxígeno y 79 % de nitrógeno, a presión similar al nivel del mar.",
     "consequence": "Con oxígeno puro a presión normal, un chispa podría provocar un incendio mucho más violento.",
     "resource": "o2",
-    "source": { "title": "NASA — International Space Station", "url": "https://www.nasa.gov/international-space-station/" },
-    "tags": ["atmosfera", "iss"]
+    "source": {
+      "title": "NASA — International Space Station",
+      "url": "https://www.nasa.gov/international-space-station/"
+    },
+    "tags": [
+      "atmosfera",
+      "iss"
+    ],
+    "scenario": "Estás en el módulo Columbus y suena la alarma de calidad de aire.",
+    "hook": "La mezcla es la misma que respirás ahora: 21/79."
   },
   {
     "id": "atm-02",
     "category": "atmosfera",
     "difficulty": "media",
     "prompt": "¿Para qué se usa el nitrógeno en la atmósfera de la estación?",
-    "options": ["Para generar energía", "Para presurizar y reducir el riesgo de incendio", "Para filtrar el agua", "Para enfriar los paneles"],
+    "options": [
+      "Para generar energía",
+      "Para presurizar y reducir el riesgo de incendio",
+      "Para filtrar el agua",
+      "Para enfriar los paneles"
+    ],
     "answer": 1,
     "explanation": "El nitrógeno mantiene la presión total y baja la concentración de oxígeno, igual que en la Tierra. Eso reduce el riesgo de incendio.",
     "consequence": "Sin nitrógeno habría que respirar oxígeno puro, con mucho más peligro de fuego.",
     "resource": "o2",
-    "source": { "title": "NASA — ISS Environmental Control and Life Support", "url": "https://www.nasa.gov/international-space-station/" },
-    "tags": ["atmosfera", "nitrogeno"]
+    "source": {
+      "title": "NASA — ISS Environmental Control and Life Support",
+      "url": "https://www.nasa.gov/international-space-station/"
+    },
+    "tags": [
+      "atmosfera",
+      "nitrogeno"
+    ],
+    "scenario": "Un sensor marca exceso de oxígeno en el laboratorio.",
+    "hook": "Más oxígeno no es mejor: es más fuego."
   },
   {
     "id": "atm-03",
     "category": "atmosfera",
     "difficulty": "media",
     "prompt": "¿Qué sistema se encarga de sacar el CO₂ que exhala la tripulación?",
-    "options": ["Los paneles solares", "El removedor de CO₂ (CDRA)", "El tanque de agua", "El escudo térmico"],
+    "options": [
+      "Los paneles solares",
+      "El removedor de CO₂ (CDRA)",
+      "El tanque de agua",
+      "El escudo térmico"
+    ],
     "answer": 1,
     "explanation": "El CDRA (Carbon Dioxide Removal Assembly) captura el CO₂ del aire y lo devuelve al ciclo o lo ventila fuera de la estación.",
     "consequence": "Si el CO₂ sube, la tripulación siente dolor de cabeza y falta de aire.",
     "resource": "o2",
-    "source": { "title": "NASA — ISS Environmental Control and Life Support", "url": "https://www.nasa.gov/international-space-station/" },
-    "tags": ["atmosfera", "eclss", "co2"]
+    "source": {
+      "title": "NASA — ISS Environmental Control and Life Support",
+      "url": "https://www.nasa.gov/international-space-station/"
+    },
+    "tags": [
+      "atmosfera",
+      "eclss",
+      "co2"
+    ],
+    "scenario": "El sistema de CO₂ se detiene y la tripulación empieza a sentir dolor de cabeza.",
+    "hook": "El CO₂ no se ve, pero se siente como falta de aire."
   },
   {
     "id": "atm-04",
     "category": "atmosfera",
     "difficulty": "dificil",
     "prompt": "En el traje espacial (EMU), ¿qué se respira y a qué presión?",
-    "options": ["Aire normal a 1 atmósfera", "Oxígeno puro a ~0,3 atmósferas", "Helio a 2 atmósferas", "Nitrógeno puro"],
+    "options": [
+      "Aire normal a 1 atmósfera",
+      "Oxígeno puro a ~0,3 atmósferas",
+      "Helio a 2 atmósferas",
+      "Nitrógeno puro"
+    ],
     "answer": 1,
     "explanation": "El traje usa oxígeno puro a baja presión (unas 4,3 psi). Así el astronauta puede moverse sin que el traje se infle como un globo.",
     "consequence": "Antes de salir hay que descomprimirse para evitar la enfermedad por descompresión.",
     "resource": "o2",
-    "source": { "title": "NASA — Spacesuits", "url": "https://www.nasa.gov/humans-in-space/spacesuits/" },
-    "tags": ["atmosfera", "eva", "traje"]
+    "source": {
+      "title": "NASA — Spacesuits",
+      "url": "https://www.nasa.gov/humans-in-space/spacesuits/"
+    },
+    "tags": [
+      "atmosfera",
+      "eva",
+      "traje"
+    ],
+    "scenario": "Estás a punto de salir a reparar una antena.",
+    "hook": "El traje va a 4,3 psi: por eso te descomprimís antes."
   },
-
   {
     "id": "eclss-01",
     "category": "soporte-vital",
     "difficulty": "facil",
     "prompt": "¿Qué porcentaje del agua se recicla en la ISS?",
-    "options": ["Cerca del 30 %", "Cerca del 50 %", "Cerca del 93 %", "El 100 %"],
+    "options": [
+      "Cerca del 30 %",
+      "Cerca del 50 %",
+      "Cerca del 93 %",
+      "El 100 %"
+    ],
     "answer": 2,
     "explanation": "El sistema de soporte vital recupera alrededor del 93 % del agua, incluyendo la humedad del aire y la orina procesada.",
     "consequence": "Sin reciclado, cada tripulante necesitaría toneladas de agua enviadas desde la Tierra.",
     "resource": "agua",
-    "source": { "title": "NASA — Life Support Systems", "url": "https://www.nasa.gov/international-space-station/" },
-    "tags": ["eclss", "agua"]
+    "source": {
+      "title": "NASA — Life Support Systems",
+      "url": "https://www.nasa.gov/international-space-station/"
+    },
+    "tags": [
+      "eclss",
+      "agua"
+    ],
+    "scenario": "Quedan 3 días para el carguero y el tanque está al 40 %.",
+    "hook": "Cada kilo de agua cuesta miles de dólares de lanzamiento."
   },
   {
     "id": "eclss-02",
     "category": "soporte-vital",
     "difficulty": "media",
     "prompt": "¿Qué se hace con la orina de la tripulación?",
-    "options": ["Se ventila al espacio", "Se procesa para recuperar agua", "Se congela como lastre", "Se usa como combustible"],
+    "options": [
+      "Se ventila al espacio",
+      "Se procesa para recuperar agua",
+      "Se congela como lastre",
+      "Se usa como combustible"
+    ],
     "answer": 1,
     "explanation": "El procesador de orina destila el agua, que luego se purifica y vuelve al sistema. Es parte del ciclo cerrado de la estación.",
     "consequence": "Ventilarla sería desperdiciar el recurso más caro de transportar.",
     "resource": "agua",
-    "source": { "title": "NASA — Water Recovery System", "url": "https://www.nasa.gov/international-space-station/" },
-    "tags": ["eclss", "agua", "reciclado"]
+    "source": {
+      "title": "NASA — Water Recovery System",
+      "url": "https://www.nasa.gov/international-space-station/"
+    },
+    "tags": [
+      "eclss",
+      "agua",
+      "reciclado"
+    ],
+    "scenario": "La tripulación pregunta por qué el agua sabe distinto.",
+    "hook": "El agua de la ISS se recicla más que la de tu casa."
   },
   {
     "id": "eclss-03",
     "category": "soporte-vital",
     "difficulty": "media",
     "prompt": "¿Por qué el agua es un buen escudo contra la radiación?",
-    "options": ["Porque es fría", "Porque tiene mucho hidrógeno", "Porque refleja la luz", "Porque es transparente"],
+    "options": [
+      "Porque es fría",
+      "Porque tiene mucho hidrógeno",
+      "Porque refleja la luz",
+      "Porque es transparente"
+    ],
     "answer": 1,
     "explanation": "El hidrógeno del agua frena las partículas cargadas de la radiación espacial mejor que muchos metales.",
     "consequence": "Por eso los ingenieros ponen tanques de agua alrededor de zonas habitables.",
     "resource": "agua",
-    "source": { "title": "NASA HRP — Space Radiation", "url": "https://www.nasa.gov/hrp/" },
-    "tags": ["eclss", "radiacion", "escudo"]
+    "source": {
+      "title": "NASA HRP — Space Radiation",
+      "url": "https://www.nasa.gov/hrp/"
+    },
+    "tags": [
+      "eclss",
+      "radiacion",
+      "escudo"
+    ],
+    "scenario": "Una tormenta solar obliga a improvisar un refugio.",
+    "hook": "El agua es el escudo más barato que existe."
   },
   {
     "id": "eclss-04",
     "category": "soporte-vital",
     "difficulty": "dificil",
     "prompt": "¿Qué produce el sistema de electrólisis de la estación?",
-    "options": ["Agua a partir de hidrógeno", "Oxígeno a partir de agua", "Comida a partir de algas", "Nitrógeno a partir de amoníaco"],
+    "options": [
+      "Agua a partir de hidrógeno",
+      "Oxígeno a partir de agua",
+      "Comida a partir de algas",
+      "Nitrógeno a partir de amoníaco"
+    ],
     "answer": 1,
     "explanation": "La electrólisis separa el agua en oxígeno (para respirar) e hidrógeno (que se ventila o se usa en otros procesos).",
     "consequence": "Es la principal fuente de oxígeno respirable a bordo, además de los tanques de reserva.",
     "resource": "o2",
-    "source": { "title": "NASA — Oxygen Generation System", "url": "https://www.nasa.gov/international-space-station/" },
-    "tags": ["eclss", "oxigeno"]
+    "source": {
+      "title": "NASA — Oxygen Generation System",
+      "url": "https://www.nasa.gov/international-space-station/"
+    },
+    "tags": [
+      "eclss",
+      "oxigeno"
+    ],
+    "scenario": "Falla el tanque de oxígeno de reserva.",
+    "hook": "El O₂ que respirás puede salir de un vaso de agua."
   },
-
   {
     "id": "ener-01",
     "category": "energia",
     "difficulty": "facil",
     "prompt": "¿Cuánto dura la noche en la Luna?",
-    "options": ["12 horas", "24 horas", "Cerca de 14 días terrestres", "Un mes"],
+    "options": [
+      "12 horas",
+      "24 horas",
+      "Cerca de 14 días terrestres",
+      "Un mes"
+    ],
     "answer": 2,
     "explanation": "La Luna tarda unos 28 días en girar sobre sí misma, así que el día y la noche duran cerca de 14 días terrestres cada uno.",
     "consequence": "Sin luz solar, un puesto lunar depende de baterías o energía nuclear durante dos semanas.",
     "resource": "energia",
-    "source": { "title": "NASA Science — Moon", "url": "https://science.nasa.gov/moon/" },
-    "tags": ["energia", "luna"]
+    "source": {
+      "title": "NASA Science — Moon",
+      "url": "https://science.nasa.gov/moon/"
+    },
+    "tags": [
+      "energia",
+      "luna"
+    ],
+    "scenario": "El puesto lunar entra en sombra y los paneles dejan de cargar.",
+    "hook": "Una noche lunar dura lo mismo que dos semanas de vacaciones."
   },
   {
     "id": "ener-02",
     "category": "energia",
     "difficulty": "media",
     "prompt": "¿Cuánto dura un eclipse orbital en la ISS?",
-    "options": ["Unos 35 minutos", "Unas 3 horas", "Unos 5 minutos", "No hay eclipses en órbita"],
+    "options": [
+      "Unos 35 minutos",
+      "Unas 3 horas",
+      "Unos 5 minutos",
+      "No hay eclipses en órbita"
+    ],
     "answer": 0,
     "explanation": "La ISS da una vuelta a la Tierra cada ~92 minutos y pasa unos 35 minutos a la sombra, sin Sol para los paneles.",
     "consequence": "Las baterías tienen que cubrir ese tramo; si fallan, se apagan sistemas.",
     "resource": "energia",
-    "source": { "title": "NASA — International Space Station", "url": "https://www.nasa.gov/international-space-station/" },
-    "tags": ["energia", "iss", "eclipse"]
+    "source": {
+      "title": "NASA — International Space Station",
+      "url": "https://www.nasa.gov/international-space-station/"
+    },
+    "tags": [
+      "energia",
+      "iss",
+      "eclipse"
+    ],
+    "scenario": "Los sistemas piden energía y las baterías están al 30 %.",
+    "hook": "Cada órbita tiene su propio atardecer."
   },
   {
     "id": "ener-03",
     "category": "energia",
     "difficulty": "facil",
     "prompt": "¿Cómo obtiene electricidad la estación espacial?",
-    "options": ["Con un reactor nuclear", "Con paneles solares", "Con un generador diésel", "Con baterías de la Tierra"],
+    "options": [
+      "Con un reactor nuclear",
+      "Con paneles solares",
+      "Con un generador diésel",
+      "Con baterías de la Tierra"
+    ],
     "answer": 1,
     "explanation": "Los grandes paneles solares de la ISS convierten la luz del Sol en electricidad; las baterías guardan energía para la noche orbital.",
     "consequence": "Si un panel se daña, hay que redistribuir la carga entre los sistemas.",
     "resource": "energia",
-    "source": { "title": "NASA — International Space Station", "url": "https://www.nasa.gov/international-space-station/" },
-    "tags": ["energia", "solar"]
+    "source": {
+      "title": "NASA — International Space Station",
+      "url": "https://www.nasa.gov/international-space-station/"
+    },
+    "tags": [
+      "energia",
+      "solar"
+    ],
+    "scenario": "Un micrometeorito perfora un panel solar.",
+    "hook": "En el espacio no hay enchufes: hay Sol."
   },
   {
     "id": "ener-04",
     "category": "energia",
     "difficulty": "dificil",
     "prompt": "¿Por qué los paneles solares de la ISS giran?",
-    "options": ["Para evitar micrometeoritos", "Para seguir al Sol y maximizar la luz", "Para comunicarse con Tierra", "Para enfriarse"],
+    "options": [
+      "Para evitar micrometeoritos",
+      "Para seguir al Sol y maximizar la luz",
+      "Para comunicarse con Tierra",
+      "Para enfriarse"
+    ],
     "answer": 1,
     "explanation": "Los paneles rotan en dos ejes para quedar perpendiculares al Sol y generar la mayor cantidad de energía posible.",
     "consequence": "Si se traban, la estación pierde generación y hay que racionar electricidad.",
     "resource": "energia",
-    "source": { "title": "NASA — International Space Station", "url": "https://www.nasa.gov/international-space-station/" },
-    "tags": ["energia", "solar", "control"]
+    "source": {
+      "title": "NASA — International Space Station",
+      "url": "https://www.nasa.gov/international-space-station/"
+    },
+    "tags": [
+      "energia",
+      "solar",
+      "control"
+    ],
+    "scenario": "Los paneles dejan de seguir al Sol.",
+    "hook": "Un panel desalineado pierde más energía que uno sucio."
   },
-
   {
     "id": "salud-01",
     "category": "salud",
     "difficulty": "facil",
     "prompt": "¿Qué le pasa al hueso en microgravedad?",
-    "options": ["Se hace más fuerte", "Pierde densidad", "No cambia", "Se vuelve más flexible"],
+    "options": [
+      "Se hace más fuerte",
+      "Pierde densidad",
+      "No cambia",
+      "Se vuelve más flexible"
+    ],
     "answer": 1,
     "explanation": "Sin el estímulo del peso, el hueso pierde entre 1 % y 1,5 % de densidad por mes. Por eso hay ejercicio obligatorio a bordo.",
     "consequence": "Al volver a la Tierra, el riesgo de fractura aumenta hasta que se recupera la masa ósea.",
     "resource": "moral",
-    "source": { "title": "NASA HRP — Bone and Muscle Loss", "url": "https://www.nasa.gov/hrp/" },
-    "tags": ["salud", "hueso", "microgravedad"]
+    "source": {
+      "title": "NASA HRP — Bone and Muscle Loss",
+      "url": "https://www.nasa.gov/hrp/"
+    },
+    "tags": [
+      "salud",
+      "hueso",
+      "microgravedad"
+    ],
+    "scenario": "Después de seis meses en órbita te hacen una densitometría.",
+    "hook": "El hueso se va sin avisar: no duele."
   },
   {
     "id": "salud-02",
     "category": "salud",
     "difficulty": "media",
     "prompt": "¿Qué es el síndrome SANS?",
-    "options": ["Una falla del traje", "Cambios en la visión por la presión dentro del cráneo", "Una alergia alimentaria", "Un tipo de radiación"],
+    "options": [
+      "Una falla del traje",
+      "Cambios en la visión por la presión dentro del cráneo",
+      "Una alergia alimentaria",
+      "Un tipo de radiación"
+    ],
     "answer": 1,
     "explanation": "SANS (Spaceflight Associated Neuro-ocular Syndrome) agrupa cambios en el ojo y la visión asociados al desplazamiento de fluidos hacia la cabeza.",
     "consequence": "Puede afectar la vista en misiones largas; por eso se monitorea con ecografías y pruebas.",
     "resource": "moral",
-    "source": { "title": "NASA HRP — Vision Changes", "url": "https://www.nasa.gov/hrp/" },
-    "tags": ["salud", "vision", "sans"]
+    "source": {
+      "title": "NASA HRP — Vision Changes",
+      "url": "https://www.nasa.gov/hrp/"
+    },
+    "tags": [
+      "salud",
+      "vision",
+      "sans"
+    ],
+    "scenario": "Un astronauta reporta que ve borroso de un ojo.",
+    "hook": "La presión dentro de la cabeza también cambia la vista."
   },
   {
     "id": "salud-03",
     "category": "salud",
     "difficulty": "media",
     "prompt": "¿Cuánto ejercicio programado hace un astronauta en la ISS por día?",
-    "options": ["15 minutos", "30 minutos", "Cerca de 2 horas", "No hace ejercicio"],
+    "options": [
+      "15 minutos",
+      "30 minutos",
+      "Cerca de 2 horas",
+      "No hace ejercicio"
+    ],
     "answer": 2,
     "explanation": "La tripulación dedica alrededor de dos horas diarias a ejercicio aeróbico y de resistencia para frenar la pérdida de hueso y músculo.",
     "consequence": "Sin ese entrenamiento, el cuerpo se degrada más rápido de lo que se puede recuperar.",
     "resource": "moral",
-    "source": { "title": "NASA HRP — Exercise Countermeasures", "url": "https://www.nasa.gov/hrp/" },
-    "tags": ["salud", "ejercicio"]
+    "source": {
+      "title": "NASA HRP — Exercise Countermeasures",
+      "url": "https://www.nasa.gov/hrp/"
+    },
+    "tags": [
+      "salud",
+      "ejercicio"
+    ],
+    "scenario": "El cronograma del día tiene dos horas bloqueadas para ejercicio.",
+    "hook": "En el espacio, entrenar es parte del trabajo."
   },
   {
     "id": "salud-04",
     "category": "salud",
     "difficulty": "dificil",
     "prompt": "¿Por qué se altera el sueño de los astronautas?",
-    "options": ["Por el ruido de los motores", "Porque no hay gravedad y cambia el ritmo circadiano", "Porque duermen de pie", "Por la falta de oxígeno"],
+    "options": [
+      "Por el ruido de los motores",
+      "Porque no hay gravedad y cambia el ritmo circadiano",
+      "Porque duermen de pie",
+      "Por la falta de oxígeno"
+    ],
     "answer": 1,
     "explanation": "La ISS orbita la Tierra cada 92 minutos, así que hay 16 amaneceres por día. Eso descoloca el reloj biológico si no se controla la luz.",
     "consequence": "Dormir mal afecta atención y ánimo; por eso se programan 8 horas y se regula la iluminación.",
     "resource": "moral",
-    "source": { "title": "NASA HRP — Sleep and Circadian Rhythms", "url": "https://www.nasa.gov/hrp/" },
-    "tags": ["salud", "sueno", "circadiano"]
+    "source": {
+      "title": "NASA HRP — Sleep and Circadian Rhythms",
+      "url": "https://www.nasa.gov/hrp/"
+    },
+    "tags": [
+      "salud",
+      "sueno",
+      "circadiano"
+    ],
+    "scenario": "Son las 22:00 y en el día hubo 16 amaneceres.",
+    "hook": "Tu reloj biológico no sabe que estás en órbita."
   },
-
   {
     "id": "fuego-01",
     "category": "fuego",
     "difficulty": "facil",
     "prompt": "¿Cómo es una llama en microgravedad?",
-    "options": ["Alargada y hacia arriba", "Esférica y azulada", "Igual que en la Tierra", "No se puede encender"],
+    "options": [
+      "Alargada y hacia arriba",
+      "Esférica y azulada",
+      "Igual que en la Tierra",
+      "No se puede encender"
+    ],
     "answer": 1,
     "explanation": "Sin convección no hay flujo de aire que estire la llama: se vuelve una esfera azulada y puede apagarse sola por falta de oxígeno local.",
     "consequence": "Los detectores y extintores de la estación están diseñados para ese comportamiento distinto.",
     "resource": "o2",
-    "source": { "title": "NASA — Combustion in Microgravity", "url": "https://www.nasa.gov/space-technology-mission-directorate/" },
-    "tags": ["fuego", "microgravedad"]
+    "source": {
+      "title": "NASA — Combustion in Microgravity",
+      "url": "https://www.nasa.gov/space-technology-mission-directorate/"
+    },
+    "tags": [
+      "fuego",
+      "microgravedad"
+    ],
+    "scenario": "Se enciende un cable en el laboratorio.",
+    "hook": "Sin gravedad la llama no sube: se hace bola."
   },
   {
     "id": "fuego-02",
     "category": "fuego",
     "difficulty": "media",
     "prompt": "¿Qué experimento de NASA estudió incendios a bordo de una nave?",
-    "options": ["Saffire", "Curiosity", "Hubble", "Voyager"],
+    "options": [
+      "Saffire",
+      "Curiosity",
+      "Hubble",
+      "Voyager"
+    ],
     "answer": 0,
     "explanation": "Saffire encendió materiales dentro de una nave de carga para estudiar cómo se propaga el fuego en microgravedad sin poner en riesgo a la tripulación.",
     "consequence": "Los resultados cambian los materiales permitidos y los protocolos de emergencia.",
     "resource": "o2",
-    "source": { "title": "NASA — Saffire Experiment", "url": "https://www.nasa.gov/space-technology-mission-directorate/" },
-    "tags": ["fuego", "saffire", "experimento"]
+    "source": {
+      "title": "NASA — Saffire Experiment",
+      "url": "https://www.nasa.gov/space-technology-mission-directorate/"
+    },
+    "tags": [
+      "fuego",
+      "saffire",
+      "experimento"
+    ],
+    "scenario": "Querés saber cómo se comportaría un incendio real a bordo.",
+    "hook": "Prender fuego a propósito para aprender a apagarlo."
   },
   {
     "id": "fuego-03",
     "category": "fuego",
     "difficulty": "media",
     "prompt": "¿Por qué la falta de convección hace más peligroso un incendio espacial?",
-    "options": ["Porque el humo no se dispersa igual y puede acumularse", "Porque el fuego es más frío", "Porque no hay oxígeno", "Porque el agua no moja"],
+    "options": [
+      "Porque el humo no se dispersa igual y puede acumularse",
+      "Porque el fuego es más frío",
+      "Porque no hay oxígeno",
+      "Porque el agua no moja"
+    ],
     "answer": 0,
     "explanation": "Sin corrientes de aire, el humo y los gases no suben: se quedan cerca de la fuente y pueden llenar un módulo sin que se note rápido.",
     "consequence": "La detección temprana depende de sensores distribuidos, no de ver el humo.",
     "resource": "moral",
-    "source": { "title": "NASA — Fire Safety in Spacecraft", "url": "https://www.nasa.gov/space-technology-mission-directorate/" },
-    "tags": ["fuego", "humo", "seguridad"]
+    "source": {
+      "title": "NASA — Fire Safety in Spacecraft",
+      "url": "https://www.nasa.gov/space-technology-mission-directorate/"
+    },
+    "tags": [
+      "fuego",
+      "humo",
+      "seguridad"
+    ],
+    "scenario": "Hay humo en el módulo y el detector tarda en sonar.",
+    "hook": "El humo no sube: se queda donde nace."
   },
   {
     "id": "fuego-04",
     "category": "fuego",
     "difficulty": "dificil",
     "prompt": "¿Qué se usa para apagar un fuego en la estación sin dañar los equipos?",
-    "options": ["Agua a presión", "Extintores de CO₂ o agua pulverizada según el caso", "Arena", "Despresurizar todo el módulo siempre"],
+    "options": [
+      "Agua a presión",
+      "Extintores de CO₂ o agua pulverizada según el caso",
+      "Arena",
+      "Despresurizar todo el módulo siempre"
+    ],
     "answer": 1,
     "explanation": "Se elige el agente según el tipo de fuego: el CO₂ desplaza el oxígeno sin mojar la electrónica; el agua se usa en otros casos.",
     "consequence": "Usar el agente equivocado puede arruinar instrumentos o no apagar el fuego.",
     "resource": "o2",
-    "source": { "title": "NASA — Fire Suppression in Spacecraft", "url": "https://www.nasa.gov/space-technology-mission-directorate/" },
-    "tags": ["fuego", "extintor"]
+    "source": {
+      "title": "NASA — Fire Suppression in Spacecraft",
+      "url": "https://www.nasa.gov/space-technology-mission-directorate/"
+    },
+    "tags": [
+      "fuego",
+      "extintor"
+    ],
+    "scenario": "Hay fuego detrás del panel de instrumentos.",
+    "hook": "El agua y la electrónica no siempre son amigos."
   },
-
   {
     "id": "comms-01",
     "category": "comms",
     "difficulty": "facil",
     "prompt": "¿Cuánto tarda una señal de la Tierra a Marte?",
-    "options": ["Menos de 1 segundo", "Entre 3 y 22 minutos", "12 horas", "3 días"],
+    "options": [
+      "Menos de 1 segundo",
+      "Entre 3 y 22 minutos",
+      "12 horas",
+      "3 días"
+    ],
     "answer": 1,
     "explanation": "Depende de la distancia entre planetas: el retardo de ida va de unos 3 a unos 22 minutos.",
     "consequence": "No se puede tener una conversación en tiempo real: hay que planificar y confiar en la autonomía.",
     "resource": "moral",
-    "source": { "title": "NASA Science — Mars", "url": "https://science.nasa.gov/mars/" },
-    "tags": ["comms", "marte", "latencia"]
+    "source": {
+      "title": "NASA Science — Mars",
+      "url": "https://science.nasa.gov/mars/"
+    },
+    "tags": [
+      "comms",
+      "marte",
+      "latencia"
+    ],
+    "scenario": "La tripulación espera instrucciones desde Houston.",
+    "hook": "La luz tarda: no es latencia de internet."
   },
   {
     "id": "comms-02",
     "category": "comms",
     "difficulty": "media",
     "prompt": "¿Qué red usan las comunicaciones de la ISS con Tierra?",
-    "options": ["Satélites TDRS", "Cables submarinos", "Señales de radio FM", "Internet por fibra"],
+    "options": [
+      "Satélites TDRS",
+      "Cables submarinos",
+      "Señales de radio FM",
+      "Internet por fibra"
+    ],
     "answer": 0,
     "explanation": "La estación se comunica a través de la red de satélites de seguimiento y retransmisión (TDRS), que cubren casi toda la órbita.",
     "consequence": "Sin esa red, cada pasada sobre una antena sería el único momento para hablar.",
     "resource": "moral",
-    "source": { "title": "NASA — Space Communications", "url": "https://www.nasa.gov/space-communications-and-navigation/" },
-    "tags": ["comms", "tdrs"]
+    "source": {
+      "title": "NASA — Space Communications",
+      "url": "https://www.nasa.gov/space-communications-and-navigation/"
+    },
+    "tags": [
+      "comms",
+      "tdrs"
+    ],
+    "scenario": "La estación pasa sobre el océano y no hay antena cerca.",
+    "hook": "Los satélites TDRS son el router del espacio."
   },
   {
     "id": "comms-03",
     "category": "comms",
     "difficulty": "media",
     "prompt": "¿Por qué el retardo de Marte obliga a la tripulación a ser más autónoma?",
-    "options": ["Porque no hay internet", "Porque no puede pedir ayuda inmediata ante una emergencia", "Porque las computadoras son más lentas", "Porque no hay antenas"],
+    "options": [
+      "Porque no hay internet",
+      "Porque no puede pedir ayuda inmediata ante una emergencia",
+      "Porque las computadoras son más lentas",
+      "Porque no hay antenas"
+    ],
     "answer": 1,
     "explanation": "Si algo falla, la respuesta de Tierra puede tardar hasta 44 minutos ida y vuelta. La tripulación debe resolver sola y reportar después.",
     "consequence": "Por eso se entrenan procedimientos de emergencia y se diseñan sistemas que se reparan a bordo.",
     "resource": "moral",
-    "source": { "title": "NASA — Human Exploration of Mars", "url": "https://www.nasa.gov/humans-in-space/" },
-    "tags": ["comms", "autonomia", "marte"]
+    "source": {
+      "title": "NASA — Human Exploration of Mars",
+      "url": "https://www.nasa.gov/humans-in-space/"
+    },
+    "tags": [
+      "comms",
+      "autonomia",
+      "marte"
+    ],
+    "scenario": "Se rompe un componente y no hay repuesto a bordo.",
+    "hook": "En Marte, el manual sos vos."
   },
   {
     "id": "comms-04",
     "category": "comms",
     "difficulty": "dificil",
     "prompt": "¿Qué ventaja tiene la Luna para las comunicaciones, comparada con Marte?",
-    "options": ["No hay retardo apreciable", "Tiene mejor wifi", "No necesita antenas", "Se comunica por luz visible"],
+    "options": [
+      "No hay retardo apreciable",
+      "Tiene mejor wifi",
+      "No necesita antenas",
+      "Se comunica por luz visible"
+    ],
     "answer": 0,
     "explanation": "La luz tarda cerca de 1,3 segundos en llegar a la Luna, así que se puede conversar casi en tiempo real, con una pequeña pausa.",
     "consequence": "Eso permite apoyo desde Tierra en emergencias lunares, algo imposible en Marte.",
     "resource": "moral",
-    "source": { "title": "NASA — Artemis", "url": "https://www.nasa.gov/artemis/" },
-    "tags": ["comms", "luna", "artemis"]
+    "source": {
+      "title": "NASA — Artemis",
+      "url": "https://www.nasa.gov/artemis/"
+    },
+    "tags": [
+      "comms",
+      "luna",
+      "artemis"
+    ],
+    "scenario": "Comparás una emergencia lunar con una marciana.",
+    "hook": "La Luna está a 1,3 segundos; Marte, a media hora."
+  },
+  {
+    "id": "ent-01",
+    "category": "entrenamiento",
+    "difficulty": "media",
+    "prompt": "¿Para qué se entrena en una piscina gigante?",
+    "options": [
+      "Para aprender a nadar",
+      "Para simular microgravedad en caminatas espaciales",
+      "Para probar trajes de baño",
+      "Para medir la flotación del cuerpo"
+    ],
+    "answer": 1,
+    "explanation": "En el Neutral Buoyancy Laboratory se practica la caminata espacial sumergido: el agua sostiene el cuerpo como si no hubiera gravedad.",
+    "consequence": "Sin esa práctica, una caminata espacial real sería la primera vez que hacés el trabajo.",
+    "resource": "o2",
+    "scenario": "Vas a practicar una caminata espacial… bajo el agua, con el traje completo.",
+    "hook": "La piscina del NBL tiene 6,2 millones de galones.",
+    "source": {
+      "title": "NASA — Neutral Buoyancy Laboratory",
+      "url": "https://www.nasa.gov/humans-in-space/"
+    },
+    "tags": [
+      "entrenamiento"
+    ]
+  },
+  {
+    "id": "ent-02",
+    "category": "entrenamiento",
+    "difficulty": "facil",
+    "prompt": "¿Por qué se entrenan en maquetas a tamaño real?",
+    "options": [
+      "Para filmar películas",
+      "Para repetir procedimientos hasta que salgan sin pensar",
+      "Para ahorrar espacio",
+      "Para vender entradas"
+    ],
+    "answer": 1,
+    "explanation": "Los simuladores reproducen el módulo real: la tripulación repite cada procedimiento hasta que no necesita leer los pasos.",
+    "consequence": "En una emergencia no hay tiempo para buscar el manual.",
+    "resource": "moral",
+    "scenario": "Entrás a un módulo idéntico al real, pero estás en Tierra.",
+    "hook": "El músculo de la memoria también se entrena.",
+    "source": {
+      "title": "NASA — Astronaut Training",
+      "url": "https://www.nasa.gov/humans-in-space/"
+    },
+    "tags": [
+      "entrenamiento"
+    ]
+  },
+  {
+    "id": "ent-03",
+    "category": "entrenamiento",
+    "difficulty": "media",
+    "prompt": "¿Qué es HERA?",
+    "options": [
+      "Un telescopio",
+      "Un hábitat análogo para estudiar aislamiento y confinamiento",
+      "Un tipo de traje",
+      "Una nave de carga"
+    ],
+    "answer": 1,
+    "explanation": "HERA es un hábitat en el Johnson Space Center donde voluntarios viven semanas aislados para estudiar el comportamiento humano.",
+    "consequence": "Así se prueba el efecto psicológico de un viaje largo sin salir de la Tierra.",
+    "resource": "moral",
+    "scenario": "Pasás 45 días encerrado con tres personas, sin poder salir.",
+    "hook": "Marte se entrena en la Tierra.",
+    "source": {
+      "title": "NASA HRP — HERA",
+      "url": "https://www.nasa.gov/humans-in-space/"
+    },
+    "tags": [
+      "entrenamiento"
+    ]
+  },
+  {
+    "id": "ent-04",
+    "category": "entrenamiento",
+    "difficulty": "media",
+    "prompt": "¿Dónde entrenan los llamados “aquanauts”?",
+    "options": [
+      "En la Luna",
+      "Bajo el agua, en un hábitat submarino",
+      "En la Antártida",
+      "En un avión"
+    ],
+    "answer": 1,
+    "explanation": "Misiones como NEEMO usan un hábitat submarino: el aislamiento y las caminatas se parecen a las de un puesto espacial.",
+    "consequence": "Bajo el mar se ensaya la logística de una misión real.",
+    "resource": "moral",
+    "scenario": "El hábitat está a 19 metros bajo el mar y la tripulación vive ahí varios días.",
+    "hook": "El océano es el mejor simulador de Marte.",
+    "source": {
+      "title": "NASA — NEEMO",
+      "url": "https://www.nasa.gov/humans-in-space/"
+    },
+    "tags": [
+      "entrenamiento"
+    ]
+  },
+  {
+    "id": "ent-05",
+    "category": "entrenamiento",
+    "difficulty": "facil",
+    "prompt": "¿Para qué vuelan jets los astronautas?",
+    "options": [
+      "Para ir al trabajo",
+      "Para mantener habilidades de vuelo y trabajo bajo presión",
+      "Para turismo",
+      "Para entrenar a los pilotos de línea"
+    ],
+    "answer": 1,
+    "explanation": "Los T-38 se usan para mantener entrenamiento de vuelo, coordinación y toma de decisiones rápidas.",
+    "consequence": "El avión exige atención total: igual que una emergencia en órbita.",
+    "resource": "moral",
+    "scenario": "Antes de la misión volás un T-38 varias veces por semana.",
+    "hook": "Un avión de caza como gimnasio mental.",
+    "source": {
+      "title": "NASA — Astronaut Training",
+      "url": "https://www.nasa.gov/humans-in-space/"
+    },
+    "tags": [
+      "entrenamiento"
+    ]
+  },
+  {
+    "id": "ent-06",
+    "category": "entrenamiento",
+    "difficulty": "media",
+    "prompt": "¿Qué se practica con la nave de emergencia?",
+    "options": [
+      "Cómo cocinar",
+      "Cómo evacuar y refugiarse rápido",
+      "Cómo dormir",
+      "Cómo grabar videos"
+    ],
+    "answer": 1,
+    "explanation": "La tripulación ensaya entrar a la nave, cerrar escotillas y esperar instrucciones en cuestión de minutos.",
+    "consequence": "Si hay despresurización, cada segundo cuenta.",
+    "resource": "o2",
+    "scenario": "Suena la alarma: tenés que estar dentro de la nave en minutos.",
+    "hook": "La salida de emergencia también se memoriza.",
+    "source": {
+      "title": "NASA — International Space Station",
+      "url": "https://www.nasa.gov/humans-in-space/"
+    },
+    "tags": [
+      "entrenamiento"
+    ]
+  },
+  {
+    "id": "ent-07",
+    "category": "entrenamiento",
+    "difficulty": "dificil",
+    "prompt": "¿Qué entrenamiento médico recibe la tripulación?",
+    "options": [
+      "Ninguno, hay un médico a bordo siempre",
+      "Primeros auxilios, dental y emergencias, con un médico de tripulación designado",
+      "Solo teoría",
+      "Solo veterinaria"
+    ],
+    "answer": 1,
+    "explanation": "Uno o más tripulantes se entrenan como oficiales médicos: primeros auxilios, suturas, dental y respuesta a emergencias.",
+    "consequence": "Si algo pasa, la ayuda de Tierra puede tardar horas o minutos según dónde estés.",
+    "resource": "moral",
+    "scenario": "No hay hospital: el médico sos vos.",
+    "hook": "En órbita, el consultorio es la tripulación.",
+    "source": {
+      "title": "NASA HRP — Medical Training",
+      "url": "https://www.nasa.gov/humans-in-space/"
+    },
+    "tags": [
+      "entrenamiento"
+    ]
+  },
+  {
+    "id": "ent-08",
+    "category": "entrenamiento",
+    "difficulty": "facil",
+    "prompt": "¿Por qué entrenan supervivencia en el agua?",
+    "options": [
+      "Porque les gusta nadar",
+      "Por si la cápsula aterriza lejos del punto previsto",
+      "Para competir",
+      "Porque es obligatorio en la escuela"
+    ],
+    "answer": 1,
+    "explanation": "El regreso puede desviarse. La tripulación practica salir de la cápsula y mantenerse a flote hasta el rescate.",
+    "consequence": "El peor momento para improvisar es el más cansado del viaje.",
+    "resource": "moral",
+    "scenario": "La cápsula cae lejos del barco de rescate y hay que aguantar hasta que lleguen.",
+    "hook": "Volver también se entrena.",
+    "source": {
+      "title": "NASA — Astronaut Training",
+      "url": "https://www.nasa.gov/humans-in-space/"
+    },
+    "tags": [
+      "entrenamiento"
+    ]
   }
 ]

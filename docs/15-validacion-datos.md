@@ -22,13 +22,13 @@
 - `options` tiene exactamente 4 y `answer` está en rango;
 - `category` y `resource` pertenecen al conjunto permitido;
 - `source.url` empieza con `https://` y contiene `nasa.gov`, `nasa.gov`/NTRS o `hrp`;
-- `explanation` ≤ 240 caracteres y `prompt` ≤ 140.
+- `explanation` ≤ 240, `prompt` ≤ 140, `scenario` ≤ 160, `hook` ≤ 90.
 
 Lo que **no** automatizamos: si la ciencia es correcta. Eso lo firma una persona.
 
 ## 3. Evidencia para el jurado
 
-- `data/questions.json` con 24 preguntas y su fuente.
+- `data/questions.json` con 32 preguntas y su fuente.
 - Tabla de cobertura por categoría (6 × 4).
 - Captura del test con 1 usuario externo.
 - Registro de preguntas descartadas y por qué (en el commit).
@@ -43,8 +43,9 @@ Lo que **no** automatizamos: si la ciencia es correcta. Eso lo firma una persona
 | Salud | 4 | NASA HRP | ✅ |
 | Fuego | 4 | NTRS (combustión en µg) | ✅ |
 | Comms | 4 | NASA/JPL | ✅ |
+| Entrenamiento | 8 | NASA (NBL, HERA, NEEMO) | ✅ |
 
-**Total: 24.** Cada una con `explanation`, `consequence` y `source`.
+**Total: 32.** Cada una con `explanation`, `consequence` y `source`.
 
 ## 5. Riesgos conocidos
 

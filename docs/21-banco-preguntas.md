@@ -15,7 +15,8 @@
 | Salud | `salud-0x` | 4 | Moral |
 | Fuego | `fuego-0x` | 4 | O₂ |
 | Comunicaciones | `comms-0x` | 4 | Moral |
-| **Total** | | **24** | |
+| Entrenamiento | `ent-0x` | 8 | Moral / O₂ |
+| **Total** | | **32** | |
 
 ## 2. Cómo se ve una entrada
 

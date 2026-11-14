@@ -21,7 +21,7 @@ No necesita `npm`, ni base de datos, ni internet.
 
 ## Qué hace
 
-- **24 preguntas** en 6 categorías: atmósfera, soporte vital, energía, salud, fuego y comunicaciones.
+- **32 preguntas** en 7 categorías: atmósfera, soporte vital, energía, salud, fuego, comunicaciones y entrenamiento.
 - **4 recursos** (O₂, energía, agua, moral) que bajan con cada error.
 - **Explicación + consecuencia + fuente NASA** en cada respuesta.
 - **Informe final** con rango (Cadete → Comandante) y sistemas para repasar.

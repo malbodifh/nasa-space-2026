@@ -114,6 +114,16 @@ button.primary:disabled { opacity: 0.5; cursor: default; }
 .verdict.ok { color: var(--green); }
 .verdict.bad { color: var(--red); }
 .consequence { color: var(--orange); }
+.scenario {
+  margin: 0 0 8px; padding: 8px 10px; border-left: 3px solid var(--cyan);
+  background: rgba(0, 166, 214, 0.08); border-radius: 4px; font-style: italic;
+}
+.hook {
+  display: inline-block; margin: 4px 0 0; padding: 4px 10px;
+  border-radius: 99px; background: rgba(255, 122, 0, 0.14);
+  border: 1px solid rgba(255, 122, 0, 0.4); font-size: 12px;
+}
+.hook::before { content: "★ "; color: var(--orange); }
 #source { color: var(--cyan); font-size: 13px; text-decoration: none; }
 #source:hover { text-decoration: underline; }
 .feedback button { margin-top: 14px; }

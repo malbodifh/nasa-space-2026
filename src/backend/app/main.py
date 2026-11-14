@@ -48,7 +48,7 @@ def categories() -> dict:
 
 
 @app.get("/api/quiz")
-def get_quiz(n: int = Query(default=10, ge=1, le=24), category: str | None = None) -> dict:
+def get_quiz(n: int = Query(default=10, ge=1, le=32), category: str | None = None) -> dict:
     questions = quiz.load_questions()
     if category and category not in quiz.CATEGORY_LABELS:
         raise HTTPException(status_code=404, detail="Categoría desconocida")

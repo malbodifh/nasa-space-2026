@@ -10,7 +10,7 @@
 
 Tener una **trivia jugable de astronauta junior** con:
 
-- 24 preguntas en 6 categorías, cada una con fuente NASA.
+- 32 preguntas en 7 categorías, cada una con fuente NASA.
 - 4 recursos que reaccionan a los errores.
 - Feedback con explicación, consecuencia y link a la fuente.
 - Informe de misión con rango y sistema para repasar.
@@ -25,7 +25,7 @@ Tener una **trivia jugable de astronauta junior** con:
 | Hito | Qué significa | Criterio de éxito | Hora límite |
 |---|---|---|---|
 | **M0** | Decisión + repo + ramas | Reto elegido, repo operativo | Sábado 12:00 |
-| **M1** | Banco de preguntas | 24 preguntas validadas por `make check` | Sábado 15:00 |
+| **M1** | Banco de preguntas | 32 preguntas validadas por `make check` | Sábado 15:00 |
 | **M2** | Juego jugable | 10 preguntas, recursos y feedback en el navegador | Sábado 20:00 |
 | **M3** | Informe + pulido | Rango, repaso y móvil | Domingo 10:00 |
 | **M4** | Deploy + video | Link público + video de 30 s | Domingo 14:00 |
@@ -73,7 +73,7 @@ Inicio → "Iniciar misión" → pregunta → respuesta incorrecta
 
 | Cuándo | Pregunta | Si la respuesta es “no” |
 |---|---|---|
-| Sáb 15:00 | ¿Hay 24 preguntas validadas? | Recortar a 12 y seguir |
+| Sáb 15:00 | ¿Hay 32 preguntas validadas? | Recortar a 12 y seguir |
 | Sáb 21:00 | ¿Se puede jugar una partida completa? | Congelar contenido, arreglar flujo |
 | Dom 12:00 | ¿Funciona sin internet y en móvil? | Grabar video de respaldo ya |
 | Dom 16:00 | ¿El pitch se entiende en 30 s? | Reescribir guion, no agregar features |

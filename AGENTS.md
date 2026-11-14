@@ -8,7 +8,7 @@ va en inglés. No hay framework de frontend ni build step.
 
 - **Juego**: `src/backend/static/` (HTML + CSS + JS vanilla). No hay `package.json` ni `npm`; `make frontend` solo imprime instrucciones.
 - **API**: `src/backend/app/main.py` (rutas) y `src/backend/app/quiz.py` (reglas, validación del banco).
-- **Contenido**: `data/questions.json` — 24 preguntas; el contrato está en `docs/08-contenido-y-datos.md` y `docs/21-banco-preguntas.md`.
+- **Contenido**: `data/questions.json` — 32 preguntas; el contrato está en `docs/08-contenido-y-datos.md` y `docs/21-banco-preguntas.md`.
 - **Docs**: `documentacion.md` es el índice y la fuente de verdad; `docs/18-workflow.md` define ramas y recuperación.
 - **Idea descartada**: `backups/ideas/spherex/` (SPHEREx). No está en uso; no la borres.
 - `guides/` son fuentes Typst; los **PDF de `guides/dist/` están versionados** (los PNG no).

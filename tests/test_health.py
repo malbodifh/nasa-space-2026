@@ -10,7 +10,7 @@ def test_health() -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
-    assert body["questions"] >= 24
+    assert body["questions"] >= 32
 
 
 def test_root_serves_game() -> None:
@@ -30,6 +30,7 @@ def test_categories() -> None:
         "salud",
         "fuego",
         "comms",
+        "entrenamiento",
     }
     assert all(c["count"] >= 4 for c in categories)
 

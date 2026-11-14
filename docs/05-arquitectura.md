@@ -26,7 +26,7 @@ Navegador
 |---|---|
 | **FastAPI** | Ya estaba probado en el repo; cero fricción |
 | **Frontend estático** | `npm` no está instalado; un build bloquea el demo |
-| **JSON en disco** | 24 preguntas no necesitan base de datos |
+| **JSON en disco** | 32 preguntas no necesitan base de datos |
 | **Validación en servidor** | El cliente nunca recibe la respuesta correcta antes de responder |
 | **Sin frameworks JS** | Menos superficie de error en 48 h |
 
@@ -78,5 +78,5 @@ Plan B: si no hay deploy, se abre `index.html` local en la demo y se muestra igu
 ## 7. Límites honestos
 
 - No hay autenticación ni persistencia: no se pueden prometer rankings.
-- El banco es finito (24 preguntas). No es adaptativo.
+- El banco es finito (32 preguntas). No es adaptativo.
 - No hay validación científica automática: la hace una persona con checklist.
