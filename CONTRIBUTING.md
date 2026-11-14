@@ -25,16 +25,34 @@ Si no tenés `make`, mirá los comandos equivalentes en `docs/19-herramientas.md
 
 ## 2. Ramas
 
-| Tipo | Ejemplo | Uso |
-|---|---|---|
-| `feat/` | `feat/blink-player` | Nueva funcionalidad |
-| `fix/` | `fix/cutout-timeout` | Bug |
-| `docs/` | `docs/workflow` | Documentación |
-| `data/` | `data/wise0855` | Pipeline/caché |
-| `pitch/` | `pitch/storyboard` | Video/slides |
-| `chore/` | `chore/ci` | Infraestructura |
+El repo usa **4 niveles**:
 
-**Nunca** trabajar directo en `main`.
+```text
+main        producción (solo merge desde staging)
+  ↑
+staging     puente de integración / pre-producción
+  ↑
+develop     desarrollo diario
+  ↑
+andy · david · samuel · jorge · leo    rama personal
+```
+
+| Rama | Quién escribe | Hacia dónde |
+|---|---|---|
+| `main` | nadie directo | — |
+| `staging` | quien integra | `main` |
+| `develop` | merges de PR | `staging` |
+| `andy` / `david` / `samuel` / `jorge` / `leo` | su dueño | `develop` |
+
+Sub-ramas opcionales para algo grande: `andy/blink-player`, `fix/cutout-timeout`.
+
+**Nunca** trabajar directo en `main`, `develop` ni `staging`. Si te equivocaste, mirá
+[`docs/18-workflow.md`](docs/18-workflow.md) § 3.1: se revierte, no se reescribe.
+
+```bash
+make branches     # crea las ramas si faltan
+make sync         # actualiza main/develop/staging desde origin
+```
 
 ---
 

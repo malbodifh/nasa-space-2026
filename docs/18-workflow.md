@@ -47,16 +47,57 @@ flowchart LR
 ## 3. Ramas y commits
 
 ### Ramas
+
+El equipo trabaja con **4 niveles**. Nadie escribe directo en `main`.
+
 ```text
-feat/…    nueva funcionalidad
-fix/…     bug
-docs/…    documentación
-data/…    pipeline/caché
-pitch/…   video/slides
-chore/…   CI, tooling
+main        producción. Solo recibe merges desde staging. Siempre funciona.
+  ↑
+staging     puente de integración. Junta develop + ramas en revisión y se prueba el demo completo.
+  ↑
+develop     desarrollo. Integración diaria del equipo.
+  ↑
+andy / david / samuel / jorge / leo    rama personal de cada integrante
 ```
 
-### Commits
+| Rama | Quién escribe | Sale hacia | Regla |
+|---|---|---|---|
+| `main` | nadie directo | — | Solo merge desde `staging` + tag de versión |
+| `staging` | el que integra (Andy) | `main` | Demo completo verificado; si falla, no pasa |
+| `develop` | merges de PRs | `staging` | Integración diaria; puede estar roja por horas, no por días |
+| `andy`, `david`, `samuel`, `jorge`, `leo` | su dueño | `develop` | Trabajo libre; nadie más commitea acá |
+
+### Ciclo de trabajo
+
+```bash
+git checkout develop && git pull
+git checkout andy            # tu rama
+git merge develop            # traer lo último antes de empezar
+# ... trabajás, commiteás ...
+git push origin andy
+
+# PR: andy -> develop  (review de 1 persona + CI verde)
+```
+
+Promoción:
+```text
+andy/david/... --PR--> develop --PR--> staging --PR--> main
+```
+
+- **develop → staging:** cuando el demo funciona de punta a punta.
+- **staging → main:** cuando el demo corre sin internet, el video de respaldo existe y el pitch está listo. Ahí se tagea (`v0.1.0-demo`).
+
+### Nombres de commits y ramas
+
+Las ramas personales pueden tener sub-ramas para algo grande:
+
+```text
+andy                    trabajo diario
+andy/blink-player       feature puntual (opcional, se borra al mergear)
+fix/cutout-timeout      bug urgente (desde develop)
+```
+
+Commits:
 ```text
 add SIA2 query
 fix cutout timeout
@@ -66,6 +107,28 @@ data precompute wise0855
 
 ### Regla
 Si el commit necesita “y” (“agrega X y arregla Y”), son dos commits.
+
+---
+
+## 3.1. Si alguien se equivoca
+
+El puente existe justamente para que un error **no llegue a producción**.
+
+| Situación | Qué hacer | Comando |
+|---|---|---|
+| Error en tu rama, sin push | Deshacer el último commit | `git reset --hard HEAD~1` |
+| Error en tu rama, con push | Revertir sin borrar historia | `git revert <sha>` + push |
+| Rompiste `develop` | Revertir el merge | `git revert -m 1 <sha-del-merge>` |
+| Rompiste `staging` | Revertir ahí; `main` sigue sano | `git checkout staging && git revert <sha>` |
+| Llegó a `main` (caso raro) | Hotfix directo y tag nuevo | `fix/...` → `main` → merge back a `develop` y `staging` |
+| Perdiste trabajo | Recuperar desde reflog | `git reflog` y `git checkout -b rescate <sha>` |
+| Querés ver qué cambió | Comparar ramas | `git log --oneline develop..andy` |
+
+**Reglas de oro ante un error:**
+1. **Avisar en el canal antes de arreglar.** Nadie más debe mergear mientras tanto.
+2. **Nunca `push --force` sobre `develop`, `staging` ni `main`.** Solo en tu rama personal y avisando.
+3. **Revertir, no reescribir.** En ramas compartidas la historia se agrega, no se borra.
+4. **Si `main` está roto:** arreglar primero, preguntar después.
 
 ---
 

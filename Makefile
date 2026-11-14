@@ -6,7 +6,7 @@ TYPST := typst
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup backend frontend test lint format guides precompute clean check
+.PHONY: help setup backend frontend test lint format guides precompute clean check branches sync push-branches
 
 help: ## Mostrar esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -58,6 +58,28 @@ precompute: ## Precomputar WISE 0855 y Barnard's Star (requiere red)
 	$(PY) scripts/align_diff.py --slug barnards-star --limit 12
 
 check: lint test ## Lint + tests (lo mismo que corre CI)
+
+branches: ## Crear las ramas del equipo si faltan (main, develop, staging, persona)
+	@bash scripts/setup_branches.sh
+
+sync: ## Actualizar main/develop/staging desde origin (sin tocar tu rama)
+	git fetch origin --prune
+	@for b in main develop staging; do \
+	  if git show-ref --verify --quiet refs/remotes/origin/$$b; then \
+	    if [ "$$(git rev-parse --abbrev-ref HEAD)" = "$$b" ]; then \
+	      echo "saltando $$b (es tu rama activa)"; \
+	    else \
+	      git branch -f $$b refs/remotes/origin/$$b && echo "actualizada: $$b"; \
+	    fi; \
+	  else \
+	    echo "sin origin/$$b (falta push)"; \
+	  fi; \
+	done
+
+push-branches: ## Subir todas las ramas del equipo a origin (primera vez)
+	git push -u origin main develop staging
+	git push -u origin andy david samuel jorge leo
+	@echo "Ramas publicadas. Configurá 'develop' como default en GitHub."
 
 clean: ## Limpiar cachés de herramientas (no borra datos)
 	rm -rf .pytest_cache .ruff_cache

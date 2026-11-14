@@ -1,11 +1,11 @@
 # Reemplazar por los handles reales de GitHub del equipo.
-# Mientras no estén, el lead revisa todo.
-*                   @andy
+# Mientras no estén, el dueño del repo revisa todo.
+*                   @malbodifh
 
-/docs/              @andy
-/guides/            @leo
-/src/backend/       @david
-/src/frontend/      @samuel
-/data/              @david
-/scripts/           @david
-/documentacion.md   @andy
+/docs/              @malbodifh
+/guides/            @malbodifh
+/src/backend/       @malbodifh
+/src/frontend/      @malbodifh
+/data/              @malbodifh
+/scripts/           @malbodifh
+/documentacion.md   @malbodifh

@@ -2,10 +2,34 @@
 
 **Equipo:** Andy, David, Samuel, Jorge, Leo
 **Evento:** 14–15 de noviembre de 2026
+**Repo:** [malbodifh/nasa-space-2026](https://github.com/malbodifh/nasa-space-2026)
 **Challenge propuesto:** [Planet X and SPHEREx](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/)
 
 > **Una herramienta pública para ver cómo cambia el cielo.**
 > Elegís una coordenada, ves una película de ese parche entre épocas de SPHEREx, activás la diferencia y explorás las 102 bandas infrarrojas.
+
+---
+
+## Ramas
+
+```text
+main        producción (solo merge desde staging)
+  ↑
+staging     puente de integración / pre-producción
+  ↑
+develop     desarrollo diario
+  ↑
+andy · david · samuel · jorge · leo    rama personal
+```
+
+```bash
+git clone https://github.com/malbodifh/nasa-space-2026.git
+cd nasa-space-2026
+make branches          # asegura main, develop, staging y las 5 ramas personales
+git checkout andy      # tu rama
+```
+
+Detalle y reglas de recuperación en [`docs/18-workflow.md`](docs/18-workflow.md).
 
 ---
 
