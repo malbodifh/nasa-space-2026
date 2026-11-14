@@ -339,7 +339,11 @@ sirven para explicar, no para inventar un número.
 - **Photon** (geocoding): `https://photon.komoot.io/api/?q=Santiago%20Chile&limit=1` → 200.
 - **Nominatim**: 403 desde esta red; política de 1 req/s, User-Agent y caché. No usarlo
   directo.
-- **Overpass**: 502/“at capacity” y timeouts; no confiar para el demo.
+- **Overpass**: el servidor principal devolvió 502 (“at capacity”); el mirror
+  `https://overpass.kumi.systems/api/interpreter` respondió 200 (24 edificios en 100 m);
+  `overpass.private.coffee` devolvió 504. El mirror reportó `timestamp_osm_base`
+  **2026-07-24**: puede estar desactualizado para edificios nuevos. Usar Kumi con timeout
+  y no depender de Overpass en vivo para el demo.
 - **OSRM demo**: `https://router.project-osrm.org/route/v1/driving/...` → 200, 6,5 km en
   ~1,1 s. Sin SLA; si se usa, cachear y tener fallback.
 - **Mapzen terrarium** (elevación): `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png`
@@ -538,7 +542,7 @@ Open-Meteo, OVSICORI (si se usa). La submission oficial va en inglés.
 | NHC archivo 2026 | 200, 36 tormentas; conos GeoJSON |
 | Photon | 200 |
 | Nominatim | 403 |
-| Overpass | 502 / timeout |
+| Overpass | Principal 502; Kumi 200; private.coffee 504 |
 | OSRM | 200 |
 | Open-Meteo forecast / air quality | 200; `fire_weather_index` 400 |
 | Carto / OpenFreeMap | 200 |
