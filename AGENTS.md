@@ -19,10 +19,11 @@
 
 1. [`documentacion.md`](documentacion.md) — estado y decisiones.
 2. [`docs/25-api-research.md`](docs/25-api-research.md) — APIs verificadas, core NASA y fallbacks.
-3. [`docs/24-arquitectura-app.md`](docs/24-arquitectura-app.md) — capas, contratos y deploy.
-4. [`docs/22-investigacion-desastres.md`](docs/22-investigacion-desastres.md) y
+3. [`docs/26-spike-datos.md`](docs/26-spike-datos.md) — spike real y rebanada vertical propuesta.
+4. [`docs/24-arquitectura-app.md`](docs/24-arquitectura-app.md) — capas, contratos y deploy.
+5. [`docs/22-investigacion-desastres.md`](docs/22-investigacion-desastres.md) y
    [`docs/23-plan-app.md`](docs/23-plan-app.md) — ciencia y producto.
-5. [`docs/18-workflow.md`](docs/18-workflow.md) — ramas, PRs y recuperación.
+6. [`docs/18-workflow.md`](docs/18-workflow.md) — ramas, PRs y recuperación.
 
 ## Comandos
 
