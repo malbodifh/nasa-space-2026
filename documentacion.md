@@ -22,7 +22,7 @@
 ### Enlaces rápidos
 - [Reglas y organización del equipo](docs/00-equipo-y-reglas.md)
 - [Decisión del challenge](docs/01-decision-challenge.md)
-- [Los 14 challenges 2026 traducidos](docs/02-challenges-2026.md)
+- [Los 14 retos: comparación, fichas y votación](docs/02-challenges-2026.md)
 - [Concepto y diseño del juego](docs/03-concepto-trivia.md)
 - [Datos y fuentes NASA](docs/04-datos-nasa.md)
 - [Arquitectura](docs/05-arquitectura.md)
@@ -49,6 +49,7 @@
 - [Rúbrica — cómo ganar](guides/dist/01-rubrica.pdf)
 - [Plan 48 h — quién hace qué](guides/dist/03-plan-48h.pdf)
 - [Ideas — 14 retos en una página](guides/dist/05-ideas.pdf)
+- [Retos — mapa de decisión](guides/dist/06-retos.pdf)
 
 ---
 
@@ -71,7 +72,9 @@ NASA SPACEAPPS/
 ├── pyproject.toml             # config de Ruff/Pytest
 ├── documentacion.md           # ESTE archivo: índice + bitácora + decisiones
 ├── .github/                   # CI + plantillas de issues/PR
-├── guides/                    # fuentes Typst + PDF
+├── guides/
+│   ├── src/                   # fuentes Typst (se compilan)
+│   └── dist/                  # PDFs versionados
 ├── backups/ideas/spherex/     # idea descartada, archivada
 ├── docs/                      # documentación del equipo
 │   ├── 00-equipo-y-reglas.md

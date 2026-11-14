@@ -11,7 +11,7 @@ va en inglés. No hay framework de frontend ni build step.
 - **Contenido**: `data/questions.json` — 32 preguntas; `data/support.json` — 7 partes de misión ("Apoyo de Tierra"); el contrato está en `docs/08-contenido-y-datos.md` y `docs/21-banco-preguntas.md`.
 - **Docs**: `documentacion.md` es el índice y la fuente de verdad; `docs/18-workflow.md` define ramas y recuperación.
 - **Idea descartada**: `backups/ideas/spherex/` (SPHEREx). No está en uso; no la borres.
-- `guides/` son fuentes Typst; los **PDF de `guides/dist/` están versionados** (los PNG no).
+- `guides/src/` son las fuentes Typst (maquetación, no documentación); los **PDF de `guides/dist/` están versionados** (los PNG no). La verdad está en `documentacion.md` y `docs/*.md`.
 
 ## Comandos
 

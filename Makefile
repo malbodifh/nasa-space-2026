@@ -37,12 +37,14 @@ format: ## Formatear con ruff
 
 guides: ## Compilar las guías Typst a PDF y PNG
 	mkdir -p guides/dist
-	$(TYPST) compile guides/01-rubrica.typ guides/dist/01-rubrica.pdf
-	$(TYPST) compile guides/03-plan-48h.typ guides/dist/03-plan-48h.pdf
-	$(TYPST) compile guides/05-ideas.typ guides/dist/05-ideas.pdf
-	$(TYPST) compile --format png --ppi 200 guides/01-rubrica.typ "guides/dist/01-rubrica-{p}.png"
-	$(TYPST) compile --format png --ppi 200 guides/03-plan-48h.typ "guides/dist/03-plan-48h-{p}.png"
-	$(TYPST) compile --format png --ppi 200 guides/05-ideas.typ "guides/dist/05-ideas-{p}.png"
+	$(TYPST) compile guides/src/01-rubrica.typ guides/dist/01-rubrica.pdf
+	$(TYPST) compile guides/src/03-plan-48h.typ guides/dist/03-plan-48h.pdf
+	$(TYPST) compile guides/src/05-ideas.typ guides/dist/05-ideas.pdf
+	$(TYPST) compile guides/src/06-retos.typ guides/dist/06-retos.pdf
+	$(TYPST) compile --format png --ppi 200 guides/src/01-rubrica.typ "guides/dist/01-rubrica-{p}.png"
+	$(TYPST) compile --format png --ppi 200 guides/src/03-plan-48h.typ "guides/dist/03-plan-48h-{p}.png"
+	$(TYPST) compile --format png --ppi 200 guides/src/05-ideas.typ "guides/dist/05-ideas-{p}.png"
+	$(TYPST) compile --format png --ppi 200 guides/src/06-retos.typ "guides/dist/06-retos-{p}.png"
 	@echo "Guías en guides/dist/"
 
 check: lint test ## Lint + tests (lo mismo que corre CI)
