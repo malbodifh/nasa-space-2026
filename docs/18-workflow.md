@@ -21,7 +21,7 @@
 
 ```mermaid
 flowchart LR
-    A[Backlog\n docs/14] --> B[Issue\n plantilla Tarea]
+    A[Backlog\n documentacion.md] --> B[Issue\n plantilla Tarea]
     B --> C[Rama\n feat/fix/docs]
     C --> D[Commits chicos]
     D --> E[PR\n plantilla]
@@ -35,7 +35,7 @@ flowchart LR
 ### Paso a paso
 1. Elegí una tarea del [backlog](14-backlog.md).
 2. Abrí un issue con la plantilla **Tarea** (incluye contrato de datos).
-3. Creá la rama: `feat/p0-07-blink-player`.
+3. Creá la rama: `feat/p0-07-endpoint-salud`.
 4. Hacé commits chicos.
 5. Abrí el PR con la plantilla.
 6. Esperá CI verde + 1 review.
@@ -93,16 +93,16 @@ Las ramas personales pueden tener sub-ramas para algo grande:
 
 ```text
 andy                    trabajo diario
-andy/blink-player       feature puntual (opcional, se borra al mergear)
-fix/cutout-timeout      bug urgente (desde develop)
+andy/endpoint-salud     feature puntual (opcional, se borra al mergear)
+fix/timeout-api         bug urgente (desde develop)
 ```
 
 Commits:
 ```text
-add SIA2 query
-fix cutout timeout
+add endpoint de salud
+fix timeout de API
 docs workflow
-data agregar preguntas de salud
+data agregar catálogo de ejemplo
 ```
 
 ### Regla
@@ -141,7 +141,7 @@ El puente existe justamente para que un error **no llegue a producción**.
 | `P2` | Bonus |
 | `blocked` | Esperando algo/alguién |
 | `data` | Pipeline/datos |
-| `backend` | API/FITS |
+| `backend` | API |
 | `frontend` | UI |
 | `science` | Validación/QA |
 | `pitch` | Video/slides |
@@ -154,7 +154,7 @@ El puente existe justamente para que un error **no llegue a producción**.
 
 ## 5. Pull Requests
 
-- Título claro: `feat: blink player con slider de épocas`.
+- Título claro: `feat: endpoint de salud con estado del servicio`.
 - Descripción con: qué, por qué, cómo probarlo, evidencia.
 - Checklist de la plantilla completo.
 - Si toca datos: contrato de datos.
@@ -169,21 +169,21 @@ El puente existe justamente para que un error **no llegue a producción**.
 
 ### Pipeline
 ```text
-SIA2 → CSV → cutouts → FITS → PNG/manifest → caché → frontend
+fuente NASA → script reproducible → caché local → JSON/API → UI
 ```
 
 ### Reglas
 - `data/cache/` **no** se commitea.
-- `data/samples/` sí (CSV chicos).
-- Cada target tiene `manifest.json`.
+- `data/samples/` sí (CSV/JSON chicos).
+- Cada dataset tiene `manifest.json` con fuente, fecha y versión.
 - Cada script es reproducible con un comando.
-- Si IRSA falla: usar CSV/S3/caché.
+- Si la API falla: usar caché o un sample local (fallback declarado).
 - Documentar el **contrato de datos** de cada feature.
 
 ### Comandos
 ```bash
 make check          # ruff + pytest
-make backend        # API
+make guides         # PDF de las guías
 ```
 
 ---
@@ -191,7 +191,7 @@ make backend        # API
 ## 7. Demo y freeze
 
 ### Antes del freeze
-- Precomputar 5 targets.
+- Precomputar los datos del demo.
 - Verificar que el demo funcione **sin internet**.
 - Grabar un video de respaldo.
 
@@ -254,7 +254,6 @@ make guides  # PDF/PNG
 | pre-commit | Hooks | `pre-commit install` |
 | Typst | Guías visuales | `make guides` |
 | GitHub Actions | CI | push/PR |
-| FastAPI | Backend | `make backend` |
 
 Detalle en [19-herramientas.md](19-herramientas.md).
 

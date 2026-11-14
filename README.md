@@ -1,53 +1,32 @@
-# Mission Trainer — Astral Codes
-
-**Trivia educativa de astronauta junior para NASA Space Apps Challenge 2026.**
+# Astral Codes — NASA Space Apps Challenge 2026
 
 **Equipo:** Andy, David, Samuel, Jorge, Leo
-**Challenge:** [Build a Junior Astronaut Mission Trainer](https://www.spaceappschallenge.org/2026/challenges/build-a-junior-astronaut-mission-trainer/)
 **Repo:** [malbodifh/nasa-space-2026](https://github.com/malbodifh/nasa-space-2026)
+**Estado:** reinicio — challenge **sin elegir**
 
-> Sos cadete en un puesto lunar. Cada error apaga un sistema y la NASA te explica por qué.
-> Al final, tu informe de misión.
+> Estamos eligiendo entre los 14 retos oficiales de 2026.
+> El mapa de decisión está en [`guides/dist/06-retos.pdf`](guides/dist/06-retos.pdf).
 
 ---
 
-## Jugarlo
+## Empezar
 
 ```bash
-make backend      # http://localhost:8000
+make setup      # crea .venv e instala herramientas
+make check      # ruff + pytest
+make guides     # compila las guías Typst a PDF
 ```
 
-No necesita `npm`, ni base de datos, ni internet.
+## Qué hay acá
 
-## Qué hace
-
-- **32 preguntas** en 7 categorías: atmósfera, soporte vital, energía, salud, fuego, comunicaciones y entrenamiento.
-- **4 recursos** (O₂, energía, agua, moral) que bajan con cada error.
-- **Explicación + consecuencia + fuente NASA** en cada respuesta.
-- **Apoyo de Tierra**: si vas perdiendo, el juego te suelta un parte de misión y una pista, aciertes o falles.
-- **Informe final** con rango (Cadete → Comandante) y sistemas para repasar.
-- Funciona **offline** y sin registro.
-
-## Comandos
-
-```bash
-make backend     # servidor + juego
-make check       # ruff + pytest (lo mismo que CI)
-make guides      # compila las guías Typst a PDF
-make branches    # crea las ramas del equipo si faltan
-make sync        # actualiza main/develop/staging
-```
-
-## Estructura
-
-```text
-data/questions.json      banco de preguntas (fuente NASA obligatoria)
-src/backend/app/         API FastAPI (quiz, answer, categories)
-src/backend/static/      juego: HTML + CSS + JS sin build
-docs/                    especificación, datos, plan y bitácora
-guides/                  guías visuales en Typst
-backups/ideas/spherex/   idea anterior, archivada
-```
+| Ruta | Qué es |
+|---|---|
+| [`documentacion.md`](documentacion.md) | Fuente única de verdad: estado, decisiones, reglas |
+| [`docs/02-challenges-2026.md`](docs/02-challenges-2026.md) | Los 14 retos, matriz /20 y método de votación |
+| [`guides/dist/06-retos.pdf`](guides/dist/06-retos.pdf) | El mapa de retos para mostrar al equipo |
+| [`docs/18-workflow.md`](docs/18-workflow.md) | Ramas, PRs, commits y recuperación |
+| [`docs/19-herramientas.md`](docs/19-herramientas.md) | Comandos, CI y guías |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Cómo contribuir |
 
 ## Ramas
 
@@ -61,16 +40,9 @@ develop     desarrollo diario
 andy · david · samuel · jorge · leo    rama personal
 ```
 
-Detalle y recuperación ante errores en [`docs/18-workflow.md`](docs/18-workflow.md).
-
-## Empezar a leer
-
-1. [`documentacion.md`](documentacion.md) — índice y fuente única de verdad.
-2. [`docs/01-decision-challenge.md`](docs/01-decision-challenge.md) — por qué este reto.
-3. [`docs/03-concepto-trivia.md`](docs/03-concepto-trivia.md) — cómo se juega.
-4. [`docs/05-arquitectura.md`](docs/05-arquitectura.md) — cómo está hecho.
-5. [`CONTRIBUTING.md`](CONTRIBUTING.md) — cómo contribuir.
+El proyecto anterior (Mission Trainer, reto #3) está archivado en la rama
+`archive/mission-trainer` y en el tag `v1-mission-trainer`.
 
 ## Créditos
 
-Datos y referencias: NASA (HRP, NTRS, ECLSS, Artemis). NASA no respalda este proyecto.
+Contenido basado en material público de NASA. NASA no respalda este proyecto.

@@ -1,217 +1,85 @@
 # 19 — Herramientas del repo
 
-> **Qué está instalado, qué comando usar y cómo replicarlo en tu máquina.**
+> Lo mínimo para trabajar: comandos, CI, guías y las trampas que ya nos costaron tiempo.
 
 ---
 
-## 1. Lo que ya está en este entorno
-
-| Herramienta | Versión | Estado | Uso |
-|---|---|---|---|
-| Python | 3.14.7 | ✅ | Backend/scripts |
-| venv | — | ✅ | `.venv/` |
-| NumPy | 2.5.4 | ✅ | Arrays |
-| Pillow | 13.0.0 | ✅ | PNG/GIF |
-| Astropy | 8.0.2 | ✅ | FITS/WCS |
-| Astropy-healpix | — | ✅ | Tiles HiPS |
-| Reproject | 0.21.0 | ✅ | Reproyección |
-| Requests | — | ✅ | APIs |
-| Typst | 0.15.1 | ✅ | Guías PDF/PNG |
-| ffmpeg | 9.0.2 | ✅ | Video/GIF |
-| Node | 26.11.1 | ✅ | Frontend |
-| npm | ❌ | No instalado | Samuel debe instalarlo |
-| Git | — | Ver `git --version` | Versionado |
-| GitHub CLI | — | Ver `gh --version` | Opcional |
-
-> **Nota:** el entorno del sandbox no tiene `npm`; en las máquinas del equipo sí debería estar.
-
----
-
-## 2. Comandos principales
+## 1. Comandos
 
 ```bash
-make help        # lista de targets
-make setup       # crea .venv e instala requirements-dev
-make backend     # FastAPI en http://localhost:8000
-make frontend    # React/Vite (si existe package.json)
-make test        # pytest
-make lint        # ruff check
-make format      # ruff format
-make check       # lint + tests (lo mismo que CI)
-make guides      # compila Typst a PDF/PNG
-make clean       # limpia cachés de herramientas
+make setup      # crea .venv e instala requirements-dev.txt
+make check      # ruff + pytest — el único gate real
+make guides     # compila guides/src/*.typ a guides/dist/*.pdf
+make clean      # limpia cachés y PNGs (no borra los PDF)
+make branches   # crea las ramas del equipo si faltan
+make sync       # actualiza main/develop/staging desde origin
 ```
 
----
+Un solo test:
 
-## 3. Setup en una máquina nueva
+```bash
+.venv/bin/python -m pytest tests/test_repo.py -q
+```
 
-### Linux / macOS
+## 2. Setup en una máquina nueva
+
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements-dev.txt
-pre-commit install
+.venv/bin/pip install -r requirements-dev.txt
+typst --version   # hace falta Typst 0.15+
 ```
 
-### Windows (PowerShell)
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install --upgrade pip
-pip install -r requirements-dev.txt
-pre-commit install
-```
+No hay `package.json` ni build de frontend. Si el próximo producto lo necesita, se agrega
+y se avisa al equipo.
 
-### Frontend
+## 3. Calidad
+
+| Herramienta | Para qué | Config |
+|---|---|---|
+| Ruff | lint + format | `pyproject.toml` |
+| Pytest | smoke tests del repo | `tests/` |
+| Pre-commit | hooks locales | `.pre-commit-config.yaml` |
+| Typst | guías visuales | `guides/src/` |
+
+Instalar los hooks una vez:
+
 ```bash
-cd src/frontend
-npm install
-npm run dev
+.venv/bin/pre-commit install
 ```
 
----
+## 4. CI
 
-## 4. Calidad de código
+`.github/workflows/ci.yml` corre en push a `main` y en cada PR:
 
-### Ruff
-- Config en `pyproject.toml`.
-- `make lint` / `make format`.
-- Reglas: E, F, I, UP, B.
+1. **Python:** `ruff check .` + `pytest -q`.
+2. **Frontend:** solo si existe `src/frontend/package.json`.
+3. **Guías:** instala Typst y corre `make guides`.
 
-### Pytest
-- Tests en `tests/`.
-- `make test`.
-- CI corre lo mismo.
+Si el CI falla, no se mergea. Verificá localmente con `make check` antes de decir que
+algo funciona.
 
-### Pre-commit
-```bash
-pre-commit install
-pre-commit run --all-files
-```
-Hooks:
-- trailing whitespace, EOF, YAML/JSON, merge conflicts.
-- archivos grandes (>2 MB).
-- claves privadas.
-- Ruff + Ruff format.
+## 5. Guías visuales
 
----
-
-## 5. GitHub Actions
-
-Archivo: `.github/workflows/ci.yml`.
-
-Jobs:
-1. **Python:** instala dependencias, `ruff check`, `pytest`.
-2. **Frontend:** build si existe `src/frontend/package.json`.
-3. **Guías:** instala Typst, `make guides`, sube artifact.
-
-**Regla:** no se mergea con CI rojo.
-
----
-
-## 6. Typst (guías visuales)
-
-### Compilar
-```bash
-make guides
-```
-
-### Salida
 ```text
-guides/dist/
-├── 01-rubrica.pdf
-├── 03-plan-48h.pdf
-├── 05-ideas.pdf
-├── 06-retos.pdf
-├── 01-rubrica-1.png
-├── ...
+guides/src/*.typ   fuentes (no se leen)
+guides/dist/*.pdf  salida versionada
 ```
 
-### Editar
-- `guides/src/theme.typ` — colores, tipografía, tarjetas.
-- `guides/src/01-rubrica.typ` — rúbrica y prioridades.
-- `guides/src/03-plan-48h.typ` — cronograma y roles.
-- `guides/src/05-ideas.typ` — las 14 ideas en una página, para la votación.
+Detalle y recetas en [`guides/README.md`](../guides/README.md).
 
-### Requisito
-Typst 0.15+ (`typst --version`).
+## 6. Git
 
----
+- Flujo: `persona → develop → staging → main`.
+- `make sync` actualiza las ramas base sin tocar la tuya.
+- Recuperación ante errores: [`18-workflow.md`](18-workflow.md) § 3.1.
+- El proyecto anterior está archivado en `archive/mission-trainer` y el tag
+  `v1-mission-trainer`.
 
-## 7. Datos
+## 7. Trampas verificadas
 
-### Cache
-```text
-data/cache/<slug>/
-├── manifest.json
-├── frame_XXX.png
-├── aligned_XXX.png
-├── diff_XXX.png
-├── blink.gif
-└── fits/XXX.fits
-```
-
-### Reglas
-- `data/cache/` está gitignored.
-- `data/samples/` tiene CSVs chicos para reproducir.
-- No subir FITS/Videos al repo.
-
-### Si IRSA falla
-- Usar los CSV de `data/samples/`.
-- Usar `data/cache/` ya precomputado.
-- Reintentar con backoff.
-- Consultar el estado en el canal.
-
----
-
-## 8. Editor recomendado (VS Code)
-
-Extensiones:
-- **Python** (Microsoft)
-- **Ruff**
-- **Typst LSP** (o `tinymist`)
-- **Markdown All in One**
-- **GitLens**
-- **Error Lens**
-
-Settings:
-- Format on save con Ruff.
-- ruler a 100.
-- spell check en español/inglés (opcional).
-
----
-
-## 9. Seguridad
-
-- `.env` nunca se commitea.
-- `detect-private-key` en pre-commit.
-- No pegar tokens en issues/PRs.
-- Si se filtra una clave: rotarla y avisar.
-- Links públicos para la submission (sin login).
-
----
-
-## 10. Troubleshooting
-
-| Problema | Solución |
-|---|---|
-| `make: command not found` | Instalar `make` o correr los comandos a mano |
-| `python3 -m venv` falla | Instalar `python3-venv` |
-| `npm: command not found` | Instalar Node.js LTS |
-| `typst: command not found` | Instalar Typst 0.15+ |
-| IRSA 502 | Usar CSV/caché; reintentar más tarde |
-| `ruff` falla por imports | `make format` y revisar |
-| CI rojo en frontend | Revisar `package-lock.json` / `npm ci` |
-| Puerto 8000 ocupado | `uvicorn --port 8001` |
-
----
-
-## 11. Enlaces
-
-- [Workflow](18-workflow.md)
-- [Reglas del equipo](00-equipo-y-reglas.md)
-- [Backlog](14-backlog.md)
-- [APIs](04-datos-nasa.md)
-- [Concepto del juego](03-concepto-trivia.md)
+- La ruta del repo tiene un espacio (`NASA SPACEAPPS`): citar siempre en shell.
+- `make clean` **no** debe borrar `guides/dist/`: ahí viven los PDF versionados.
+- En `guides/src/theme.typ` el color de línea se llama `lineColor` porque `line` tapa
+  la función built-in.
+- `.venv` es Python 3.14 en la máquina del equipo; el CI usa 3.12. No usar sintaxis
+  exclusiva de 3.14 si tiene que correr en Actions.

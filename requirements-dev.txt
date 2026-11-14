@@ -1,7 +1,4 @@
--r src/backend/requirements.txt
-
 # Desarrollo
 pytest>=8.0
-httpx>=0.27
 ruff>=0.6
 pre-commit>=3.8

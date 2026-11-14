@@ -1,7 +1,7 @@
 [project]
 name = "astral-codes-spaceapps"
 version = "0.1.0"
-description = "SkyBlink — explorador público de cambios del cielo con SPHEREx"
+description = "NASA Space Apps Challenge 2026 — equipo Astral Codes"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
@@ -9,20 +9,12 @@ license = { text = "MIT" }
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-extend-exclude = [".venv", "data", "guides/dist", "node_modules"]
+extend-exclude = [".venv", "guides/dist", "node_modules"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 ignore = ["E501"]
 
-[tool.ruff.lint.isort]
-known-first-party = ["app"]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src/backend"]
 addopts = "-q"
-
-[tool.mypy]
-python_version = "3.12"
-ignore_missing_imports = true

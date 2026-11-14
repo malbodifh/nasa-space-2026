@@ -33,9 +33,6 @@ make guides
 Salida en `guides/dist/`:
 
 ```text
-01-rubrica.pdf     Rúbrica y prioridades
-03-plan-48h.pdf    Cronograma y roles
-05-ideas.pdf       Las 14 ideas en una página (para votar)
 06-retos.pdf       Los 14 retos: comparación, fichas y votación
 ```
 
@@ -44,9 +41,6 @@ Salida en `guides/dist/`:
 | Archivo | Qué contiene |
 |---|---|
 | `src/theme.typ` | Colores, tipografía, tarjetas, barras, tablas |
-| `src/01-rubrica.typ` | Pesos, autoevaluación, acciones, pitch |
-| `src/03-plan-48h.typ` | Timeline, roles, demo flow, checkpoints |
-| `src/05-ideas.typ` | 14 retos → 14 ideas con su twist, top 5 y estado de datos |
 | `src/06-retos.typ` | Los 14 retos: comparación, matriz, fichas y cómo votar |
 
 ## Agregar una guía nueva

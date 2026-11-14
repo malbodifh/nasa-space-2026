@@ -6,13 +6,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        Antes de crear: revisá `docs/14-backlog.md` y el contrato de datos en `docs/08-problemas-astrofisica.md`.
+        Antes de crear: revisá `documentacion.md` (estado y decisiones) y definí el contrato de datos.
   - type: input
     id: objective
     attributes:
       label: Objetivo
       description: ¿Qué tiene que existir cuando esto esté listo?
-      placeholder: "Ej: /api/targets devuelve los 5 targets con frames"
+      placeholder: "Ej: /api/health devuelve el estado del servicio"
     validations:
       required: true
   - type: dropdown
@@ -31,11 +31,11 @@ body:
       label: Contrato de datos
       description: Dataset, API/endpoint, campos, caché y fallback.
       placeholder: |
-        Dataset: NASA HRP / NTRS
-        API: /api/quiz + /api/answer
-        Campos: id, category, prompt, options, answer, source
-        Archivo: data/questions.json
-        Fallback: banco local, sin red
+        Dataset: <misión / archivo NASA>
+        API: <endpoint>
+        Campos: <lista>
+        Archivo: <ruta>
+        Fallback: <caché / sample local>
         Qué puedo afirmar:
         Qué NO puedo afirmar:
     validations:

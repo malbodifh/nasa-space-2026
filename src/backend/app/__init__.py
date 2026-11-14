@@ -1,1 +1,0 @@
-"""Astral Codes backend package."""

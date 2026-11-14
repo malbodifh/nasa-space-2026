@@ -10,7 +10,7 @@
 | Persona | Rol propuesto | Backup | Habilidades a confirmar |
 |---|---|---|---|
 | **Andy** | Lead / producto / integración | David | Frontend, pitch, organización |
-| **David** | Backend / datos / FITS | Andy | Python, astropy, APIs |
+| **David** | Backend / datos / APIs | Andy | Python, APIs, procesamiento |
 | **Samuel** | Frontend / visualización | Leo | React/JS, canvas, charts |
 | **Jorge** | Ciencia / QA / validación | David | Astronomía, datos, testing |
 | **Leo** | Diseño / UX / storytelling / video | Samuel | Figma, edición, pitch |
@@ -54,14 +54,14 @@ Ninguna persona es indispensable. Cada área tiene un backup que sabe cómo leva
   - `feat/nombre-corto`
   - `fix/nombre-corto`
   - `docs/nombre-corto`
-- Commits chicos y en imperativo: `add SIA2 query`, `fix cutout parser`.
+- Commits chicos y en imperativo: `add endpoint de salud`, `fix timeout de API`.
 - **PR obligatorio** para cambios en `main`, aunque sea de una línea. Revisión de 1 persona.
 - No se commitean:
   - `.env`, claves, tokens.
   - `data/cache/`, `*.fits`, videos pesados.
   - `node_modules/`, `.venv/`.
 - Los scripts de datos deben ser **reproducibles**: un comando, un README, una salida.
-- Si se usa una librería nueva, se anota en `docs/04-apis.md` o en el README del módulo.
+- Si se usa una librería nueva, se anota en el README del módulo y se avisa al equipo.
 
 ### Definition of Done (para el hackathon)
 Una tarea está lista cuando:
@@ -99,7 +99,7 @@ Una tarea está lista cuando:
 7. **Guardar la versión del dataset** (DR1, QR3, fecha de descarga).
 8. **No usar datos propietarios** sin permiso. Los datos abiertos de NASA son públicos.
 9. **Contrato de datos obligatorio:** toda feature declara dataset, API/endpoint, campos, caché y fallback. Sin contrato, no entra al backlog.
-10. **No prometer datos que no tenemos:** si la misión/API no está en el inventario (`docs/08`, tabla 0.1), no se usa ni se menciona como si la tuviéramos.
+10. **No prometer datos que no tenemos:** si la misión/API no está en el inventario de datos del reto elegido, no se usa ni se menciona como si la tuviéramos.
 
 ---
 
@@ -147,7 +147,7 @@ NASA Space Apps 2026 permite usar IA/SI, pero exige declararlo. Reglas del equip
 
 ## 10. Checklist de reglas para votar con el equipo
 
-- [ ] ¿Aprobamos el challenge Junior Astronaut Trainer (trivia)?
+- [ ] ¿Qué challenge elegimos? (comparar en `docs/02-challenges-2026.md`)
 - [ ] ¿Aprobamos los roles propuestos?
 - [ ] ¿Aprobamos los horarios de standup?
 - [ ] ¿Aprobamos el corte de alcance a T-12 h?

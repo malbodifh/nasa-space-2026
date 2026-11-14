@@ -4,8 +4,6 @@
 
 /docs/              @malbodifh
 /guides/            @malbodifh
-/src/backend/       @malbodifh
-/src/frontend/      @malbodifh
-/data/              @malbodifh
 /scripts/           @malbodifh
+/test*/             @malbodifh
 /documentacion.md   @malbodifh
