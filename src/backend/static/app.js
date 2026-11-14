@@ -1,6 +1,12 @@
 // Mission Trainer — estado del cliente y render.
 const RESOURCES = ["o2", "energia", "agua", "moral"];
 const PENALTY = 10;
+const RESOURCE_CATEGORY = {
+  o2: "atmosfera",
+  agua: "soporte-vital",
+  energia: "energia",
+  moral: "salud",
+};
 
 const state = {
   questions: [],
@@ -12,6 +18,11 @@ const state = {
   answered: [],
   locked: false,
   loading: false,
+  wrong: 0,
+  lowSeen: {},
+  supportOpen: false,
+  pendingHint: null,
+  hintUsed: false,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -31,6 +42,12 @@ function reset() {
   state.resources = { o2: 100, energia: 100, agua: 100, moral: 100 };
   state.answered = [];
   state.locked = false;
+  state.wrong = 0;
+  state.lowSeen = {};
+  state.supportOpen = false;
+  state.pendingHint = null;
+  state.hintUsed = false;
+  $("support").hidden = true;
   renderResources();
 }
 
@@ -77,6 +94,17 @@ function renderQuestion() {
     btn.addEventListener("click", () => answer(q, i, btn));
     options.appendChild(btn);
   });
+
+  if (state.pendingHint?.length) {
+    for (const i of state.pendingHint) {
+      const btn = options.children[i];
+      if (btn) {
+        btn.classList.add("discarded");
+        btn.disabled = true;
+      }
+    }
+    state.pendingHint = null;
+  }
 }
 
 async function answer(question, choice, button) {
@@ -99,7 +127,7 @@ async function answer(question, choice, button) {
     button.classList.add("correct");
   } else {
     state.streak = 0;
-  state.maxStreak = 0;
+    state.wrong += 1;
     button.classList.add("wrong");
     state.resources[data.resource] -= PENALTY;
     const correctBtn = $("options").querySelectorAll("button")[data.answer];
@@ -124,6 +152,7 @@ async function answer(question, choice, button) {
   $("source").href = data.source.url;
   $("source").textContent = `Fuente: ${data.source.title} →`;
   $("feedback").hidden = false;
+  maybeSupport(question.category);
   $("next").textContent = state.index === state.questions.length - 1 ? "Ver informe" : "Siguiente";
 }
 
@@ -185,4 +214,58 @@ document.addEventListener("keydown", (event) => {
       if (btn && !btn.disabled) btn.click();
     }
   }
+});
+
+
+// --- Apoyo de Tierra: información cuando el jugador va perdiendo -----------
+function maybeSupport(category) {
+  if (state.supportOpen) return;
+  const low = Object.keys(state.resources).filter(
+    (key) => state.resources[key] <= 30 && !state.lowSeen[key],
+  );
+  const third = state.wrong > 0 && state.wrong % 3 === 0;
+  if (low.length === 0 && !third) return;
+  for (const key of low) state.lowSeen[key] = true;
+  const trigger = low.length ? RESOURCE_CATEGORY[low[0]] : category;
+  openSupport(trigger);
+}
+
+async function openSupport(category) {
+  const res = await fetch(`/api/support/${category}`);
+  if (!res.ok) return;
+  const brief = await res.json();
+  $("sup-headline").textContent = brief.headline;
+  $("sup-concept").textContent = brief.concept;
+  $("sup-tip").textContent = brief.tip;
+  $("sup-source").textContent = `Fuente: ${brief.source.title} →`;
+  $("sup-source").href = brief.source.url;
+  $("sup-hint").disabled = state.hintUsed;
+  $("sup-hint").textContent = state.hintUsed ? "Pista ya usada" : "Pedir pista";
+  state.supportOpen = true;
+  $("support").hidden = false;
+}
+
+function closeSupport() {
+  state.supportOpen = false;
+  $("support").hidden = true;
+}
+
+$("sup-close").addEventListener("click", closeSupport);
+
+$("sup-hint").addEventListener("click", async () => {
+  const nextQuestion = state.questions[state.index + 1];
+  if (!nextQuestion) {
+    $("sup-hint").textContent = "Última pregunta: sin pista";
+    return;
+  }
+  const res = await fetch("/api/hint", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: nextQuestion.id }),
+  });
+  if (!res.ok) return;
+  const data = await res.json();
+  state.pendingHint = data.discard;
+  state.hintUsed = true;
+  closeSupport();
 });

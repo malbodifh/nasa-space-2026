@@ -8,6 +8,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[3]
 QUESTIONS_PATH = BASE_DIR / "data" / "questions.json"
+SUPPORT_PATH = BASE_DIR / "data" / "support.json"
 
 RESOURCES = {"o2": "O₂", "energia": "Energía", "agua": "Agua", "moral": "Moral"}
 
@@ -122,3 +123,22 @@ def validate_bank(questions: list[dict]) -> list[str]:
         if not q.get("source", {}).get("url", "").startswith("https://"):
             errors.append(f"{qid}: source.url inválida")
     return errors
+
+
+def load_support(path: Path | None = None) -> list[dict]:
+    """Partes de misión ("Apoyo de Tierra"): uno por categoría."""
+    source = path or SUPPORT_PATH
+    return json.loads(source.read_text(encoding="utf-8"))
+
+
+def support_for(category: str) -> dict | None:
+    for brief in load_support():
+        if brief["id"] == category:
+            return brief
+    return None
+
+
+def hint_for(question: dict, rng: random.Random | None = None) -> list[int]:
+    """Dos opciones incorrectas para descartar. Nunca revela la correcta."""
+    wrong = [i for i in range(len(question["options"])) if i != question["answer"]]
+    return sorted((rng or random).sample(wrong, min(2, len(wrong))))

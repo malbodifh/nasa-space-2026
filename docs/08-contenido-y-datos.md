@@ -51,6 +51,9 @@ Cada pregunta de `data/questions.json` debe cumplir:
 | `GET /api/categories` | lista con nombre y cantidad | — |
 | `GET /api/quiz?n=10` | preguntas sin `answer`/`explanation` | la respuesta |
 | `POST /api/answer` | `correct`, `scenario`, `explanation`, `consequence`, `hook`, `source` | datos de otros jugadores |
+| `GET /api/support` | los 7 partes de misión | — |
+| `GET /api/support/{category}` | un parte de misión | — |
+| `POST /api/hint` | dos índices incorrectos para descartar | la opción correcta |
 | `GET /api/questions` | banco completo (debug) | — |
 
 **Qué puedo afirmar:** el juego enseña conceptos publicados por NASA y cita cada uno.

@@ -32,6 +32,10 @@ class AnswerIn(BaseModel):
     choice: int = Field(ge=0, le=3)
 
 
+class HintIn(BaseModel):
+    id: str
+
+
 @app.get("/api/health")
 def health() -> dict:
     return {
@@ -63,6 +67,30 @@ def answer(payload: AnswerIn) -> dict:
     if question is None:
         raise HTTPException(status_code=404, detail="Pregunta desconocida")
     return quiz.check_answer(question, payload.choice)
+
+
+@app.get("/api/support")
+def support() -> dict:
+    """Partes de misión para cuando el jugador va perdiendo."""
+    return {"support": quiz.load_support()}
+
+
+@app.get("/api/support/{category}")
+def support_by_category(category: str) -> dict:
+    brief = quiz.support_for(category)
+    if brief is None:
+        raise HTTPException(status_code=404, detail="Categoría sin parte de misión")
+    return brief
+
+
+@app.post("/api/hint")
+def hint(payload: HintIn) -> dict:
+    """Descarta dos opciones incorrectas. No revela la correcta."""
+    questions = {q["id"]: q for q in quiz.load_questions()}
+    question = questions.get(payload.id)
+    if question is None:
+        raise HTTPException(status_code=404, detail="Pregunta desconocida")
+    return {"id": question["id"], "discard": quiz.hint_for(question)}
 
 
 @app.get("/api/questions")

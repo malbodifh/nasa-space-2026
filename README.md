@@ -24,6 +24,7 @@ No necesita `npm`, ni base de datos, ni internet.
 - **32 preguntas** en 7 categorías: atmósfera, soporte vital, energía, salud, fuego, comunicaciones y entrenamiento.
 - **4 recursos** (O₂, energía, agua, moral) que bajan con cada error.
 - **Explicación + consecuencia + fuente NASA** en cada respuesta.
+- **Apoyo de Tierra**: si vas perdiendo, el juego te suelta un parte de misión y una pista, aciertes o falles.
 - **Informe final** con rango (Cadete → Comandante) y sistemas para repasar.
 - Funciona **offline** y sin registro.
 

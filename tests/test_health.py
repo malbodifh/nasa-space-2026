@@ -72,3 +72,28 @@ def test_answer_unknown_question() -> None:
 def test_answer_rejects_invalid_choice() -> None:
     question = client.get("/api/quiz?n=1").json()["questions"][0]
     assert client.post("/api/answer", json={"id": question["id"], "choice": 9}).status_code == 422
+
+
+def test_support_brief_for_every_category() -> None:
+    response = client.get("/api/support")
+    assert response.status_code == 200
+    briefs = response.json()["support"]
+    assert len(briefs) == 7
+    for brief in briefs:
+        assert brief["headline"] and brief["concept"] and brief["tip"]
+        assert brief["source"]["url"].startswith("https://")
+
+
+def test_support_single_category() -> None:
+    assert client.get("/api/support/salud").status_code == 200
+    assert client.get("/api/support/no-existe").status_code == 404
+
+
+def test_hint_discards_two_wrong_options() -> None:
+    question = client.get("/api/quiz?n=1").json()["questions"][0]
+    full = next(q for q in client.get("/api/questions").json()["questions"] if q["id"] == question["id"])
+    response = client.post("/api/hint", json={"id": question["id"]})
+    assert response.status_code == 200
+    discard = response.json()["discard"]
+    assert len(discard) == 2
+    assert full["answer"] not in discard

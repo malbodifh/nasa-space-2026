@@ -116,3 +116,41 @@ La pregunta no enseña: enseña lo que pasa **después** de responder. Cada resp
 - El jugador **decide** (generación de efecto) antes de leer la explicación.
 - La consecuencia conecta el dato con una situación real (transferencia).
 - El dato ancla da una frase repetible para contar después (retención).
+
+
+---
+
+## 10. Apoyo de Tierra (cuando vas perdiendo)
+
+La regla del producto: **el que va perdiendo recibe más información, no menos.**
+
+### Cuándo se dispara
+
+- Un recurso cae a **≤ 30 %** (una vez por recurso).
+- El jugador acumula **3 errores** (y cada múltiplo de 3).
+
+Se evalúa **después de cada respuesta, sea correcta o incorrecta**. Si el jugador acierta
+pero viene mal, igual recibe el parte: el objetivo es aprender, no castigar.
+
+### Qué recibe
+
+```text
+APOYO DE TIERRA · parte de misión
+Título corto del sistema ("Nada se tira")
+2 líneas de concepto
+1 frase "tip" reutilizable
+Fuente NASA
+[ Pedir pista ]  [ Entendido, seguir ]
+```
+
+### La pista
+
+- Descarta **2 opciones incorrectas** de la próxima pregunta (nunca revela la correcta).
+- Se puede usar **una vez por partida**.
+- Es opcional: el jugador puede cerrar el parte y seguir solo.
+
+### Por qué no rompe el juego
+
+- No da puntos ni quita recursos.
+- No revela la respuesta: reduce el ruido de la decisión.
+- Mantiene la tensión: el jugador sigue eligiendo entre dos opciones.
