@@ -40,7 +40,7 @@ make guides    # compila Typst a PDF/PNG
   `git status`. Para limpiar PNGs: `rm -f guides/dist/*.png`, o volver a correr `make guides`.
 - Las rutas se resuelven desde `quiz.BASE_DIR` (raíz del repo), no desde el CWD; no cambies
   eso por `Path("data/...")` o el backend se rompe según dónde se ejecute.
-- En `guides/theme.typ` el color de línea se llama `lineColor` porque `line` tapa la función
+- En `guides/src/theme.typ` el color de línea se llama `lineColor` porque `line` tapa la función
   built-in; y `section(titulo, color: c)` exige el argumento con nombre.
 - La ruta del repo tiene un espacio (`NASA SPACEAPPS`): citar siempre en shell.
 - Los commits deben salir como `Trizzoth <304232853+Trizzoth@users.noreply.github.com>`.
