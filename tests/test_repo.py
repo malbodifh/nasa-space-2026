@@ -18,7 +18,9 @@ def test_archivos_base_existen() -> None:
 
 def test_documentos_referenciados_existen() -> None:
     faltantes: list[str] = []
-    for page in (ROOT / "documentacion.md", ROOT / "README.md"):
+    paginas = ("documentacion.md", "README.md", "AGENTS.md", "CONTRIBUTING.md")
+    for name in paginas:
+        page = ROOT / name
         for target in LINK.findall(page.read_text(encoding="utf-8")):
             target = target.strip()
             if target and not (ROOT / target).exists():

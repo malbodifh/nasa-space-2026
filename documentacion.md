@@ -21,6 +21,7 @@
 
 ### Enlaces rápidos
 
+- [Base para escribir código (AGENTS.md)](AGENTS.md)
 - [Reglas y organización del equipo](docs/00-equipo-y-reglas.md)
 - [Los 14 retos: comparación, fichas y votación](docs/02-challenges-2026.md)
 - [Workflow del equipo](docs/18-workflow.md)
