@@ -61,6 +61,8 @@ make clean      # cachés + PNGs; NO borra los PDF versionados
   **POWER** (climatología 1981+) + **GFWED** (FWI) + **Worldview Snapshots** (antes/después).
 - **FIRMS** pide `FIRMS_MAP_KEY` gratis (pendiente) y solo consulta **1–5 días**. El histórico
   masivo pide Earthdata; para 20 años usar **GIBS MVT**.
+- **FIRMS WMS GetMap** existe (`/mapserver/wms/fires/{KEY}/`), pero la key viaja en la URL:
+  nunca ponerla en el cliente. Usar el area API + círculos, o proxear el WMS por el BFF.
 - **GIBS MVT** de anomalías térmicas está en **EPSG:4326**, no en mercator: MapLibre no lo pinta
   directo. Decodificarlo en el servidor (`@mapbox/vector-tile` + `pbf`) y devolver GeoJSON.
 - **POWER** es reanálisis ~0,5°, con ~2–3 días de latencia y fill `-999`: no sirve para extremos

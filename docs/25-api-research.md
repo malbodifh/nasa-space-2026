@@ -94,6 +94,25 @@ GIBS (§2.2).
 **Uso:** `/api/events` y el componente de proximidad del score. Normalizar `confidence`
 (VIIRS: `l/n/h` o `low/nominal/high`; MODIS: 0–100) y `frp` (MW).
 
+**WMS GetMap (verificado con la key del equipo):**
+
+```text
+https://firms.modaps.eosdis.nasa.gov/mapserver/wms/fires/{MAP_KEY}/?REQUEST=GetMap
+  &layers=fires_viirs_snpp_24&WIDTH=1024&HEIGHT=512
+  &BBOX=-180,-90,180,90&version=1.1.1&format=image/png&transparent=true&SRS=EPSG:4326
+```
+
+- Devuelve `image/png`, CORS `*`; el status correcto es
+  `https://firms.modaps.eosdis.nasa.gov/mapserver/mapkey_status/?MAP_KEY={MAP_KEY}`
+  (no `/api/mapkey_status/`).
+- Capas: `fires_modis_24|48|72|7`, `fires_viirs_snpp_*`, `fires_viirs_noaa20_*`,
+  `fires_viirs_noaa21_*`, `fires_viirs_*`, `fires_landsat_*` (EE.UU./Canadá).
+- También acepta estilo por path:
+  `.../fires/{KEY}/fires_modis_24,fires_viirs_noaa20_24/triangle,triangle/5,3/240+40+40,250+200+50/?REQUEST=GetMap...`
+- **Nunca poner esta URL en el cliente**: la key viaja en el path. Si se usa, proxear por
+  un Route Handler (`/api/firms/wms`) o preferir los puntos del area API + círculos de MapLibre.
+- El WMS solo cubre 24/48/72 h y 7 días; **no** es histórico. Para 20 años, GIBS (§2.2).
+
 ---
 
 ### 2.2 GIBS — el histórico que salva el MVP
@@ -535,6 +554,7 @@ Open-Meteo, OVSICORI (si se usa). La submission oficial va en inglés.
 | Worldview Snapshots | 200, JPEG 512×512 |
 | CMR collections/granules | 200, CORS `*` |
 | FIRMS sin key | 400 `Invalid MAP_KEY` |
+| FIRMS WMS GetMap con key | 200, PNG 1024×512, CORS `*`; status 5000/10 min |
 | GFWED 2026-11-12 | 200, 17,2 MB |
 | LHASA 2026-11-13 | 200, TIFF 145,9 MB; visor `maps.nccs` caído |
 | GDACS WF/TC | 200; `limit` ignorado; `pageSize` funciona |
