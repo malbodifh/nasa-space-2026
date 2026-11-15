@@ -2,7 +2,7 @@
 
 import { Bell, BellRing, FlaskConical, LocateFixed, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 import AlertToasts from "@/components/AlertToasts";
@@ -30,6 +30,23 @@ const HomeMap = dynamic(() => import("@/components/HomeMap"), {
   ssr: false,
   loading: () => <div className="h-full w-full bg-hundida" />,
 });
+
+/**
+ * El mapa pesa cerca de 1 MB y bloquea el hilo principal varios segundos en un celular.
+ * Se pide recién cuando el navegador queda libre, para que el texto pinte primero.
+ */
+function useAfterFirstPaint() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(() => setReady(true), { timeout: 1200 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(() => setReady(true), 200);
+    return () => window.clearTimeout(id);
+  }, []);
+  return ready;
+}
 
 type LocationState = { point: LatLon; status: "buscando" | "gps" | "ejemplo" };
 
@@ -76,6 +93,7 @@ export default function HomeView() {
   // Modo demo: alertas simuladas para probar la app. `at` es el momento en que se activó.
   const [demo, setDemo] = useState<{ id: string; at: number } | null>(null);
   const [demoOpen, setDemoOpen] = useState(false);
+  const mapReady = useAfterFirstPaint();
 
   const locate = useCallback(() => {
     setLocationError(false);
@@ -196,7 +214,9 @@ export default function HomeView() {
             style={{ boxShadow: "var(--sombra-tarjeta)" }}
             aria-label={t("Mapa", "Map")}
           >
-            <HomeMap point={point} radiusKm={NEAR_KM} active={activeItems} history={history} />
+            {mapReady ? (
+              <HomeMap point={point} radiusKm={NEAR_KM} active={activeItems} history={history} />
+            ) : null}
           </section>
 
           <div className="flex flex-col gap-4">
