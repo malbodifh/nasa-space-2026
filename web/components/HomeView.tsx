@@ -189,7 +189,7 @@ export default function HomeView() {
   return (
     <div className="min-h-screen">
       <AlertToasts toasts={notifications.toasts} onClose={notifications.dismiss} />
-      <main id="contenido" className="mx-auto w-full max-w-[1180px] px-4 pb-20 sm:px-6">
+      <main id="contenido" className="mx-auto w-full max-w-[1760px] px-4 pb-20 sm:px-6 lg:px-10">
         {demo ? (
           <div
             role="status"
@@ -209,9 +209,9 @@ export default function HomeView() {
             </button>
           </div>
         ) : null}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px]">
           <section
-            className="h-[46vh] min-h-[300px] min-w-0 overflow-hidden rounded-[14px] bg-hundida lg:h-[70vh] lg:min-h-[540px] lg:max-h-[720px] lg:self-start"
+            className="h-[46vh] min-h-[300px] min-w-0 overflow-hidden rounded-[14px] bg-hundida lg:h-auto lg:min-h-[560px]"
             style={{ boxShadow: "var(--sombra-tarjeta)" }}
             aria-label={t("Mapa", "Map")}
           >
@@ -383,56 +383,60 @@ export default function HomeView() {
               </div>
             </section>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Stat value={events || demo ? active.length.toLocaleString(intlLocale(locale)) : eventsError ? "—" : null} label={t("Eventos recientes en su región", "Recent events in your region")} />
-              <Stat
-                value={events || demo ? active.filter((item) => item.category === "earthquakes").length.toLocaleString(intlLocale(locale)) : eventsError ? "—" : null}
-                label={t("Sismos en las últimas 72 h", "Earthquakes in the last 72 h")}
-              />
-              <Stat value={events ? history.length.toLocaleString(intlLocale(locale)) : null} label={t("Eventos en el último año", "Events in the last year")} />
-              <Stat value={LATEST_RADAR ? displayDate(LATEST_RADAR, locale, false) : "—"} label={t("Última imagen de radar", "Latest radar image")} />
-            </div>
-
-            <details className="tarjeta group p-5 sm:p-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
-                <span className="text-[15px] font-semibold text-tinta">{t("Fuentes en vivo", "Live sources")}</span>
-                <span className="inline-flex items-center gap-2 text-[13px] font-semibold text-tinta-suave">
-                  <span
-                    className={`size-2 rounded-full ${!events ? "bg-linea-fuerte" : online === sources.length && staleCount === 0 ? "bg-exito" : "bg-aviso"}`}
-                    aria-hidden
-                  />
-                  {events
-                    ? t(`${online} de ${sources.length} en línea${staleCount ? ` · ${staleCount} desactualizada${staleCount > 1 ? "s" : ""}` : ""}`, `${online} of ${sources.length} online${staleCount ? ` · ${staleCount} outdated` : ""}`)
-                    : eventsError ? t("No disponibles", "Unavailable") : t("Consultando…", "Checking…")}
-                </span>
-              </summary>
-              <ul className="mt-4 space-y-2 border-t border-linea pt-4">
-                {sources.map((source) => (
-                  <li key={source.id} className="flex items-center justify-between gap-3 text-[13px]">
-                    <span className="inline-flex items-center gap-2 text-tinta">
-                      <span
-                        className={`size-2 rounded-full ${!source.ok ? "bg-peligro" : source.stale ? "bg-aviso" : "bg-exito"}`}
-                        aria-hidden
-                      />
-                      {sourceLabel(source.label, locale)}
-                    </span>
-                    <span className={`text-right ${!source.ok || source.stale ? "font-semibold text-tinta" : "text-tinta-suave"}`}>
-                      {!source.ok
-                        ? t("sin respuesta", "no response")
-                        : source.stale
-                          ? t("desactualizada", "outdated")
-                          : source.latest
-                            ? `${t("último dato", "latest data")} ${displayTimeAgo(source.latest, locale)}`
-                            : t("sin eventos", "no events")}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-4 text-[12px] leading-relaxed text-tinta-suave">
-                {t("Se consultan cada minuto. «Último dato» es el evento más reciente que publicó cada fuente; «sin eventos» significa que respondió, pero no hay nada que reportar en su región.", "Sources are checked every minute. “Latest data” is the most recent event published by each source; “no events” means it responded but has nothing to report in your region.")}
-              </p>
-            </details>
           </div>
+        </div>
+
+        {/* Cifras y fuentes en una franja a lo ancho, debajo del mapa y del estado. */}
+        <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,1.5fr)]">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:col-span-4">
+            <Stat value={events || demo ? active.length.toLocaleString(intlLocale(locale)) : eventsError ? "—" : null} label={t("Eventos recientes en su región", "Recent events in your region")} />
+            <Stat
+              value={events || demo ? active.filter((item) => item.category === "earthquakes").length.toLocaleString(intlLocale(locale)) : eventsError ? "—" : null}
+              label={t("Sismos en las últimas 72 h", "Earthquakes in the last 72 h")}
+            />
+            <Stat value={events ? history.length.toLocaleString(intlLocale(locale)) : null} label={t("Eventos en el último año", "Events in the last year")} />
+            <Stat value={LATEST_RADAR ? displayDate(LATEST_RADAR, locale, false) : "—"} label={t("Última imagen de radar", "Latest radar image")} />
+          </div>
+
+          <details className="tarjeta group p-5 sm:p-5 lg:self-stretch">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+              <span className="text-[15px] font-semibold text-tinta">{t("Fuentes en vivo", "Live sources")}</span>
+              <span className="inline-flex items-center gap-2 text-[13px] font-semibold text-tinta-suave">
+                <span
+                  className={`size-2 rounded-full ${!events ? "bg-linea-fuerte" : online === sources.length && staleCount === 0 ? "bg-exito" : "bg-aviso"}`}
+                  aria-hidden
+                />
+                {events
+                  ? t(`${online} de ${sources.length} en línea${staleCount ? ` · ${staleCount} desactualizada${staleCount > 1 ? "s" : ""}` : ""}`, `${online} of ${sources.length} online${staleCount ? ` · ${staleCount} outdated` : ""}`)
+                  : eventsError ? t("No disponibles", "Unavailable") : t("Consultando…", "Checking…")}
+              </span>
+            </summary>
+            <ul className="mt-4 space-y-2 border-t border-linea pt-4">
+              {sources.map((source) => (
+                <li key={source.id} className="flex items-center justify-between gap-3 text-[13px]">
+                  <span className="inline-flex items-center gap-2 text-tinta">
+                    <span
+                      className={`size-2 rounded-full ${!source.ok ? "bg-peligro" : source.stale ? "bg-aviso" : "bg-exito"}`}
+                      aria-hidden
+                    />
+                    {sourceLabel(source.label, locale)}
+                  </span>
+                  <span className={`text-right ${!source.ok || source.stale ? "font-semibold text-tinta" : "text-tinta-suave"}`}>
+                    {!source.ok
+                      ? t("sin respuesta", "no response")
+                      : source.stale
+                        ? t("desactualizada", "outdated")
+                        : source.latest
+                          ? `${t("último dato", "latest data")} ${displayTimeAgo(source.latest, locale)}`
+                          : t("sin eventos", "no events")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-[12px] leading-relaxed text-tinta-suave">
+              {t("Se consultan cada minuto. «Último dato» es el evento más reciente que publicó cada fuente; «sin eventos» significa que respondió, pero no hay nada que reportar en su región.", "Sources are checked every minute. “Latest data” is the most recent event published by each source; “no events” means it responded but has nothing to report in your region.")}
+            </p>
+          </details>
         </div>
 
         <div className="mt-14 grid gap-10 lg:grid-cols-2 lg:gap-6">

@@ -10,10 +10,12 @@ import {
   setWorkerUrl,
   type GeoJSONSource,
 } from "maplibre-gl";
+import { Map as MapIcon, Mountain, Satellite } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useLocale } from "@/components/LocaleProvider";
 import { isOngoing } from "@/lib/alert-rules";
+import { basemapStyle, readBasemap, saveBasemap, type BasemapId } from "@/lib/basemaps";
 import { categoryLabel, displayTimeAgo, eventTitle, intlLocale } from "@/lib/display-i18n";
 import { studyHref, type EventItem } from "@/lib/events";
 import { bboxForRadius, circlePolygon } from "@/lib/geo";
@@ -28,7 +30,6 @@ type Props = {
   history: EventItem[];
 };
 
-const STYLE_URL = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 const EMPTY = { type: "FeatureCollection" as const, features: [] };
 const RED = "#DC2626";
 const YELLOW = "#EAB308";
@@ -77,6 +78,11 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
   const [error, setError] = useState<"webgl" | "style" | null>(null);
   const [degraded, setDegraded] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  // El mapa solo se monta en el cliente, así que se puede leer la elección guardada al iniciar.
+  const [basemap, setBasemap] = useState<BasemapId>(() => (typeof window === "undefined" ? "mapa" : readBasemap()));
+  const basemapRef = useRef(basemap);
+  // Cambiar el mapa base borra las capas propias; este número obliga a volver a cargar los datos.
+  const [styleVersion, setStyleVersion] = useState(0);
 
   useEffect(() => {
     textRef.current = t;
@@ -117,7 +123,7 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
       setWorkerUrl("/maplibre-gl-worker.mjs");
       map = new MapLibreMap({
         container: containerRef.current,
-        style: STYLE_URL,
+        ...basemapStyle(basemapRef.current),
         center: [initialRef.current.point.lon, initialRef.current.point.lat],
         zoom: 7,
         minZoom: 3,
@@ -164,10 +170,7 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
       else setDegraded(true);
     });
 
-    map.on("style.load", () => {
-      if (disposed) return;
-      styleReady = true;
-      clearTimeout(timeout);
+    const addOverlays = () => {
       map.addSource("zones", { type: "geojson", data: EMPTY });
       map.addSource("me", { type: "geojson", data: EMPTY });
       map.addSource("events", { type: "geojson", data: EMPTY });
@@ -223,31 +226,58 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
           "circle-stroke-color": "#FFFFFF",
         },
       });
+    };
 
-      map.on("click", "events-circle", (event) => {
-        const p = event.features?.[0]?.properties as Record<string, unknown> | undefined;
-        if (!p) return;
-        popup
-          .setLngLat(event.lngLat)
-          .setHTML(
-            `<p style="font-weight:600">${escapeHtml(p.title)}</p>` +
-              `<p style="color:#5A5F6E">${escapeHtml(p.label)} · ${escapeHtml(p.when)}${p.ongoing ? escapeHtml(textRef.current(" · en curso", " · ongoing")) : ""}</p>` +
-              (p.zones ? `<p style="color:#5A5F6E;margin-top:4px">${escapeHtml(p.zones)}</p>` : "") +
-              `<a href="${escapeHtml(p.href)}" style="display:inline-block;margin-top:6px;color:#3F51D6;font-weight:600">${escapeHtml(textRef.current("Ver la comparación de la superficie", "See the surface comparison"))} →</a>`,
-          )
-          .addTo(map);
-      });
-      map.on("mouseenter", "events-circle", () => {
-        map.getCanvas().style.cursor = "pointer";
-      });
-      map.on("mouseleave", "events-circle", () => {
-        map.getCanvas().style.cursor = "";
-      });
+    map.on("style.load", () => {
+      if (disposed) return;
+      styleReady = true;
+      clearTimeout(timeout);
+      setDegraded(false);
+      // La atribución queda plegada en el botón (i) para no tapar la leyenda en pantallas chicas.
+      // MapLibre la abre al recibir las fuentes, después de este evento: se pliega cuando el mapa termina de cargar.
+      map.once("idle", () => map.getContainer().querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show"));
+      addOverlays();
+      setStyleVersion((value) => value + 1);
       setReady(true);
+    });
+
+    // Los eventos por capa siguen activos aunque la capa se vuelva a crear al cambiar el mapa base.
+    map.on("click", "events-circle", (event) => {
+      const p = event.features?.[0]?.properties as Record<string, unknown> | undefined;
+      if (!p) return;
+      popup
+        .setLngLat(event.lngLat)
+        .setHTML(
+          `<p style="font-weight:600">${escapeHtml(p.title)}</p>` +
+            `<p style="color:#5A5F6E">${escapeHtml(p.label)} · ${escapeHtml(p.when)}${p.ongoing ? escapeHtml(textRef.current(" · en curso", " · ongoing")) : ""}</p>` +
+            (p.zones ? `<p style="color:#5A5F6E;margin-top:4px">${escapeHtml(p.zones)}</p>` : "") +
+            `<a href="${escapeHtml(p.href)}" style="display:inline-block;margin-top:6px;color:#3F51D6;font-weight:600">${escapeHtml(textRef.current("Ver la comparación de la superficie", "See the surface comparison"))} →</a>`,
+        )
+        .addTo(map);
+    });
+    map.on("mouseenter", "events-circle", () => {
+      map.getCanvas().style.cursor = "pointer";
+    });
+    map.on("mouseleave", "events-circle", () => {
+      map.getCanvas().style.cursor = "";
     });
 
     return dispose;
   }, [attempt]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || basemapRef.current === basemap) return;
+    basemapRef.current = basemap;
+    popupRef.current?.remove();
+    const { style, transformStyle } = basemapStyle(basemap);
+    map.setStyle(style, { diff: false, transformStyle });
+  }, [basemap, ready]);
+
+  const chooseBasemap = (id: BasemapId) => {
+    setBasemap(id);
+    saveBasemap(id);
+  };
 
   useEffect(() => {
     const map = mapRef.current;
@@ -262,7 +292,7 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
       fit(map, point, radiusKm, previous?.map === map ? 600 : 0);
       fittedRef.current = { map, lat: point.lat, lon: point.lon, radiusKm };
     }
-  }, [ready, point, radiusKm]);
+  }, [ready, point, radiusKm, styleVersion]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -283,7 +313,7 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
           }),
       ) as never,
     });
-  }, [ready, zones]);
+  }, [ready, zones, styleVersion]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -323,13 +353,42 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
         },
       })),
     });
-  }, [ready, active, history, zones, locale, t]);
+  }, [ready, active, history, zones, locale, t, styleVersion]);
 
   return (
     <div className="relative h-full w-full overflow-hidden">
       <div ref={containerRef} className="h-full w-full" aria-label={t("Mapa de alertas cerca de usted", "Map of alerts near you")} />
+      {ready && !error ? (
+        <div
+          role="group"
+          aria-label={t("Tipo de mapa", "Map type")}
+          className="absolute left-3 top-3 flex gap-0.5 rounded-[10px] bg-white/95 p-1"
+          style={{ boxShadow: "var(--sombra-tarjeta)" }}
+        >
+          {(
+            [
+              ["mapa", MapIcon, t("Mapa", "Map")],
+              ["satelite", Satellite, t("Satélite", "Satellite")],
+              ["relieve", Mountain, t("Relieve", "Terrain")],
+            ] as const
+          ).map(([id, Icon, label]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={basemap === id}
+              onClick={() => chooseBasemap(id)}
+              className={`inline-flex items-center gap-1.5 rounded-[7px] px-2.5 py-1.5 text-[12px] font-semibold transition-colors ${
+                basemap === id ? "bg-primario text-white" : "text-tinta-suave hover:bg-hundida hover:text-tinta"
+              }`}
+            >
+              <Icon className="size-3.5" aria-hidden />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
       {degraded && !error ? (
-        <p role="status" className="absolute left-3 right-14 top-3 rounded-lg bg-white/95 p-2 text-[12px] text-tinta-suave">
+        <p role="status" className="absolute left-3 right-14 top-14 rounded-lg bg-white/95 p-2 text-[12px] text-tinta-suave">
           {t("Algunas capas del mapa no pudieron cargarse.", "Some map layers could not be loaded.")}
         </p>
       ) : null}
