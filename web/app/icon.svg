@@ -1,7 +1,24 @@
-<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-  <title>Memoria de Fuego</title>
-  <rect width="64" height="64" rx="14" fill="#171A23"/>
-  <circle cx="32" cy="32" r="20" fill="none" stroke="#5266EB" stroke-width="3"/>
-  <circle cx="32" cy="32" r="12" fill="none" stroke="#F7F7F6" stroke-width="2" opacity="0.85"/>
-  <circle cx="32" cy="32" r="5" fill="#A9B3F7"/>
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <title>GAMA Alert</title>
+  <rect width="120" height="120" fill="#171A23"/>
+  <g transform="translate(48 72) rotate(-22)" fill="none" stroke="#F7F7F6" stroke-width="5" stroke-linecap="round">
+    <path d="M -46 0 A 46 19 0 0 1 46 0"/>
+  </g>
+  <circle cx="48" cy="72" r="31" fill="#F7F7F6"/>
+  <g fill="#171A23">
+    <path d="M 34 52 C 38 44 50 42 56 48 C 60 52 58 58 52 60 C 46 62 36 60 33 57 C 31 55 32 53 34 52 Z"/>
+    <path d="M 46 62 C 52 62 58 68 58 76 C 58 84 54 92 50 95 C 46 91 44 82 44 74 C 44 68 42 62 46 62 Z"/>
+  </g>
+  <g transform="translate(48 72) rotate(-22)" fill="none" stroke="#F7F7F6" stroke-width="5" stroke-linecap="round">
+    <path d="M -46 0 A 46 19 0 0 0 46 0"/>
+  </g>
+  <g fill="none" stroke="#F7F7F6" stroke-width="3.5" stroke-linecap="round">
+    <path d="M 68 40 A 12 12 0 0 1 80 52"/>
+    <path d="M 62 34 A 19 19 0 0 1 86 58"/>
+  </g>
+  <g transform="translate(88 28) rotate(45)" fill="#F7F7F6">
+    <rect x="-20" y="-7" width="14" height="14" rx="2.5"/>
+    <rect x="-4" y="-5" width="8" height="10" rx="1.5"/>
+    <rect x="7" y="-7" width="14" height="14" rx="2.5"/>
+  </g>
 </svg>
