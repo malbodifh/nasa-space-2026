@@ -28,7 +28,7 @@ const display = Newsreader({
 export const metadata: Metadata = {
   title: "Memoria de Fuego · NASA Space Apps 2026",
   description:
-    "Prototipo de alerta temprana personal con datos NASA: focos activos, memoria histórica y condiciones de fondo. No es una alerta oficial.",
+    "Observatorio personal de desastres naturales con datos NASA: eventos abiertos, focos de calor, volcanes y condiciones de fondo para Costa Rica. No es una alerta oficial.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

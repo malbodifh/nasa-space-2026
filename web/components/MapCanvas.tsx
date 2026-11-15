@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 
 import OverlayPanel from "@/components/OverlayPanel";
 import { bboxForRadius, circlePolygon } from "@/lib/geo";
+import { hazardFor } from "@/lib/hazards";
 import type {
   DisasterAlert,
   FirePoint,
@@ -34,6 +35,7 @@ type Props = {
   onToggleLayer: (id: LayerId) => void;
   overlaysLoading: boolean;
   overlaysFailed: boolean;
+  hiddenHazards: string[];
 };
 
 const STYLE_URL = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
@@ -73,6 +75,7 @@ export default function MapCanvas({
   onToggleLayer,
   overlaysLoading,
   overlaysFailed,
+  hiddenHazards,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -114,7 +117,8 @@ export default function MapCanvas({
     map.addControl(new AttributionControl({ compact: true }), "bottom-right");
     popupRef.current = new Popup({ closeButton: false, offset: 10, maxWidth: "260px" });
 
-    map.on("load", () => {
+    // "style.load" llega antes que "load": el mapa aparece sin esperar teselas.
+    map.on("style.load", () => {
       map.resize();
       setReady(true);
       map.addSource("borders", { type: "geojson", data: EMPTY });
@@ -356,6 +360,8 @@ export default function MapCanvas({
         });
       }
 
+      map.on("load", () => map.resize());
+
       map.on("click", (event) => {
         const hits = map.queryRenderedFeatures(event.point, {
           layers: ["fires-circle", "volcanoes-circle", "protected-fill", "alerts-circle"],
@@ -422,7 +428,9 @@ export default function MapCanvas({
     const map = mapRef.current;
     if (!map || !ready) return;
 
-    const alertFeatures = (overlays?.alerts ?? []).map((alert) => ({
+    const alertFeatures = (overlays?.alerts ?? [])
+      .filter((alert) => !hiddenHazards.includes(hazardFor(alert.category).id))
+      .map((alert) => ({
       type: "Feature" as const,
       geometry: { type: "Point" as const, coordinates: [alert.lon, alert.lat] },
       properties: {
@@ -449,7 +457,7 @@ export default function MapCanvas({
       const source = map.getSource(id) as GeoJSONSource | undefined;
       if (source) source.setData(data as never);
     }
-  }, [ready, overlays]);
+  }, [ready, overlays, hiddenHazards]);
 
   useEffect(() => {
     const map = mapRef.current;
