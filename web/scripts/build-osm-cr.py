@@ -8,7 +8,7 @@ Requiere pyosmium (`pip install osmium`) y el PBF de Costa Rica:
 import json
 import math
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import osmium
@@ -320,7 +320,7 @@ def main():
 
     payload = {
         "source": "OpenStreetMap · extracto Geofabrik Costa Rica",
-        "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "generatedAt": datetime.now(UTC).isoformat(),
         "areas": areas,
     }
     OUT.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
