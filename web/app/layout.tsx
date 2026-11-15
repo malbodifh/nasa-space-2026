@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
 import LocaleProvider from "@/components/LocaleProvider";
@@ -17,6 +17,24 @@ export const metadata: Metadata = {
   title: "Memoria de Fuego · NASA Space Apps 2026",
   description:
     "Alertas de desastres cerca de usted y cómo cambió la superficie de la Tierra, vista con el radar NASA-ISRO NISAR. No es una alerta oficial.",
+  applicationName: "Memoria de Fuego",
+  openGraph: {
+    title: "Memoria de Fuego · NASA Space Apps 2026",
+    description:
+      "Desastres naturales en Costa Rica y cambios de superficie con radar NASA-ISRO NISAR. No es una alerta oficial.",
+    type: "website",
+    locale: "es_CR",
+  },
+  twitter: {
+    card: "summary",
+    title: "Memoria de Fuego · NASA Space Apps 2026",
+    description:
+      "Desastres naturales en Costa Rica y cambios de superficie con radar NASA-ISRO NISAR.",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#171A23",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
