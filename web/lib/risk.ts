@@ -78,7 +78,7 @@ export function assessRisk(
       sources: sourcesFor(false, false),
       officialUrl: OFFICIAL_URL,
       disclaimer:
-        "Información de contexto, no una alerta oficial. Si hay peligro, seguí las instrucciones de SENAPRED y CONAF.",
+        "Información de contexto, no una alerta oficial. Si hay peligro, seguí las instrucciones de la CNE y SINAC.",
     };
   }
 
@@ -116,7 +116,7 @@ export function assessRisk(
     sources: sourcesFor(true, climate !== null),
     officialUrl: OFFICIAL_URL,
     disclaimer:
-      "Información de contexto, no una alerta oficial. La app muestra observación y memoria; el pronóstico y la evacuación los define la autoridad.",
+      "La app muestra observación y memoria para Costa Rica; el pronóstico y la evacuación los define la CNE.",
   };
 }
 

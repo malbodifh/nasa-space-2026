@@ -21,7 +21,7 @@ const SCOPE: Record<AppAlert["scope"], string> = {
 function clock(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("es-CL", {
+  return new Intl.DateTimeFormat("es-CR", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -130,8 +130,8 @@ export default function AlertInbox({
 
       {visible.length === 0 && !loading && !failed ? (
         <p className="mt-3 border-l-2 border-rule pl-2 text-[11px] leading-relaxed text-ash">
-          Sin avisos activos para este punto. El riesgo se recalcula cada minuto con GIBS, POWER,
-          EONET y GDACS.
+          Sin avisos activos para este punto. Las amenazas se revisan cada minuto con EONET, GDACS,
+          GIBS y POWER.
         </p>
       ) : null}
 

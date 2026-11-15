@@ -10,7 +10,7 @@ import type {
   VolcanoProps,
 } from "@/lib/types";
 
-const nf = new Intl.NumberFormat("es-CL", { maximumFractionDigits: 1 });
+const nf = new Intl.NumberFormat("es-CR", { maximumFractionDigits: 1 });
 
 type Segment = [[number, number], [number, number]];
 
