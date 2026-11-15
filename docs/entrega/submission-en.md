@@ -8,6 +8,15 @@
 
 [Dancing with the SARs](https://www.spaceappschallenge.org/2026/challenges/dancing-with-the-sars/).
 
+## Team and links
+
+- Team: **Astral Codes** (Andy Piedra, David, Samuel, Jorge, Leo).
+- Repository: <https://github.com/malbodifh/nasa-space-2026>.
+- Live app: <https://nasa-space-2026.vercel.app/>.
+- Video: _pending — record ≤30 s, English or English subtitles._
+
+Fill in the video link and confirm the deployed URL before submitting.
+
 ## Project summary
 
 Memoria de Fuego connects natural-hazard reports in Costa Rica with an interactive exploration
@@ -63,6 +72,15 @@ AI-generated internal scores are not NASA or jury scores.
 
 Verify dependency, map, image and code-license attribution before submission. A public repository
 alone does not establish an open-source license; the team must confirm its license.
+
+## Reproducibility
+
+- The four demonstration areas are precomputed, so the study opens offline for them.
+- `pnpm --dir web dev` runs locally; no environment variable is required.
+- `pnpm --dir web test` covers parsers, alert rules, the SAR change math and API contracts.
+- Method, limits and every source are documented in `docs/producto/` and `docs/tecnico/`.
+- Regenerating the radar dataset needs network and is **not** required to run the demo:
+  `node scripts/build-nisar.mjs` (see `docs/producto/nisar.md`).
 
 ## Suggested 30-second demo script
 
