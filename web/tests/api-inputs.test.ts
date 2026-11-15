@@ -20,11 +20,21 @@ vi.mock("@/lib/sources/overlays", () => ({
 beforeEach(() => vi.clearAllMocks());
 const handlers = { assess, events, search, overlays };
 
+describe.each(Object.entries(handlers))("parámetros extra /api/%s", (name, handler) => {
+  // Un enlace compartido con ?utm_source=… no debe romper la consulta.
+  it("ignora parámetros desconocidos y no consulta con coordenadas inválidas", async () => {
+    const response = await handler(
+      new Request(`https://app.test/api/${name}?lat=9.9&lon=-84.1&utm_source=whatsapp&fbclid=x`),
+    );
+    expect(response.status).not.toBe(400);
+  });
+});
+
 describe.each(Object.entries(handlers))("validación /api/%s", (name, handler) => {
   it.each([
     "", "lat=&lon=", "lat=9.9", "lon=-84.1", "lat=%20&lon=-84.1",
     "lat=null&lon=-84.1", "lat=9.9&lon=NaN", "lat=91&lon=0", "lat=0&lon=-181",
-    "lat=9.9&lon=-84.1&lat=0", "lat=9.9&lon=-84.1&unknown=x",
+    "lat=9.9&lon=-84.1&lat=0",
   ])("no consulta fuentes con %s", async (query) => {
     const response = await handler(new Request(`https://app.test/api/${name}?${query}`));
     expect(response.status).toBe(400);

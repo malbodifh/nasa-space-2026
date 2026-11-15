@@ -10,7 +10,7 @@ import { getClimate } from "@/lib/sources/power";
 import type { AssessResponse, ClimateStats, FireStats } from "@/lib/types";
 
 
-const querySchema = z.strictObject({
+const querySchema = z.object({
   lat: latitude,
   lon: longitude,
   radius: radiusSchema(100, "50"),

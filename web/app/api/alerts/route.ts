@@ -26,7 +26,7 @@ async function withBudget<T>(promise: Promise<T>, ms: number, fallback: T): Prom
   }
 }
 
-const querySchema = z.strictObject({
+const querySchema = z.object({
   lat: latitude,
   lon: longitude,
   radius: radiusSchema(100, "50"),

@@ -4,7 +4,7 @@ import { latitude, longitude, queryValues } from "@/app/api/_lib/query";
 import { fetchLimited } from "@/app/api/_lib/remote";
 import { browseUrl, GRANULE_PATTERN, NISAR_COLLECTIONS, type NisarSearch } from "@/lib/nisar-remote";
 
-const querySchema = z.strictObject({
+const querySchema = z.object({
   lat: latitude,
   lon: longitude,
 });

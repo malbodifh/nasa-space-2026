@@ -35,6 +35,13 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 
+describe("GET /api/alerts · parámetros extra", () => {
+  it("ignora tracking y claves raras sin romper el enlace compartido", async () => {
+    const response = await GET(request(`${pointQuery}&utm_source=whatsapp&__proto__=x`));
+    expect(response.status).toBe(200);
+  });
+});
+
 describe("GET /api/alerts", () => {
   it.each([
     ["fire", "Foco de calor", "NASA FIRMS"],
@@ -81,7 +88,6 @@ describe("GET /api/alerts", () => {
     "lat=91&lon=-84", "lat=10&lon=181", `${pointQuery}&radius=4`, `${pointQuery}&radius=101`,
     `${pointQuery}&radius=`, `${pointQuery}&test=true`, `${pointQuery}&hazard=meteorito`,
     `${pointQuery}&hazard=tsunami`, `${pointQuery}&hazard=`, `${pointQuery}&lat=0`,
-    `${pointQuery}&unknown=1`, `${pointQuery}&__proto__=x`,
   ])("rechaza parámetros inválidos: %s", async (query) => {
     const response = await GET(request(query));
     expect(response.status).toBe(400);

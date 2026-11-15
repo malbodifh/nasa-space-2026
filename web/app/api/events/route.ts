@@ -7,7 +7,7 @@ import { affects } from "@/lib/alert-rules";
 import { getEvents } from "@/lib/sources/overlays";
 import type { DisasterAlert, EventsResponse } from "@/lib/types";
 
-const querySchema = z.strictObject({
+const querySchema = z.object({
   lat: latitude,
   lon: longitude,
   radius: radiusSchema(600, "150"),

@@ -6,7 +6,7 @@ import { withCacheTracking } from "@/lib/cache";
 import { getOverlays } from "@/lib/sources/overlays";
 import type { OverlaysResponse } from "@/lib/types";
 
-const querySchema = z.strictObject({
+const querySchema = z.object({
   lat: latitude,
   lon: longitude,
   radius: radiusSchema(100, "50"),
