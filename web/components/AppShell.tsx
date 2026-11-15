@@ -489,7 +489,7 @@ export default function AppShell() {
 
           <div className="mt-3 flex items-center gap-4">
             <span className="eyebrow">Radio</span>
-            {[10, 25, 50].map((value) => (
+            {[1, 5, 10, 25, 50].map((value) => (
               <button
                 key={value}
                 type="button"
