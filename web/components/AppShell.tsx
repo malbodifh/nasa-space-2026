@@ -17,13 +17,17 @@ import AlertToast from "@/components/AlertToast";
 import BrandMark from "@/components/BrandMark";
 import { ClimateCard, MemoryCard, RiskCard, SourcesCard } from "@/components/cards";
 import CorrelationCard from "@/components/CorrelationCard";
+import HazardCard from "@/components/HazardCard";
 import { correlate } from "@/lib/correlate";
 import ImageCompare from "@/components/ImageCompare";
+import LocationPicker from "@/components/LocationPicker";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  DEMO_LOCATION,
   DEMO_POINT,
   DEMO_RADIUS_KM,
+  LOCATIONS,
   MEMORY_DATES,
   shortDate,
 } from "@/lib/demo";
@@ -87,6 +91,7 @@ async function fetcher<T>(url: string): Promise<T> {
 
 export default function AppShell() {
   const [point, setPoint] = useState<Point>(DEMO_POINT);
+  const [locationId, setLocationId] = useState(DEMO_LOCATION.id);
   const [radiusKm, setRadiusKm] = useState(DEMO_RADIUS_KM);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
@@ -105,6 +110,7 @@ export default function AppShell() {
   const [testMode, setTestMode] = useState(false);
   const [testAlerts, setTestAlerts] = useState<AppAlert[]>([]);
   const [alertsError, setAlertsError] = useState<string | null>(null);
+  const [hiddenHazards, setHiddenHazards] = useState<string[]>([]);
   const seenRef = useRef<Set<string> | null>(null);
   const firstLoadRef = useRef(true);
 
@@ -288,8 +294,27 @@ export default function AppShell() {
     setLayers((current) => ({ ...current, [id]: !current[id] }));
   }, []);
 
+  const onToggleHazard = useCallback((category: string) => {
+    setHiddenHazards((current) =>
+      current.includes(category)
+        ? current.filter((item) => item !== category)
+        : [...current, category],
+    );
+  }, []);
+
   const onPick = useCallback((lat: number, lon: number) => {
     setPoint({ lat, lon, label: "Punto elegido" });
+    setLocationId("custom");
+    setSelectedDate(null);
+    setGeoError(null);
+  }, []);
+
+  const onSelectLocation = useCallback((id: string) => {
+    const location = LOCATIONS.find((item) => item.id === id);
+    if (!location) return;
+    setLocationId(location.id);
+    setPoint({ lat: location.lat, lon: location.lon, label: `${location.label}, Costa Rica` });
+    setRadiusKm(location.radiusKm);
     setSelectedDate(null);
     setGeoError(null);
   }, []);
@@ -307,6 +332,7 @@ export default function AppShell() {
           lon: position.coords.longitude,
           label: "Mi ubicación",
         });
+        setLocationId("custom");
         setSelectedDate(null);
       },
       () => setGeoError("No pudimos obtener tu ubicación. Elegí un punto en el mapa."),
@@ -315,9 +341,7 @@ export default function AppShell() {
   }
 
   function resetPoint() {
-    setPoint(DEMO_POINT);
-    setSelectedDate(null);
-    setGeoError(null);
+    onSelectLocation(DEMO_LOCATION.id);
   }
 
   return (
@@ -337,9 +361,7 @@ export default function AppShell() {
                 actualizando
               </span>
             ) : null}
-            <span className="hidden font-mono text-[10px] text-ash md:block">
-              Valparaíso · Chile
-            </span>
+            <span className="hidden font-mono text-[10px] text-ash md:block">Costa Rica</span>
             <span className="stamp">No es alerta oficial</span>
           </div>
         </div>
@@ -349,9 +371,9 @@ export default function AppShell() {
         <aside className="order-2 flex flex-col bg-sheet/50 px-4 py-4 lg:order-1 lg:h-[calc(100dvh-74px)] lg:overflow-y-auto lg:border-r lg:border-rule lg:px-5">
           <section>
             <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="eyebrow">Punto de observación</p>
-                <p className="mt-1 font-display text-[22px] leading-tight">{point.label}</p>
+              <div className="min-w-0 flex-1">
+                <LocationPicker value={locationId} onSelect={onSelectLocation} />
+                <p className="mt-2 font-display text-[22px] leading-tight">{point.label}</p>
                 <p className="mt-1 font-mono text-[10px] text-ash">
                   {point.lat.toFixed(3)}, {point.lon.toFixed(3)} · radio {radiusKm} km
                 </p>
@@ -388,23 +410,23 @@ export default function AppShell() {
                 className="rounded-none text-[11px] text-ash hover:bg-rule/40 hover:text-ink"
               >
                 <Crosshair className="size-3.5" />
-                Valparaíso
+                Reiniciar
               </Button>
             </div>
 
             <p className="mt-2 text-[11px] leading-relaxed text-ash">
               Si hay peligro inminente, llamá al{" "}
-              <a href="tel:132" className="text-ink underline underline-offset-2">
-                132
+              <a href="tel:911" className="text-ink underline underline-offset-2">
+                911
               </a>{" "}
-              o seguí a{" "}
+              o seguí a la{" "}
               <a
-                href="https://www.senapred.cl/"
+                href="https://www.cne.go.cr/"
                 target="_blank"
                 rel="noreferrer"
                 className="text-ink underline underline-offset-2"
               >
-                SENAPRED
+                CNE
               </a>
               . Esta app no reemplaza una alerta oficial.
             </p>
@@ -514,7 +536,15 @@ export default function AppShell() {
             </section>
           ) : payload ? (
             <div className="mt-5">
-              <RiskCard risk={payload.risk} meta={data?.meta} />
+              <HazardCard
+                alerts={overlays?.alerts ?? []}
+                radiusKm={radiusKm}
+                hidden={hiddenHazards}
+                onToggle={onToggleHazard}
+              />
+              <div className="mt-5">
+                <RiskCard risk={payload.risk} meta={data?.meta} />
+              </div>
               <MemoryCard memory={payload.memory} selectedDate={selectedDate} onSelect={setSelectedDate} />
               <CorrelationCard
                 correlations={correlations}
@@ -532,9 +562,9 @@ export default function AppShell() {
               Prototipo · NASA Space Apps Challenge 2026
             </p>
             <p className="mt-1 text-[10px] leading-relaxed text-ash">
-              No reemplaza a SENAPRED, CONAF ni a los servicios de emergencia. Datos: NASA GIBS,
-              NASA POWER, NASA Worldview. Mapa: © OpenStreetMap, © CARTO. NASA no respalda este
-              proyecto.
+              No reemplaza a la CNE, SINAC ni a los servicios de emergencia. Datos: NASA GIBS,
+              NASA POWER, NASA Worldview, NASA EONET. Mapa: © OpenStreetMap, © CARTO. NASA no
+              respalda este proyecto.
             </p>
           </footer>
         </aside>
@@ -552,6 +582,7 @@ export default function AppShell() {
             onToggleLayer={onToggleLayer}
             overlaysLoading={overlaysLoading}
             overlaysFailed={Boolean(overlaysError)}
+            hiddenHazards={hiddenHazards}
           />
         </section>
       </main>

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { MEMORY_DATES, shortDate } from "@/lib/demo";
 import type { ApiMeta, ClimateStats, FireStats, RiskAssessment, RiskLevel } from "@/lib/types";
 
-const nf = new Intl.NumberFormat("es-CL", { maximumFractionDigits: 1 });
+const nf = new Intl.NumberFormat("es-CR", { maximumFractionDigits: 1 });
 
 const LEVEL: Record<RiskLevel, { label: string; text: string; bar: string }> = {
   info: { label: "Sin datos", text: "text-ash", bar: "bg-ash" },
@@ -26,7 +26,7 @@ const LEVEL: Record<RiskLevel, { label: string; text: string; bar: string }> = {
 const CONFIDENCE = { low: "baja", medium: "media", high: "alta" } as const;
 
 function updatedAtLabel(iso: string): string {
-  return new Intl.DateTimeFormat("es-CL", {
+  return new Intl.DateTimeFormat("es-CR", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "America/Santiago",
@@ -39,7 +39,7 @@ export function RiskCard({ risk, meta }: { risk: RiskAssessment; meta?: ApiMeta 
   return (
     <section aria-labelledby="risk-title" className="border-t border-ink/80 pt-4">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="eyebrow">Riesgo actual</p>
+        <p className="eyebrow">Condiciones para incendio</p>
         <span className={`font-mono text-[10px] uppercase tracking-[0.16em] ${theme.text}`}>
           {theme.label}
         </span>
@@ -85,12 +85,15 @@ export function RiskCard({ risk, meta }: { risk: RiskAssessment; meta?: ApiMeta 
 
       <Button asChild className="mt-4 w-full rounded-none bg-ink text-paper hover:bg-ink/90">
         <a href={risk.officialUrl} target="_blank" rel="noreferrer">
-          Abrir alerta oficial · SENAPRED
+          Abrir alerta oficial · CNE
           <ArrowUpRight className="size-4" />
         </a>
       </Button>
 
-      <p className="mt-2 text-[11px] leading-relaxed text-ash">{risk.disclaimer}</p>
+      <p className="mt-2 text-[11px] leading-relaxed text-ash">
+        Score de condiciones de fondo para incendio, no una probabilidad de ignición.
+      </p>
+      <p className="mt-1 text-[11px] leading-relaxed text-ash">{risk.disclaimer}</p>
     </section>
   );
 }
@@ -109,7 +112,7 @@ export function MemoryCard({
   return (
     <section aria-labelledby="memory-title" className="border-t border-ink/80 pt-4">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="eyebrow">Memoria del lugar</p>
+        <p className="eyebrow">Memoria de incendios</p>
         <span className="font-mono text-[10px] text-ash">{shortDate(memory.date)}</span>
       </div>
 

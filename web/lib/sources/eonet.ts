@@ -9,9 +9,13 @@ const MAX_ALERT_KM = 600;
 /** Un volcán o una sequía siguen abiertos meses; un incendio no. */
 const FRESH_DAYS: Record<string, number> = {
   wildfires: 30,
+  severeStorms: 30,
+  floods: 60,
+  earthquakes: 30,
+  landslides: 90,
   volcanoes: 365,
   drought: 365,
-  default: 90,
+  default: 120,
 };
 
 const CATEGORY_LABEL: Record<string, string> = {

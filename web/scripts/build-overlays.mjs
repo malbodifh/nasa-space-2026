@@ -1,23 +1,48 @@
 #!/usr/bin/env node
 /**
- * Regenera los snapshots estáticos de overlays (caminos, áreas protegidas,
- * volcanes y fronteras) que usa el BFF cuando una fuente viva falla.
+ * Regenera los catálogos estáticos de volcanes (GVP) y fronteras (Natural Earth).
+ * Los caminos y áreas protegidas salen del PBF con scripts/build-osm-cr.py.
  *
  * Uso: node scripts/build-overlays.mjs
- * Salidas: data/overpass-valparaiso.json, data/volcanoes.json, data/borders.json
+ * Salidas: data/volcanoes.json, data/borders.json
  */
 import { mkdir, writeFile } from "node:fs/promises";
 
-const UA = "AstralCodes-MemoriaDeFuego/0.1 (hackathon)";
-const CENTER = { lat: -33.047, lon: -71.612 };
-const RADIUS_KM = 60;
-const BBOX = [-72.15, -33.65, -71.05, -32.55]; // oeste, sur, este, norte
+const UA = "AstralCodes-MemoriaDeFuego/0.2 (hackathon)";
 
-const OVERPASS = "https://overpass-api.de/api/interpreter";
+const AREAS = [
+  {
+    id: "guanacaste",
+    label: "Guanacaste · Liberia",
+    center: { lat: 10.635, lon: -85.4377 },
+    radiusKm: 60,
+    bbox: [-86.1, 10.1, -84.9, 11.05],
+  },
+  {
+    id: "valle-central",
+    label: "Valle Central · San José",
+    center: { lat: 9.9325, lon: -84.0796 },
+    radiusKm: 55,
+    bbox: [-84.6, 9.65, -83.6, 10.2],
+  },
+  {
+    id: "arenal",
+    label: "Arenal · La Fortuna",
+    center: { lat: 10.471, lon: -84.645 },
+    radiusKm: 45,
+    bbox: [-85.05, 10.2, -84.05, 10.75],
+  },
+];
+
+const OVERPASS_ENDPOINTS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+];
 const GVP =
   "https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows?service=WFS&version=1.0.0" +
   "&request=GetFeature&typeName=GVP-VOTW:Smithsonian_VOTW_Holocene_Volcanoes" +
-  "&outputFormat=application/json&bbox=-82,-57,-58,-15";
+  "&outputFormat=application/json&bbox=-87,7,-81,12.5";
 const BORDERS =
   "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/" +
   "ne_110m_admin_0_boundary_lines_land.geojson";
@@ -40,7 +65,7 @@ function lineFrom(geometry) {
   return geometry.map((p) => [round(p.lon), round(p.lat)]);
 }
 
-/** Douglas-Peucker en grados; 0.0004° ≈ 44 m, suficiente para un overlay. */
+/** Douglas-Peucker en grados; 0.0008° ≈ 90 m, suficiente para un overlay. */
 function simplify(points, tolerance = 0.0008) {
   if (points.length <= 2) return points;
   const sqTolerance = tolerance * tolerance;
@@ -65,13 +90,11 @@ function simplify(points, tolerance = 0.0008) {
     return dx * dx + dy * dy;
   };
 
-  const sqDistToSegment = (p, a, b) => sqSegDist(p, a, b);
-
   const step = (first, last, output) => {
     let maxSq = sqTolerance;
     let index = -1;
     for (let i = first + 1; i < last; i += 1) {
-      const sq = sqDistToSegment(points[i], points[first], points[last]);
+      const sq = sqSegDist(points[i], points[first], points[last]);
       if (sq > maxSq) {
         index = i;
         maxSq = sq;
@@ -90,7 +113,6 @@ function simplify(points, tolerance = 0.0008) {
   return output;
 }
 
-/** Une segmentos sueltos (ways de una relación) en anillos cerrados. */
 function stitchRings(segments) {
   const rings = [];
   const pool = segments.map((s) => s.slice());
@@ -146,7 +168,12 @@ function areaFeature(element) {
   const tags = element.tags ?? {};
   const props = {
     name: tags.name ?? "Área protegida sin nombre",
-    kind: tags.boundary === "national_park" ? "Parque nacional" : tags.leisure === "nature_reserve" ? "Reserva natural" : "Área protegida",
+    kind:
+      tags.boundary === "national_park"
+        ? "Parque nacional"
+        : tags.leisure === "nature_reserve"
+          ? "Reserva natural"
+          : "Área protegida",
     protectClass: tags.protect_class ? Number(tags.protect_class) : null,
   };
 
@@ -155,7 +182,9 @@ function areaFeature(element) {
     if (!ring || ring.length < 4) return null;
     const closed =
       ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1];
-    if (!closed) return { type: "Feature", properties: props, geometry: { type: "LineString", coordinates: ring } };
+    if (!closed) {
+      return { type: "Feature", properties: props, geometry: { type: "LineString", coordinates: ring } };
+    }
     return { type: "Feature", properties: props, geometry: { type: "Polygon", coordinates: [ring] } };
   }
 
@@ -186,46 +215,58 @@ function areaFeature(element) {
   return null;
 }
 
-function roadFeature(element) {
+function roadFeature(element, center) {
   const tags = element.tags ?? {};
   const line = lineFrom(element.geometry);
   if (!line) return null;
   const mid = line[Math.floor(line.length / 2)];
-  if (haversine(CENTER, { lon: mid[0], lat: mid[1] }) > RADIUS_KM + 15) return null;
+  if (haversine(center, { lon: mid[0], lat: mid[1] }) > 75) return null;
   return {
     type: "Feature",
-    properties: {
-      name: tags.name ?? tags.ref ?? null,
-      kind: tags.highway ?? "camino",
-    },
+    properties: { kind: tags.highway ?? "camino" },
     geometry: { type: "LineString", coordinates: line },
   };
 }
 
-async function buildOverpass() {
-  const query = `[out:json][timeout:90];
+async function queryOverpass(query, label) {
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    try {
+      const response = await fetch(`${endpoint}?data=${encodeURIComponent(query)}`, {
+        headers: { "User-Agent": UA },
+        signal: AbortSignal.timeout(180_000),
+      });
+      console.log(label, endpoint.split("/")[2], response.status);
+      if (!response.ok) continue;
+      return await response.json();
+    } catch (error) {
+      console.log(label, "error", error.message);
+    }
+  }
+  throw new Error(`Overpass no respondió para ${label}`);
+}
+
+async function buildArea(area) {
+  const [w, s, e, n] = area.bbox;
+  const roadsQuery = `[out:json][timeout:120];
+way["highway"~"^(motorway|trunk|primary|secondary)$"](${s},${w},${n},${e});
+out geom;`;
+  const areasQuery = `[out:json][timeout:120];
 (
-  way["highway"~"^(motorway|trunk|primary|secondary)$"](${BBOX[1]},${BBOX[0]},${BBOX[3]},${BBOX[2]});
-  way["boundary"~"protected_area|national_park"](${BBOX[1]},${BBOX[0]},${BBOX[3]},${BBOX[2]});
-  way["leisure"="nature_reserve"](${BBOX[1]},${BBOX[0]},${BBOX[3]},${BBOX[2]});
-  relation["boundary"~"protected_area|national_park"](${BBOX[1]},${BBOX[0]},${BBOX[3]},${BBOX[2]});
-  relation["leisure"="nature_reserve"](${BBOX[1]},${BBOX[0]},${BBOX[3]},${BBOX[2]});
+  way["boundary"~"protected_area|national_park"](${s},${w},${n},${e});
+  way["leisure"="nature_reserve"](${s},${w},${n},${e});
+  relation["boundary"~"protected_area|national_park"](${s},${w},${n},${e});
+  relation["leisure"="nature_reserve"](${s},${w},${n},${e});
 );
 out geom;`;
 
-  const response = await fetch(`${OVERPASS}?data=${encodeURIComponent(query)}`, {
-    headers: { "User-Agent": UA },
-    signal: AbortSignal.timeout(120_000),
-  });
-  console.log("overpass", response.status);
-  if (!response.ok) throw new Error(`Overpass ${response.status}`);
-  const payload = await response.json();
+  const roadsPayload = await queryOverpass(roadsQuery, `${area.id}-caminos`);
+  const areasPayload = await queryOverpass(areasQuery, `${area.id}-áreas`);
 
   const byKind = new Map();
   const areas = [];
-  for (const element of payload.elements ?? []) {
+  for (const element of [...(roadsPayload.elements ?? []), ...(areasPayload.elements ?? [])]) {
     if (element.tags?.highway) {
-      const feature = roadFeature(element);
+      const feature = roadFeature(element, area.center);
       if (!feature) continue;
       const kind = feature.properties.kind;
       if (!byKind.has(kind)) byKind.set(kind, []);
@@ -239,7 +280,6 @@ out geom;`;
     }
   }
 
-  // Caminos agrupados por tipo: 4 features en vez de miles.
   const roads = Array.from(byKind.entries()).map(([kind, lines]) => ({
     type: "Feature",
     properties: { kind },
@@ -247,10 +287,7 @@ out geom;`;
   }));
 
   return {
-    source: "OpenStreetMap · Overpass API",
-    generatedAt: new Date().toISOString(),
-    center: CENTER,
-    radiusKm: RADIUS_KM,
+    ...area,
     roads: { type: "FeatureCollection", features: roads },
     protectedAreas: { type: "FeatureCollection", features: areas },
   };
@@ -301,28 +338,28 @@ async function buildBorders() {
   if (!response.ok) throw new Error(`Natural Earth ${response.status}`);
   const payload = await response.json();
 
-  const features = payload.features
-    .map((feature) => {
-      const coords =
-        feature.geometry.type === "LineString"
-          ? feature.geometry.coordinates
-          : feature.geometry.coordinates.flat();
-      const line = coords.map((pair) => [round(pair[0]), round(pair[1])]);
-      if (feature.geometry.type === "MultiLineString") {
-        return {
-          type: "Feature",
-          properties: {},
-          geometry: {
-            type: "MultiLineString",
-            coordinates: feature.geometry.coordinates.map((part) =>
-              part.map((pair) => [round(pair[0]), round(pair[1])]),
-            ),
-          },
-        };
-      }
-      return { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: line } };
-    })
-    .filter(Boolean);
+  const features = payload.features.map((feature) => {
+    if (feature.geometry.type === "MultiLineString") {
+      return {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "MultiLineString",
+          coordinates: feature.geometry.coordinates.map((part) =>
+            part.map((pair) => [round(pair[0]), round(pair[1])]),
+          ),
+        },
+      };
+    }
+    return {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "LineString",
+        coordinates: feature.geometry.coordinates.map((pair) => [round(pair[0]), round(pair[1])]),
+      },
+    };
+  });
 
   return {
     source: "Natural Earth · Admin 0 boundary lines (110m)",
@@ -334,24 +371,14 @@ async function buildBorders() {
 
 await mkdir(new URL("../data", import.meta.url), { recursive: true });
 
-const overpass = await buildOverpass();
-await writeFile(
-  new URL("../data/overpass-valparaiso.json", import.meta.url),
-  JSON.stringify(overpass),
-);
-console.log(
-  "caminos",
-  overpass.roads.features.length,
-  "áreas",
-  overpass.protectedAreas.features.length,
-  "bytes",
-  JSON.stringify(overpass).length,
-);
-
+// Caminos y áreas protegidas se generan desde el PBF con scripts/build-osm-cr.py.
+// Este script solo refresca los catálogos estáticos de volcanes y fronteras.
 const volcanoes = await buildVolcanoes();
-await writeFile(new URL("../data/volcanoes.json", import.meta.url), JSON.stringify(volcanoes));
-console.log("volcanes", volcanoes.features.length, "bytes", JSON.stringify(volcanoes).length);
+const volcanoesJson = JSON.stringify(volcanoes);
+await writeFile(new URL("../data/volcanoes.json", import.meta.url), volcanoesJson);
+console.log("volcanes", volcanoes.features.length, "bytes", volcanoesJson.length);
 
 const borders = await buildBorders();
-await writeFile(new URL("../data/borders.json", import.meta.url), JSON.stringify(borders));
-console.log("fronteras", borders.features.length, "bytes", JSON.stringify(borders).length);
+const bordersJson = JSON.stringify(borders);
+await writeFile(new URL("../data/borders.json", import.meta.url), bordersJson);
+console.log("fronteras", borders.features.length, "bytes", bordersJson.length);

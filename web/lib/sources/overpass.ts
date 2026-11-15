@@ -1,8 +1,7 @@
 import "server-only";
 
-import fallback from "@/data/overpass-valparaiso.json";
+import snapshotFile from "@/data/overpass-costa-rica.json";
 import { cached } from "@/lib/cache";
-import { DEMO_POINT } from "@/lib/demo";
 import { bboxForRadius, distanceKm } from "@/lib/geo";
 import type {
   GeoCollection,
@@ -91,6 +90,24 @@ function simplify(points: [number, number][], tolerance: number): [number, numbe
   return output;
 }
 
+function splitRing(ring: [number, number][], maxJump = 0.05): [number, number][][] {
+  const parts: [number, number][][] = [];
+  let current: [number, number][] = [ring[0]];
+  for (const point of ring.slice(1)) {
+    const last = current[current.length - 1];
+    if (Math.hypot(point[0] - last[0], point[1] - last[1]) > maxJump) {
+      parts.push(current);
+      current = [point];
+    } else {
+      current.push(point);
+    }
+  }
+  parts.push(current);
+  return parts.filter(
+    (part) => part.length > 3 && part[0][0] === part[part.length - 1][0] && part[0][1] === part[part.length - 1][1],
+  );
+}
+
 function stitch(segments: [number, number][][]): [number, number][][] {
   const rings: [number, number][][] = [];
   const pool = segments.map((s) => [...s]);
@@ -118,7 +135,7 @@ function stitch(segments: [number, number][][]): [number, number][][] {
     }
     const first = ring[0];
     const last = ring[ring.length - 1];
-    if (ring.length > 3 && first[0] === last[0] && first[1] === last[1]) rings.push(ring);
+    if (ring.length > 3 && first[0] === last[0] && first[1] === last[1]) rings.push(...splitRing(ring));
   }
 
   return rings;
@@ -208,22 +225,36 @@ function countCoordinates(overlays: Pick<OsmOverlays, "roads" | "protectedAreas"
   return total;
 }
 
-const SNAPSHOT_RADIUS_KM = 70;
+type SnapshotArea = {
+  id: string;
+  label: string;
+  center: LatLon;
+  radiusKm: number;
+  roads: GeoCollection<RoadProps>;
+  protectedAreas: GeoCollection<ProtectedAreaProps>;
+};
+
+const snapshot = snapshotFile as unknown as {
+  source: string;
+  generatedAt: string;
+  areas: SnapshotArea[];
+};
 
 /**
- * El snapshot del repositorio cubre la región demo. Se sirve directo para que
- * el mapa no espere a Overpass; fuera de esa región se consulta la API viva.
+ * El snapshot del repositorio cubre varias zonas de Costa Rica. Se sirve
+ * directo para que el mapa no espere a Overpass; fuera de esas zonas se
+ * consulta la API viva.
  */
 function fromSnapshot(point: LatLon): OsmOverlays | null {
-  if (distanceKm(point, DEMO_POINT) > SNAPSHOT_RADIUS_KM) return null;
-  const snapshot = fallback as unknown as {
-    roads: GeoCollection<RoadProps>;
-    protectedAreas: GeoCollection<ProtectedAreaProps>;
-    generatedAt: string;
-  };
+  const match = snapshot.areas
+    .map((area) => ({ area, distance: distanceKm(point, area.center) }))
+    .filter((item) => item.distance <= item.area.radiusKm + 25)
+    .sort((a, b) => a.distance - b.distance)[0];
+
+  if (!match) return null;
   return {
-    roads: snapshot.roads,
-    protectedAreas: snapshot.protectedAreas,
+    roads: match.area.roads,
+    protectedAreas: match.area.protectedAreas,
     fallback: false,
     mode: "snapshot",
     fetchedAt: snapshot.generatedAt,
