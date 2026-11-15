@@ -1,6 +1,8 @@
 # Memoria de Fuego · web
 
-Prototipo de alerta temprana personal con datos NASA para Valparaíso.
+Observatorio personal de desastres naturales con datos NASA para Costa Rica.
+Combina eventos abiertos (EONET/GDACS), focos de calor (GIBS), volcanes (GVP) y
+condiciones de fondo (POWER).
 **No es una alerta oficial**: informa con observación satelital y memoria histórica.
 
 - Next.js 16.4.6 (App Router) + React 19 + TypeScript estricto
@@ -48,12 +50,21 @@ Todas responden `{ data, meta: { cached, updatedAt, fallback, durationMs } }`.
 Los snapshots de `data/` se regeneran con:
 
 ```bash
+# caminos y áreas protegidas desde el extracto de Geofabrik (requiere pyosmium)
+curl -L https://download.geofabrik.de/central-america/costa-rica-latest.osm.pbf -o /tmp/costa-rica.osm.pbf
+python3 scripts/build-osm-cr.py /tmp/costa-rica.osm.pbf
+
+# volcanes (GVP) y fronteras (Natural Earth)
 node scripts/build-overlays.mjs
-node scripts/generate-memory.mjs
+
+# fixtures de memoria y clima
+node scripts/generate-memory.mjs 2024-04-05 10.635 -85.4377 50
+node scripts/generate-climate.mjs 10.635 -85.4377
 ```
 
-Overpass dentro de 70 km de Valparaíso se sirve desde `data/overpass-valparaiso.json`
-para que la demo no dependa de la latencia de la API.
+Las zonas de Guanacaste, Valle Central y Arenal se sirven desde
+`data/overpass-costa-rica.json`, generado con el extracto de Geofabrik, para que la demo
+no dependa de la latencia de Overpass. Fuera de esas zonas se consulta Overpass en vivo.
 
 ## Deploy en Vercel
 
@@ -73,4 +84,4 @@ para que la demo no dependa de la latencia de la API.
 - GIBS entrega detecciones, no incendios confirmados.
 - Las correlaciones (caminos, áreas protegidas, volcanes) son coincidencia espacial,
   no causalidad.
-- La app no reemplaza a SENAPRED, CONAF ni a los servicios de emergencia.
+- La app no reemplaza a la CNE, SINAC ni a los servicios de emergencia.

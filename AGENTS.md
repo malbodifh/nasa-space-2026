@@ -8,10 +8,12 @@
 - **Astral Codes**, NASA Space Apps 2026. Deadline: **domingo 15/11/2026 23:59**.
 - Producto: alerta temprana personal con datos NASA (“¿qué peligro hay cerca, cuándo llega y
   con qué confianza?”). **Informa**; no reemplaza alertas oficiales ni promete predicción exacta.
-- **Challenge, hazard del MVP y región demo están SIN decidir.** Preguntá antes de escribir
-  código de producto. No inventes un ganador.
-- **No hay app todavía**: no existe `web/`, `package.json`, `src/` ni `data/`. Solo docs, guías
-  Typst, CI y 3 smoke tests.
+- **Región demo decidida: Costa Rica**, con varias ubicaciones (Liberia, San José, Alajuela,
+  Cartago, La Fortuna, Puntarenas, Quepos, Limón).
+- **Alcance decidido: desastres naturales en general.** La app muestra eventos abiertos de
+  EONET/GDACS de todas las categorías; el score de condiciones sigue siendo de incendio.
+- **La app vive en `web/`** (Next.js). `data/` dentro de `web/` tiene los snapshots de
+  overlays; la raíz sigue siendo Python + Typst + docs.
 - **Mission Trainer** (reto #3, trivia) está archivado en `archive/mission-trainer` y
   `v1-mission-trainer`. No lo revivas ni mezcles su código.
 
@@ -48,9 +50,11 @@ make clean      # cachés + PNGs; NO borra los PDF versionados
 ## Decisiones cerradas
 
 - **Next.js 16.4.6** (App Router) + React 19 + **TypeScript** estricto + **Tailwind 4.3.5**.
-- **MapLibre GL 6** + Carto Dark Matter (sin token). No Mapbox ni Google Maps.
+- **MapLibre GL 6** + Carto Positron (sin token). No Mapbox ni Google Maps.
 - **Monolito BFF**: Route Handlers de Next. Sin backend aparte, **sin base de datos ni auth**.
-- **Un hazard por MVP** detrás de `HazardAdapter`; multi-riesgo queda para después.
+- **Multi-amenaza observacional**: EONET/GDACS para eventos abiertos (incendios, volcanes,
+  tormentas, inundaciones, sismos, sequías, deslizamientos). GIBS/POWER solo puntúan
+  condiciones de incendio; no se inventan scores para las demás amenazas.
 - Deploy **Vercel** con root directory `web/`; gestor **pnpm**.
 - Versiones fijadas en [`docs/23-plan-app.md`](docs/23-plan-app.md); no actualizar dependencias
   durante el hackathon.
