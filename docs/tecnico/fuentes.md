@@ -43,6 +43,31 @@ Sin API y sin scraping: **CNE** (Cloudflare Turnstile) e **IMN**. Se enlazan, no
 respuesta o desactualizada). OVSICORI solo regenera su archivo cuando hay un sismo nuevo, así que
 se marca desactualizada pasadas 12 h.
 
+- `count` cuenta reportes normalizados recibidos de la fuente; `visibleCount` cuenta los incluidos
+  en `alerts`/`history` después de radio, vigencia, incendios ocultos y deduplicación. Un reporte
+  confirmado por varias fuentes cuenta como visible para cada una.
+- Cada fuente tiene presupuesto independiente (6 s en el agregador de eventos; redes sísmicas
+  con abort a 5 s y presupuesto de 5,5 s). Si vence, las otras fuentes se conservan y su ID figura
+  en `fallbackSources`. Sin dato anterior disponible se entrega vacío, no un supuesto último dato.
+- `/api/assess`, `/api/alerts`, `/api/events` y `/api/overlays` agregan `meta.requestedAt`,
+  `dataUpdatedAt` y `latencySeconds`. Los dos últimos representan la fecha más antigua y la edad
+  de los datos fechados incluidos (también fechas de `sources`); son `null` si no se conoce ninguna.
+  No demuestran cobertura ni la latencia de publicación del proveedor. `updatedAt` es **legado:
+  hora de generación de la respuesta**, no observación. `cached:false` describe la respuesta
+  recién compuesta; **no informa hits de las cachés internas ni de la CDN**. Falta instrumentar
+  caché/fecha de consulta por fuente (ver correcciones de QA).
+- GIBS sin respuesta completa para el radio deja `available:false`, `fallback:true`; POWER
+  por sí solo no habilita el score de incendio. Un mosaico MVT vacío no demuestra que un satélite
+  haya observado toda la zona: no se infiere cobertura de pasada.
+- Los boletines sin fecha no se fechan con la hora de consulta: se consideran no vigentes.
+  GDACS usa `datemodified` o `fromdate`, nunca `todate` futuro ni el inicio inventado del lookback.
+- El pronóstico de lluvia enlaza [Open-Meteo](https://open-meteo.com/en/docs), no un aviso del IMN.
+- NISAR limita descargas a 24 MiB por PNG, 256 KiB por KML y 2 MiB por catálogo CMR. Timeout:
+  8 s (PNG/KML), 6 s (CMR); máximo dos redirecciones, solo al mismo origen. Valida granules
+  provenientes tanto del cliente como de CMR. Colecciones parciales conservan su calidad
+  original y devuelven `meta.fallbackCollections`, `fallback:true` y `Cache-Control:no-store`;
+  un catálogo vacío completo devuelve `data:null`, `meta.reason:"sin-pasadas"`.
+
 ## Trampas verificadas
 
 - **FIRMS** pide `FIRMS_MAP_KEY` (gratuita; 5000 transacciones cada 10 min) y solo consulta 1–5

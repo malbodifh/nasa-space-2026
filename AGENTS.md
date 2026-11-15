@@ -94,9 +94,14 @@ make clean      # cachés + PNGs; NO borra los PDF versionados
 
 ## Git y CI
 
-- Remoto `malbodifh/nasa-space-2026`. Flujo `persona → develop → staging → main`.
-- **Nunca** commitear directo en `main`, `staging` o `develop`, ni forzar push.
-- Una tarea = una rama (`feat/`, `fix/`, `docs/`) = un PR. Commits en español e imperativo.
+- Remoto `malbodifh/nasa-space-2026`. Ramas activas: **`main`, `develop`, `david`, `andy`**.
+  Flujo `persona → develop → main` (la rama `staging` se eliminó el 15/11/2026).
+- **Regla dura: antes de crear cualquier rama, avisá y pedí autorización explícita del usuario.**
+  Aplica a ramas locales y remotas: no usar `git switch -c`, `git branch`, `git checkout -b` ni
+  `git push origin HEAD:<rama>` sin permiso. Tampoco borrar ramas ni forzar push sin pedirlo.
+- **Nunca** commitear directo en `main` o `develop`, ni forzar push.
+- Una tarea = una rama autorizada (`feat/`, `fix/`, `docs/`) = un PR. Commits en español e
+  imperativo.
 - Autor: `Trizzoth <304232853+Trizzoth@users.noreply.github.com>`.
 - CI corre Ruff + Pytest + Typst + frontend. El job `frontend` usa `web/`, pnpm 11.28.5 y
   Node 22 (lint + test + build).

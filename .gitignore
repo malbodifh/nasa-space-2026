@@ -47,3 +47,6 @@ secrets/
 
 # Backups de ideas descartadas (solo local, no se versiona)
 backups/*/*/cache/
+
+# Capturas temporales de Playwright MCP
+.playwright-mcp/

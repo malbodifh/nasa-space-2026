@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+
 type Entry<T> = {
   expires: number;
   value?: T;
@@ -7,13 +9,59 @@ type Entry<T> = {
 const MAX_ENTRIES = 200;
 const store = new Map<string, Entry<unknown>>();
 
+type CacheContext = { hits: number; stale: number };
+const context = new AsyncLocalStorage<CacheContext>();
+
+/**
+ * Ejecuta una consulta y devuelve si alguna fuente vino de la caché en memoria y si alguna
+ * se sirvió vencida porque su refresco falló. No informa sobre la caché del CDN.
+ */
+export async function withCacheTracking<T>(
+  fn: () => Promise<T>,
+): Promise<{ value: T; cached: boolean; stale: boolean }> {
+  const state: CacheContext = { hits: 0, stale: 0 };
+  const value = await context.run(state, fn);
+  return { value, cached: state.hits > 0, stale: state.stale > 0 };
+}
+
+function noteHit(): void {
+  const state = context.getStore();
+  if (state) state.hits += 1;
+}
+
+function noteStale(): void {
+  const state = context.getStore();
+  if (state) state.stale += 1;
+}
+
+/** Presupuesto de una fuente: el agregador conserva las otras aunque esta se cuelgue. */
+export async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Fuente sin respuesta dentro del presupuesto")), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export async function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>): Promise<T> {
   const now = Date.now();
   const hit = store.get(key) as Entry<T> | undefined;
 
   if (hit && hit.expires > now) {
-    if (hit.value !== undefined) return hit.value;
-    if (hit.promise) return hit.promise;
+    if (hit.value !== undefined) {
+      noteHit();
+      return hit.value;
+    }
+    if (hit.promise) {
+      noteHit();
+      return hit.promise;
+    }
   }
 
   if (store.size > MAX_ENTRIES) {
@@ -21,12 +69,22 @@ export async function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>
     if (oldest) store.delete(oldest);
   }
 
+  // Si el refresco falla y había un valor anterior, se sirve ese dato vencido en lugar de
+  // dejar la fuente vacía. Es la regla de falla suave: 200 con el último dato y aviso.
+  const previous = hit?.value;
+
   const promise = fn()
     .then((value) => {
       store.set(key, { expires: Date.now() + ttlMs, value });
       return value;
     })
     .catch((error) => {
+      if (previous !== undefined) {
+        noteStale();
+        // Gracia corta para no golpear una fuente caída en cada request.
+        store.set(key, { expires: Date.now() + Math.min(ttlMs, 60_000), value: previous });
+        return previous;
+      }
       store.delete(key);
       throw error;
     });

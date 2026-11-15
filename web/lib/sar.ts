@@ -57,6 +57,12 @@ export type SarStory = {
 
 export type SarZone = SarZoneData & SarStory;
 
+/** Cifra de la vista previa; nunca representa superficie dañada ni agua confirmada. */
+function previewChange(zoneId: string, date: string, direction: "brighterPct" | "darkerPct"): string {
+  const pass = manifestJson.zones.find((zone) => zone.id === zoneId)?.acquisitions.find((item) => item.date === date);
+  return pass ? formatPct(pass[direction]) : "—";
+}
+
 const STORIES: Record<string, SarStory> = {
   "palo-verde": {
     name: "Palo Verde y bajo Tempisque",
@@ -67,12 +73,14 @@ const STORIES: Record<string, SarStory> = {
       "La llanura del río Tempisque se seca en verano y se moja con las lluvias. El radar registra " +
       "el cambio aunque esté nublado.",
     look: [
-      "Hasta el 18 de septiembre la zona casi no cambia. El 30 de septiembre, de golpe, cerca del " +
-        "13 % se vuelve más brillante.",
+      "El 30 de septiembre aumenta el brillo en " +
+        previewChange("palo-verde", "2026-09-30", "brighterPct") +
+        " de los píxeles comparables de la vista previa, respecto de la base. No es un porcentaje de daño.",
       "El naranja cubre parcelas grandes al noroeste, con bordes rectos, y franjas junto al Tempisque.",
       "Las manchas magenta junto al río (HH fuerte) se agrandan en octubre y noviembre.",
-      "Rincón de la Vieja, en la misma pasada del satélite, apenas sube 1,7 %: el salto se concentra " +
-        "en las tierras bajas, no es un efecto de toda la imagen.",
+      "Rincón de la Vieja, en la misma pasada, muestra " +
+        previewChange("rincon-de-la-vieja", "2026-09-30", "brighterPct") +
+        " de píxeles comparables más brillantes. Es un contraste entre zonas, no una validación causal.",
     ],
     hypotheses: [
       "Suelo mojado: el agua sube la constante dieléctrica del suelo y el eco vuelve más fuerte. Un " +
@@ -96,17 +104,17 @@ const STORIES: Record<string, SarStory> = {
       "Las lagunas de Caño Negro se llenan con la lluvia y drenan hacia el lago de Nicaragua. Entre " +
       "julio y noviembre el radar las ve casi iguales.",
     look: [
-      "Desde el 20 de julio cambia menos del 1 % de la zona en cada pasada.",
+      "Desde la base del 20 de julio hay pocos píxeles con cambio aparente; consulte los valores de cada pasada.",
       "Los pocos cambios están al norte, en las orillas de los caños que bajan al río San Juan.",
       "Las lagunas (negras) y el herbazal inundable (gris) mantienen su forma todo el periodo.",
     ],
     hypotheses: [
       "En julio la temporada de lluvias ya llevaba dos meses: la llanura estaba anegada y siguió " +
         "así. Para ver la crecida habría que comparar con una pasada de la estación seca (marzo–abril).",
-      "El agua abierta es lisa y refleja la señal lejos del satélite: por eso se ve negra. Los " +
-        "puntos azules en las orillas son agua nueva; los naranjas, vegetación que quedó dentro del agua.",
-      "Que cambie tan poco, frente al salto de Palo Verde el mismo día, sugiere que la lluvia de fines " +
-        "de septiembre golpeó más fuerte en Guanacaste que en la Zona Norte.",
+      "El agua abierta suele ser lisa y reflejar la señal lejos del satélite. Las orillas más " +
+        "oscuras podrían indicar agua nueva; las más brillantes, suelo húmedo o vegetación inundada. No es una clasificación de agua.",
+      "La diferencia con Palo Verde permite formular hipótesis sobre lluvia y manejo del suelo; " +
+        "hay que contrastarlas con mediciones independientes antes de atribuirles una causa.",
     ],
     human:
       "Alrededor del refugio hay potreros y monocultivos (piña, caña). Una parcela con un cambio " +
@@ -122,7 +130,7 @@ const STORIES: Record<string, SarStory> = {
       "volcán de EONET llevan aquí.",
     look: [
       "El cono y los bosques de la cordillera se ven blancos y verdosos: vegetación densa.",
-      "Entre julio y noviembre cambia menos del 2 % de la zona, sobre todo en potreros de las faldas bajas.",
+      "Entre julio y noviembre se observan pocos píxeles con cambio aparente, sobre todo en las faldas bajas.",
       "Cerca del cráter no aparece un cambio fuerte de brillo en este periodo.",
     ],
     hypotheses: [
@@ -147,14 +155,14 @@ const STORIES: Record<string, SarStory> = {
       "casi no debería marcar cambios.",
     look: [
       "El bosque se ve blanco y verdoso todo el periodo: HH y HV altos.",
-      "El mapa de cambio queda casi vacío en tierra (menos de 0,5 % de la zona).",
-      "El mar cambia de tono por el viento; el método lo ignora porque es agua en las dos fechas.",
+      "El mapa muestra pocos píxeles con cambio aparente en tierra; no es una medición de superficie afectada.",
+      "El mar puede cambiar de tono por el viento; se excluyen píxeles oscuros en ambas fechas, no una máscara validada de agua.",
     ],
     hypotheses: [
       "La banda L (24 cm) atraviesa parte del dosel: la señal rebota entre ramas y troncos y vuelve " +
         "en HV. Por eso el bosque brilla en verde y blanco.",
       "Como el bosque siempre está húmedo y cubierto, su respuesta casi no cambia entre junio y " +
-        "noviembre: es la línea base que valida las otras zonas.",
+        "noviembre: sirve como comparación exploratoria, no como validación independiente de las otras zonas.",
       "Un cambio fuerte aquí indicaría tala, una inundación extrema o un error de procesamiento.",
     ],
     human:
@@ -172,7 +180,15 @@ export const SAR_GENERATED_AT = manifest.generatedAt;
 
 export const SAR_ZONES: SarZone[] = manifest.zones
   .filter((zone) => STORIES[zone.id] && zone.acquisitions.length > 1)
-  .map((zone) => ({ ...zone, ...STORIES[zone.id] }));
+  .map((zone) => ({
+    ...zone,
+    ...STORIES[zone.id],
+    // No ofrecer comparaciones hacia atrás con las pasadas descartadas antes de la base:
+    // el 26 de junio de la pista 170 tiene un artefacto conocido de brillo.
+    // El manifiesto y las imágenes originales se conservan para trazabilidad.
+    acquisitions: zone.acquisitions.filter((item) => item.date >= zone.baseline),
+  }))
+  .filter((zone) => zone.acquisitions.length > 1);
 
 export function sarZone(id: string): SarZone | undefined {
   return SAR_ZONES.find((zone) => zone.id === id);
@@ -252,7 +268,7 @@ export function peakChange(acquisitions: SarAcquisition[]): number {
   return best;
 }
 
-/** Área aproximada (km²) que representa un porcentaje de la zona. */
+/** Área del rectángulo de estudio. No convertir porcentajes de píxeles en área afectada. */
 export function zoneAreaKm2([west, south, east, north]: Bounds): number {
   const midLat = ((south + north) / 2) * (Math.PI / 180);
   return (east - west) * 111.32 * Math.cos(midLat) * (north - south) * 110.57;

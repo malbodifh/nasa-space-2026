@@ -10,6 +10,7 @@ import type { ClimateStats, DailySeries, LatLon } from "@/lib/types";
 const POWER_URL = "https://power.larc.nasa.gov/api/temporal/daily/point";
 
 function numberOrNull(value: unknown): number | null {
+  if (value === null || value === undefined || (typeof value === "string" && !value.trim())) return null;
   const n = Number(value);
   return Number.isFinite(n) && n > -900 ? n : null;
 }

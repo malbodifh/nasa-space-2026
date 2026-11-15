@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/components/LocaleProvider";
 
 type Side = { src: string; label: string; overlay?: string | null };
 
@@ -16,6 +17,7 @@ export default function CompareSlider({
   aspect: number;
   marker?: { x: number; y: number } | null;
 }) {
+  const { t } = useLocale();
   const [position, setPosition] = useState(50);
 
   return (
@@ -65,7 +67,7 @@ export default function CompareSlider({
         max={100}
         value={position}
         onChange={(event) => setPosition(Number(event.target.value))}
-        aria-label="Arrastre para comparar las dos imágenes"
+        aria-label={t("Arrastre para comparar las dos imágenes", "Drag to compare the two images")}
         className="absolute inset-0 h-full w-full cursor-ew-resize opacity-0"
       />
     </div>

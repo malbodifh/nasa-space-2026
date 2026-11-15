@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-import { buildAlerts, buildTestAlert, type DemoHazard } from "@/lib/alerts";
+import { responseMeta } from "@/app/api/_lib/meta";
+import { latitude, longitude, queryValues, radius as radiusSchema } from "@/app/api/_lib/query";
+import { buildAlerts, buildTestAlert } from "@/lib/alerts";
+import { withCacheTracking } from "@/lib/cache";
 import { todayISO } from "@/lib/demo";
 import { assessRisk } from "@/lib/risk";
 import { getFireStats } from "@/lib/sources/gibs";
@@ -24,9 +27,9 @@ async function withBudget<T>(promise: Promise<T>, ms: number, fallback: T): Prom
 }
 
 const querySchema = z.object({
-  lat: z.coerce.number().min(-90).max(90),
-  lon: z.coerce.number().min(-180).max(180),
-  radius: z.coerce.number().min(5).max(100).default(50),
+  lat: latitude,
+  lon: longitude,
+  radius: radiusSchema(100, "50"),
   test: z
     .enum(["0", "1"])
     .default("0")
@@ -39,25 +42,37 @@ const querySchema = z.object({
 export async function GET(request: Request) {
   const started = Date.now();
   const url = new URL(request.url);
-  const parsed = querySchema.safeParse({
-    lat: url.searchParams.get("lat"),
-    lon: url.searchParams.get("lon"),
-    radius: url.searchParams.get("radius") ?? undefined,
-    test: url.searchParams.get("test") ?? undefined,
-  });
+  const parsed = querySchema.safeParse(queryValues(url.searchParams));
 
   if (!parsed.success) {
     return Response.json(
       { error: "Parámetros inválidos", detail: parsed.error.issues },
-      { status: 400 },
+      { status: 400, headers: { "Cache-Control": "no-store" } },
     );
   }
 
   const { lat, lon, radius, test, hazard } = parsed.data;
   const point = { lat, lon };
+  if (test) {
+    const now = new Date();
+    const body: AlertsResponse = {
+      data: {
+        alerts: [buildTestAlert(point, radius, hazard, now)],
+        generatedAt: now.toISOString(),
+        point,
+        radiusKm: radius,
+      },
+      meta: {
+        ...responseMeta(started, [], false),
+        fallbackSources: [],
+      },
+    };
+    // Simulación aislada: no consulta fuentes ni mezcla avisos reales con el DEMO.
+    return Response.json(body, { headers: { "Cache-Control": "no-store" } });
+  }
   const today = todayISO();
 
-  const [fireResult, climateResult, overlayResult] = await Promise.allSettled([
+  const { value: results, cached, stale } = await withCacheTracking(() => Promise.allSettled([
     withBudget(getFireStats(point, radius, today), 6_000, {
       date: today,
       count: 0,
@@ -78,9 +93,10 @@ export async function GET(request: Request) {
         seismic: [],
         sources: [],
       },
-      fallbackSources: ["osm", "eonet"],
+      fallbackSources: ["osm", "eonet", "gdacs", "seismic"],
     }),
-  ]);
+  ]));
+  const [fireResult, climateResult, overlayResult] = results;
 
   const current: FireStats =
     fireResult.status === "fulfilled"
@@ -92,7 +108,7 @@ export async function GET(request: Request) {
           maxFrp: null,
           points: [],
           available: false,
-          fallback: false,
+          fallback: true,
         };
 
   const climate: ClimateStats | null =
@@ -100,7 +116,11 @@ export async function GET(request: Request) {
 
   const overlays = overlayResult.status === "fulfilled" ? overlayResult.value.data : null;
   const fallbackSources =
-    overlayResult.status === "fulfilled" ? overlayResult.value.fallbackSources : ["osm"];
+    overlayResult.status === "fulfilled"
+      ? [...overlayResult.value.fallbackSources]
+      : ["osm", "eonet", "gdacs", "seismic"];
+  if (!current.available || current.fallback) fallbackSources.push("gibs");
+  if (!climate || climate.fallback) fallbackSources.push("power");
 
   const risk = assessRisk(current, climate, radius);
   const alerts: AppAlert[] = buildAlerts({
@@ -110,8 +130,6 @@ export async function GET(request: Request) {
     official: overlays?.alerts ?? [],
   });
 
-  if (test) alerts.unshift(buildTestAlert(point, radius, hazard as DemoHazard));
-
   const body: AlertsResponse = {
     data: {
       alerts,
@@ -120,19 +138,18 @@ export async function GET(request: Request) {
       radiusKm: radius,
     },
     meta: {
-      cached: false,
-      updatedAt: new Date().toISOString(),
-      fallback: current.fallback || Boolean(climate?.fallback) || fallbackSources.length > 0,
+      ...responseMeta(started, [
+        ...current.points.map((point) => point.date),
+        climate?.lastDate,
+        ...(overlays?.alerts.map((alert) => alert.date) ?? []),
+      ], fallbackSources.length > 0 || stale, cached),
       fallbackSources,
-      durationMs: Date.now() - started,
     },
   };
 
   return Response.json(body, {
     headers: {
-      "Cache-Control": test
-        ? "no-store"
-        : "public, s-maxage=60, stale-while-revalidate=300",
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
     },
   });
 }

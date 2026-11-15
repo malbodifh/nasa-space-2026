@@ -77,8 +77,18 @@ export type AssessData = {
 };
 
 export type ApiMeta = {
+  /**
+   * `true` si al menos una fuente se sirvió de la caché en memoria del proceso.
+   * No informa sobre la caché del CDN, que el origen no puede observar.
+   */
   cached: boolean;
+  /** Legado: hora de generación de la respuesta, no de observación. */
   updatedAt: string;
+  requestedAt?: string;
+  /** Fecha más reciente de los datos fechados incluidos; null si no se conoce. */
+  dataUpdatedAt?: string | null;
+  /** Segundos desde el dato más reciente, no desde el más antiguo del historial. */
+  latencySeconds?: number | null;
   fallback: boolean;
   durationMs: number;
 };
@@ -164,6 +174,8 @@ export type SourceStatus = {
   label: string;
   ok: boolean;
   count: number;
+  /** Cantidad incluida en alerts/history después de filtros y deduplicación. */
+  visibleCount?: number;
   /** Fecha del dato más reciente que trajo la fuente. */
   latest?: string | null;
   /** La fuente respondió, pero su archivo no se actualiza hace demasiado. */

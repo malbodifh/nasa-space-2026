@@ -9,6 +9,18 @@ export type Rule = { label: string; test: (alert: DisasterAlert) => boolean };
 
 const serious = (alert: DisasterAlert) => alert.level === "red" || alert.level === "orange";
 
+/** Date.parse normaliza 31 de febrero a marzo; no aceptar ese reporte como válido. */
+export function reportTime(value: string): number {
+  const date = value.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if (date) {
+    const calendar = new Date(`${date}T00:00:00Z`);
+    if (!Number.isFinite(calendar.getTime()) || calendar.toISOString().slice(0, 10) !== date) {
+      return Number.NaN;
+    }
+  }
+  return Date.parse(value);
+}
+
 export const RULES: Record<string, Rule> = {
   earthquakes: {
     label: "M4+ a < 50 km, M5+ a < 150 km, M6,5+ a < 400 km, o sentido a < 60 km",
@@ -99,7 +111,12 @@ export function partitionCurrent(
   for (const alert of alerts) {
     if (isCurrent(alert, now)) current.push(alert);
     else if (alert.source !== "NASA FIRMS") {
-      stale.push({ ...alert, detail: alert.detail ?? "Sin reportes nuevos desde esta fecha." });
+      stale.push({
+        ...alert,
+        detail: Number.isFinite(reportTime(alert.date))
+          ? alert.detail ?? "Sin reportes nuevos desde esta fecha."
+          : "Fecha del reporte desconocida; no se considera una alerta vigente.",
+      });
     }
   }
   return { current, stale };
@@ -127,12 +144,12 @@ export function isOngoing(
   alert: { category: string; source: string; date: string; level?: string },
   now = Date.now(),
 ): boolean {
+  const reported = reportTime(alert.date);
+  if (!Number.isFinite(reported) || reported > now) return false;
   if (alert.source === "NHC" || alert.source === "Open-Meteo") return true;
   const category = ALIASES[alert.category] ?? alert.category;
   // Un boletín de tsunami solo informativo no es una amenaza en curso.
   if (category === "tsunami" && alert.level !== "red" && alert.level !== "orange") return false;
-  const reported = Date.parse(alert.date);
-  if (!Number.isFinite(reported)) return false;
   return now - reported <= (ONGOING_HOURS[category] ?? 24) * 3_600_000;
 }
 
@@ -145,8 +162,8 @@ export function feedIsStale(generatedAt: string | null, maxHours: number, now = 
 
 /** ¿El último reporte es lo bastante reciente para seguir contando como alerta activa? */
 export function isCurrent(alert: { category: string; source: string; date: string }, now = Date.now()): boolean {
-  const reported = Date.parse(alert.date);
-  if (!Number.isFinite(reported)) return true;
+  const reported = reportTime(alert.date);
+  if (!Number.isFinite(reported) || reported > now) return false;
   return now - reported <= maxAgeHours(alert) * 3_600_000;
 }
 

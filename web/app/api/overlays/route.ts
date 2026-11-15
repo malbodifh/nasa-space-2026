@@ -1,22 +1,21 @@
 import { z } from "zod";
 
+import { responseMeta } from "@/app/api/_lib/meta";
+import { latitude, longitude, queryValues, radius as radiusSchema } from "@/app/api/_lib/query";
+import { withCacheTracking } from "@/lib/cache";
 import { getOverlays } from "@/lib/sources/overlays";
 import type { OverlaysResponse } from "@/lib/types";
 
 const querySchema = z.object({
-  lat: z.coerce.number().min(-90).max(90),
-  lon: z.coerce.number().min(-180).max(180),
-  radius: z.coerce.number().min(5).max(100).default(50),
+  lat: latitude,
+  lon: longitude,
+  radius: radiusSchema(100, "50"),
 });
 
 export async function GET(request: Request) {
   const started = Date.now();
   const url = new URL(request.url);
-  const parsed = querySchema.safeParse({
-    lat: url.searchParams.get("lat"),
-    lon: url.searchParams.get("lon"),
-    radius: url.searchParams.get("radius") ?? undefined,
-  });
+  const parsed = querySchema.safeParse(queryValues(url.searchParams));
 
   if (!parsed.success) {
     return Response.json(
@@ -28,16 +27,17 @@ export async function GET(request: Request) {
   const { lat, lon, radius } = parsed.data;
 
   try {
-    const { data, fallbackSources } = await getOverlays({ lat, lon }, radius);
+    const { value: overlays, cached, stale } = await withCacheTracking(() => getOverlays({ lat, lon }, radius));
+    const { data, fallbackSources } = overlays;
 
     const body: OverlaysResponse = {
       data,
       meta: {
-        cached: false,
-        updatedAt: new Date().toISOString(),
-        fallback: fallbackSources.length > 0,
+        ...responseMeta(started, [
+          ...data.alerts.map((alert) => alert.date),
+          ...data.seismic.map((event) => event.time),
+        ], fallbackSources.length > 0 || stale, cached),
         fallbackSources,
-        durationMs: Date.now() - started,
       },
     };
 
@@ -46,11 +46,10 @@ export async function GET(request: Request) {
         "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=86400",
       },
     });
-  } catch (error) {
+  } catch {
     return Response.json(
       {
         error: "No pudimos cargar las capas del mapa.",
-        detail: error instanceof Error ? error.message : "Error desconocido",
       },
       { status: 502 },
     );

@@ -187,6 +187,8 @@ export async function GET() {
       { path: "/api/overlays", purpose: "caminos, áreas protegidas, volcanes, fronteras y eventos" },
       { path: "/api/alerts", purpose: "alertas unificadas; ?test=1 genera una alerta de prueba" },
       { path: "/api/events", purpose: "alertas activas, historial y estado de cada fuente" },
+      { path: "/api/nisar/search", purpose: "pasadas de NISAR alrededor de un punto (CMR)" },
+      { path: "/api/nisar/browse", purpose: "vista previa PNG de un gránulo validado" },
       { path: "/api/health", purpose: "este mapa de conexiones" },
     ],
     env: { FIRMS_MAP_KEY: process.env.FIRMS_MAP_KEY ? "configurada" : "no configurada" },

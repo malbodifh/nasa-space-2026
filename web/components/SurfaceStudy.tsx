@@ -7,11 +7,13 @@ import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 import CompareSlider from "@/components/CompareSlider";
-import { shortDate } from "@/lib/demo";
+import { useLocale } from "@/components/LocaleProvider";
+import { categoryLabel, displayDate, displayPct, displayStory, intlLocale, studyTitle, type DisplayLocale } from "@/lib/display-i18n";
 import { browseProxy, type NisarSearch } from "@/lib/nisar-remote";
-import { formatPct, sarZone, zoneAreaKm2, zoneForPoint, type SarZone } from "@/lib/sar";
+import { sarZone, zoneForPoint, type SarZone } from "@/lib/sar";
 import { BRIGHTER_RGB, DARKER_RGB, nextPass, pickPair, type Bounds, type PairNote } from "@/lib/sar-change";
 import { comparePair, CoverageError, type PairResult } from "@/lib/sar-image";
+import { parseStudyDate, parseStudyPoint, scopedStudyPair, type StudySelection } from "@/lib/study-input";
 
 type View = "comparar" | "cambios" | "optico";
 
@@ -26,12 +28,12 @@ type StudyPass = {
 type Source = { passes: StudyPass[]; frame: Bounds; region: Bounds | null; zone: SarZone | null };
 
 /** Qué buscar en el radar según el tipo de evento. */
-const HINTS: [RegExp, string][] = [
-  [/inund|tormenta|huracán|lluvia/i, "Busque zonas que se oscurecen (agua nueva) o se vuelven magenta (vegetación con agua debajo)."],
-  [/volc/i, "Busque depósitos de ceniza o lodo en los ríos que bajan del cráter: se ven más oscuros."],
-  [/incend/i, "Un área quemada pierde hojas y ramas: la señal HV baja y la zona se oscurece."],
-  [/sismo|desliz/i, "Busque deslizamientos: laderas que cambian de brillo de golpe."],
-  [/radar/i, "El radar detectó aquí un cambio grande entre dos pasadas."],
+const HINTS: [RegExp, string, string][] = [
+  [/inund|tormenta|huracán|lluvia|flood|storm|hurricane|rain/i, "Busque zonas que se oscurecen (posible agua nueva) o se vuelven magenta (posible vegetación con agua debajo). Son hipótesis.", "Look for darker areas (possible new water) or magenta areas (possible water beneath vegetation). These are hypotheses."],
+  [/volc/i, "Posibles depósitos de ceniza o lodo en los ríos que bajan del cráter podrían verse más oscuros. El brillo no confirma su presencia.", "Possible ash or mud deposits in rivers below the crater could look darker. Brightness alone does not confirm their presence."],
+  [/incend|fire/i, "Un área quemada puede perder hojas y ramas: la señal HV podría bajar. El radar solo no confirma un incendio.", "Burned vegetation may lose leaves and branches, reducing HV. Radar alone does not confirm a fire."],
+  [/sismo|desliz|earthquake|landslide/i, "Busque laderas con cambios bruscos de brillo como posible señal de deslizamiento, no como confirmación.", "Look for abrupt brightness changes on slopes as a possible landslide signature, not confirmation."],
+  [/radar/i, "La vista previa muestra aquí un cambio aparente entre dos pasadas; no identifica su causa.", "The preview shows an apparent change between two passes; it does not identify its cause."],
 ];
 
 const FALLBACK_HINT = "Compare las dos fechas y busque zonas que cambiaron de brillo.";
@@ -39,7 +41,7 @@ const FALLBACK_HINT = "Compare las dos fechas y busque zonas que cambiaron de br
 const RADIUS_DEG = 0.22;
 
 async function fetcher<T>(url: string): Promise<T> {
-  const response = await fetch(url);
+  const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
   if (!response.ok) throw new Error(`Error ${response.status}`);
   return response.json() as Promise<T>;
 }
@@ -54,20 +56,21 @@ function opticalUrl([west, south, east, north]: Bounds, date: string, aspect: nu
   );
 }
 
-function resultText(result: PairResult): { title: string; detail: string } {
+function resultText(result: PairResult, locale: DisplayLocale): { title: string; detail: string } {
+  const t = (es: string, en: string) => locale === "es" ? es : en;
   const total = result.brighterPct + result.darkerPct;
   if (total < 2) {
-    return { title: "La superficie casi no cambió", detail: "Menos del 2 % del área cambió entre estas fechas." };
+    return { title: t("Poco cambio aparente en la vista previa", "Little apparent change in the preview"), detail: t("Menos del 2 % de los píxeles comparables superó el umbral de cambio de brillo.", "Less than 2 % of comparable pixels exceeded the brightness-change threshold.") };
   }
   if (result.brighterPct >= result.darkerPct) {
     return {
-      title: `${formatPct(result.brighterPct)} del área se volvió más brillante`,
-      detail: "Suele indicar suelo más húmedo o vegetación con agua debajo.",
+      title: t(`${displayPct(result.brighterPct, locale)} de píxeles comparables más brillantes`, `${displayPct(result.brighterPct, locale)} of comparable pixels are brighter`),
+      detail: t("Como hipótesis, podría relacionarse con humedad del suelo o agua bajo la vegetación; también puede deberse al procesamiento.", "Possible hypotheses include wetter soil or water beneath vegetation; processing differences can also contribute."),
     };
   }
   return {
-    title: `${formatPct(result.darkerPct)} del área se volvió más oscura`,
-    detail: "Suele indicar agua nueva o un terreno más liso.",
+    title: t(`${displayPct(result.darkerPct, locale)} de píxeles comparables más oscuros`, `${displayPct(result.darkerPct, locale)} of comparable pixels are darker`),
+    detail: t("Como hipótesis, podría relacionarse con agua nueva o terreno más liso; también puede deberse al procesamiento.", "Possible hypotheses include new water or a smoother surface; processing differences can also contribute."),
   };
 }
 
@@ -97,21 +100,36 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 export default function SurfaceStudy() {
+  const { locale, t } = useLocale();
+  const shortDate = (date: string) => displayDate(date, locale);
   const params = useSearchParams();
-  const lat = Number(params.get("lat"));
-  const lon = Number(params.get("lon"));
-  const hasPoint = Number.isFinite(lat) && Number.isFinite(lon) && params.has("lat");
-  const eventDate = params.get("fecha");
-  const title = params.get("titulo") ?? "Cambio de la superficie";
-  const kind = params.get("tipo") ?? "";
-
+  // Validar antes de convertir: `Number(null)` y `Number("")` darían 0 y un punto falso.
+  const pointInput = parseStudyPoint(params);
+  const dateInput = parseStudyDate(params.get("fecha"));
+  const hasPoint = pointInput.status === "valid";
+  const lat = pointInput.status === "valid" ? pointInput.point.lat : 0;
+  const lon = pointInput.status === "valid" ? pointInput.point.lon : 0;
+  const eventDate = dateInput.status === "valid" ? dateInput.date : null;
+  const byId = params.get("zona");
+  // Una zona precalculada se puede abrir por su id sin coordenadas: los enlaces
+  // reproducibles no deberían exigir lat/lon para mostrar el estudio.
   const zone = useMemo(() => {
-    const byId = params.get("zona");
     if (byId) return sarZone(byId) ?? null;
     return hasPoint ? zoneForPoint({ lat, lon }, 0) : null;
-  }, [params, hasPoint, lat, lon]);
+  }, [byId, hasPoint, lat, lon]);
+  // Una zona pedida por id que no existe merece un mensaje propio, no "faltan coordenadas".
+  const unknownZone = Boolean(byId) && !zone && !hasPoint;
+  const invalidField: "coordinates" | "date" | "zone" | null = unknownZone
+    ? "zone"
+    : !hasPoint && !zone
+      ? "coordinates"
+      : dateInput.status === "invalid"
+        ? "date"
+        : null;
+  const title = params.get("titulo") ?? t("Cambio de la superficie", "Surface change");
+  const kind = params.get("tipo") ?? "";
 
-  const { data: remote, error: remoteError } = useSWR<{ data: NisarSearch | null }>(
+  const { data: remote, error: remoteError, mutate: retryCatalog, isValidating: retryingCatalog } = useSWR<{ data: NisarSearch | null; meta?: { fallback?: boolean } }>(
     !zone && hasPoint ? `/api/nisar/search?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}` : null,
     fetcher,
     { revalidateOnFocus: false },
@@ -134,7 +152,7 @@ export default function SurfaceStudy() {
           })),
       };
     }
-    if (!remote?.data) return null;
+    if (!hasPoint || !remote?.data) return null;
     return {
       zone: null,
       frame: remote.data.bounds,
@@ -147,19 +165,28 @@ export default function SurfaceStudy() {
         thumb: null,
       })),
     };
-  }, [zone, remote, lat, lon]);
+  }, [hasPoint, zone, remote, lat, lon]);
 
   const defaultPair = useMemo(() => (source ? pickPair(source.passes, eventDate) : null), [source, eventDate]);
-  const [chosen, setChosen] = useState<{ before: number; after: number } | null>(null);
-  const pair = chosen ?? defaultPair;
-  const note: PairNote = chosen ? null : (defaultPair?.note ?? null);
+  const sourceKey = source ? JSON.stringify([lat, lon, eventDate, zone?.id, source.frame, source.region, source.passes.map((pass) => pass.url)]) : "";
+  const [chosen, setChosen] = useState<StudySelection | null>(null);
+  // Cambiar de zona o de punto debe volver al par por defecto: se descarta la elección previa
+  // durante el render (patrón admitido por React) en vez de con un efecto de cascada.
+  const [chosenFor, setChosenFor] = useState(sourceKey);
+  if (chosenFor !== sourceKey) {
+    setChosenFor(sourceKey);
+    setChosen(null);
+  }
+  const scopedPair = scopedStudyPair(chosen, sourceKey, source?.passes.length ?? 0);
+  const pair = scopedPair ?? defaultPair;
+  const note: PairNote = scopedPair ? null : (defaultPair?.note ?? null);
 
   const [view, setView] = useState<View>("comparar");
   const [state, setState] = useState<{ key: string; result?: PairResult; error?: string } | null>(null);
 
   const before = source && pair ? source.passes[pair.before] : null;
   const after = source && pair ? source.passes[pair.after] : null;
-  const key = before && after ? `${before.url}|${after.url}` : "";
+  const key = before && after ? `${sourceKey}|${before.url}|${after.url}` : "";
 
   useEffect(() => {
     if (!source || !before || !after) return;
@@ -174,8 +201,8 @@ export default function SurfaceStudy() {
           key,
           error:
             error instanceof CoverageError
-              ? "El radar no cubre bien este lugar en esas fechas. Pruebe con otras."
-              : "No pudimos cargar las imágenes de radar. Intente de nuevo más tarde.",
+              ? "coverage"
+              : "load",
         });
       });
     return () => {
@@ -187,8 +214,8 @@ export default function SurfaceStudy() {
   function pickFromStrip(index: number) {
     if (!pair) return;
     if (index === pair.before || index === pair.after) return;
-    if (index > pair.before) setChosen({ before: pair.before, after: index });
-    else setChosen({ before: index, after: pair.after });
+    if (index > pair.before) setChosen({ sourceKey, before: pair.before, after: index });
+    else setChosen({ sourceKey, before: index, after: pair.after });
   }
 
   const current = state && state.key === key ? state : null;
@@ -201,31 +228,55 @@ export default function SurfaceStudy() {
           y: (result.bounds[3] - lat) / (result.bounds[3] - result.bounds[1]),
         }
       : null;
-  const hint = HINTS.find(([pattern]) => pattern.test(`${kind} ${title}`))?.[1] ?? FALLBACK_HINT;
-  const loadingSource = !source && !remoteError && !(remote && !remote.data) && hasPoint;
-  const text = result ? resultText(result) : null;
-  const area = result ? zoneAreaKm2(result.bounds) : 0;
-  const changedKm2 = result ? Math.round(((result.brighterPct + result.darkerPct) / 100) * area) : 0;
+  const matchedHint = HINTS.find(([pattern]) => pattern.test(`${kind} ${title}`));
+  const hint = matchedHint ? matchedHint[locale === "es" ? 1 : 2] : t(FALLBACK_HINT, "Compare the two dates and look for areas with different brightness.");
+  const hasRemoteData = Boolean(remote?.data);
+  // Error de consulta (red, 502, timeout) nunca equivale a "no hay imágenes".
+  const catalogFailed = !zone && !hasRemoteData && (Boolean(remoteError) || Boolean(remote && remote.meta?.fallback));
+  // Solo una respuesta válida y vacía permite afirmar falta de imágenes.
+  const catalogEmpty = !zone && Boolean(remote && !remote.data && !remoteError && !remote.meta?.fallback);
+  const catalogPartial = !zone && !catalogFailed && !catalogEmpty && Boolean(remoteError || remote?.meta?.fallback);
+  const loadingSource = hasPoint && !source && !catalogFailed && !catalogEmpty;
+  const text = result ? resultText(result, locale) : null;
+  const story = zone ? displayStory(zone, locale) : null;
+  const provisional = before?.status === "provisional" || after?.status === "provisional";
 
   return (
-    <main className="mx-auto w-full max-w-[1180px] px-4 pb-20 sm:px-6">
+    <main id="contenido" className="mx-auto w-full max-w-[1180px] px-4 pb-20 sm:px-6">
       <Link href="/" className="boton boton-cristal boton-chico">
         <ArrowLeft className="size-4" aria-hidden />
-        Volver
+        {t("Volver", "Back")}
       </Link>
 
-      <p className="etiqueta mt-8">{[kind, eventDate ? shortDate(eventDate) : null].filter(Boolean).join(" · ")}</p>
+      <p className="etiqueta mt-8">{[categoryLabel(kind, kind, locale), eventDate ? shortDate(eventDate) : null].filter(Boolean).join(" · ")}</p>
       <h1 className="mt-2 text-[32px] leading-[1.06] font-bold tracking-[-0.035em] sm:text-[48px]">
-        Cómo cambió la <span className="text-primario">superficie</span>
+        {t("Cómo cambió la", "How the")} <span className="text-primario">{t("superficie", "surface changed")}</span>
       </h1>
-      <p className="mt-3 max-w-[720px] text-[18px] leading-snug text-tinta-suave">{title}</p>
+      <p className="mt-3 max-w-[720px] text-[18px] leading-snug text-tinta-suave">{studyTitle(title, locale)}</p>
+      {/simulad|demo/i.test(title) ? (
+        <p role="status" className="mt-4 rounded-[10px] bg-aviso px-4 py-3 text-[14px] font-semibold text-white">{t("Evento de demostración, no real. Las imágenes de radar son observaciones reales y no prueban consecuencias del escenario simulado.", "Simulated event, not real. Radar images are real observations and do not show consequences of the simulated scenario.")}</p>
+      ) : null}
 
-      {!hasPoint ? (
-        <p className="tarjeta mt-8 text-[16px] text-tinta-suave">Falta el lugar del evento.</p>
-      ) : remoteError || (remote && !remote.data) ? (
+      {invalidField ? (
+        <p role="alert" className="tarjeta mt-8 text-[16px] text-tinta-suave">
+          {invalidField === "zone"
+            ? t("La zona solicitada no existe. Abra el estudio desde un evento o indique coordenadas.", "The requested area does not exist. Open the study from an event or provide coordinates.")
+            : pointInput.status === "missing"
+            ? t("Falta el lugar del evento: indique latitud y longitud.", "The event location is missing: provide both latitude and longitude.")
+            : invalidField === "date"
+              ? t("La fecha no es válida. Use una fecha real en formato AAAA-MM-DD.", "The date is invalid. Use a real calendar date in YYYY-MM-DD format.")
+              : t("El lugar no es válido. Indique coordenadas no vacías: latitud entre −90 y 90, longitud entre −180 y 180.", "The location is invalid. Provide non-empty coordinates: latitude from −90 to 90, longitude from −180 to 180.")}
+        </p>
+      ) : catalogFailed ? (
+        <div role="alert" className="tarjeta mt-8">
+          <p className="text-[18px] font-semibold">{t("No pudimos consultar el catálogo; esto no significa que no haya imágenes.", "We couldn't query the catalog; this does not mean there are no images.")}</p>
+          <p className="mt-2 text-[15px] text-tinta-suave">{t("El fallo puede ser de red o del servicio. Revise su conexión e intente de nuevo; no interpretamos el error como falta de cobertura.", "The failure may be network or service-related. Check your connection and try again; we do not read the error as missing coverage.")}</p>
+          <button type="button" onClick={() => void retryCatalog()} disabled={retryingCatalog} className="boton boton-principal mt-4 disabled:opacity-60">{retryingCatalog ? t("Consultando…", "Checking…") : t("Reintentar consulta", "Retry catalog query")}</button>
+        </div>
+      ) : catalogEmpty ? (
         <div className="tarjeta mt-8">
-          <p className="text-[18px] font-semibold">El radar NISAR todavía no tiene imágenes de este lugar.</p>
-          <p className="mt-2 text-[15px] text-tinta-suave">Vuelva a revisar en unos días: el satélite pasa cada 12 días.</p>
+          <p className="text-[18px] font-semibold">{t("El catálogo respondió y no devolvió imágenes de radar para este lugar.", "The catalog responded and returned no radar images for this location.")}</p>
+          <p className="mt-2 text-[15px] text-tinta-suave">{t("Vuelva a revisar en unos días: el satélite repite su órbita cada 12 días, aunque puede haber huecos en los datos.", "Check again in a few days: the satellite repeats its orbit every 12 days, though data gaps can occur.")}</p>
         </div>
       ) : loadingSource || !source ? (
         <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -233,17 +284,25 @@ export default function SurfaceStudy() {
           <div className="tarjeta h-[480px] animate-pulse" />
         </div>
       ) : !pair ? (
-        <p className="tarjeta mt-8 text-[16px] text-tinta-suave">Todavía hay una sola pasada del radar sobre este lugar.</p>
+        <p className="tarjeta mt-8 text-[16px] text-tinta-suave">{t("Todavía hay una sola pasada del radar sobre este lugar.", "Only one radar pass is available for this location so far.")}</p>
       ) : (
         <>
+          {catalogPartial ? (
+            <div role="status" className="tarjeta mt-8 flex flex-wrap items-center justify-between gap-3 border-linea-fuerte">
+              <p className="text-[14px] leading-snug text-tinta">
+                {t("Consulta parcial: una fuente no respondió o devolvió datos incompletos. Pueden faltar imágenes; esto no significa que no existan.", "Partial query: a source did not respond or returned incomplete data. Images may be missing; this does not mean they don't exist.")}
+              </p>
+              <button type="button" onClick={() => void retryCatalog()} disabled={retryingCatalog} className="boton boton-cristal boton-chico disabled:opacity-60">{retryingCatalog ? t("Consultando…", "Checking…") : t("Reintentar consulta", "Retry catalog query")}</button>
+            </div>
+          ) : null}
           <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
             <section className="tarjeta p-3 sm:p-4 lg:sticky lg:top-4">
-              <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label="Tipo de vista">
+              <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label={t("Tipo de vista", "View type")}>
                 {(
                   [
-                    ["comparar", "Antes y después"],
-                    ["cambios", "Ver cambios"],
-                    ["optico", "Foto normal vs radar"],
+                    ["comparar", t("Antes y después", "Before and after")],
+                    ["cambios", t("Ver cambios", "View changes")],
+                    ["optico", t("Foto normal vs radar", "Optical photo vs radar")],
                   ] as const
                 ).map(([value, label]) => (
                   <button
@@ -261,31 +320,31 @@ export default function SurfaceStudy() {
 
               {current?.error ? (
                 <p className="grid aspect-[1.1] place-items-center rounded-[10px] bg-hundida p-6 text-center text-[15px] text-tinta-suave">
-                  {current.error}
+                  {current.error === "coverage" ? t("El radar no cubre bien este lugar en esas fechas. Pruebe con otras.", "Radar coverage is insufficient here on these dates. Try different dates.") : t("No pudimos cargar las imágenes de radar. Intente de nuevo más tarde.", "We couldn't load the radar images. Please try again later.")}
                 </p>
               ) : !result || !before || !after ? (
                 <div className="grid aspect-[1.1] place-items-center rounded-[10px] bg-hundida p-6 text-center text-[15px] text-tinta-suave">
                   <p className="animate-pulse">
                     {source.zone
-                      ? "Cargando imágenes de radar…"
-                      : "Descargando dos imágenes del satélite. Puede tardar unos segundos."}
+                      ? t("Cargando imágenes de radar…", "Loading radar images…")
+                      : t("Descargando dos imágenes del satélite. Puede tardar unos segundos.", "Downloading two satellite images. This may take a few seconds.")}
                   </p>
                 </div>
               ) : view === "optico" ? (
                 <CompareSlider
                   aspect={aspect}
                   marker={marker}
-                  left={{ src: opticalUrl(result.bounds, after.date, aspect), label: `Foto · ${shortDate(after.date)}` }}
+                  left={{ src: opticalUrl(result.bounds, after.date, aspect), label: `${t("Foto", "Photo")} · ${shortDate(after.date)}` }}
                   right={{ src: result.after, label: `Radar · ${shortDate(after.date)}` }}
                 />
               ) : (
                 <CompareSlider
                   aspect={aspect}
                   marker={marker}
-                  left={{ src: result.before, label: `Antes · ${shortDate(before.date)}` }}
+                  left={{ src: result.before, label: `${t("Antes", "Before")} · ${shortDate(before.date)}` }}
                   right={{
                     src: result.after,
-                    label: `Después · ${shortDate(after.date)}`,
+                    label: `${t("Después", "After")} · ${shortDate(after.date)}`,
                     overlay: view === "cambios" ? result.change : null,
                   }}
                 />
@@ -295,17 +354,17 @@ export default function SurfaceStudy() {
                 <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 px-1 text-[13px] font-semibold text-tinta-suave">
                   <span className="inline-flex items-center gap-2">
                     <span className="size-3 rounded-full" style={{ backgroundColor: `rgb(${BRIGHTER_RGB.join(",")})` }} />
-                    Más brillante
+                    {t("Más brillante", "Brighter")}
                   </span>
                   <span className="inline-flex items-center gap-2">
                     <span className="size-3 rounded-full" style={{ backgroundColor: `rgb(${DARKER_RGB.join(",")})` }} />
-                    Más oscuro
+                    {t("Más oscuro", "Darker")}
                   </span>
                 </div>
               ) : null}
               {view === "optico" && result ? (
                 <p className="mt-3 px-1 text-[13px] text-tinta-suave">
-                  La foto normal depende del sol y suele salir nublada. El radar ve a través de las nubes.
+                  {t("La foto normal depende del sol y suele salir nublada. El radar ve a través de las nubes.", "An optical photo depends on sunlight and is often obscured by clouds. Radar sees through clouds.")}
                 </p>
               ) : null}
             </section>
@@ -314,19 +373,19 @@ export default function SurfaceStudy() {
               {note ? (
                 <p className="rounded-[14px] bg-primario-suave px-5 py-4 text-[15px] leading-relaxed text-tinta">
                   {note === "antes-de-los-datos"
-                    ? "El evento empezó antes de que el radar tuviera imágenes de este lugar. Comparamos la primera y la última pasada."
-                    : `El radar todavía no pasó después del evento; la próxima pasada sería cerca del ${shortDate(nextPass(source.passes[source.passes.length - 1].date))}. Mientras tanto, mostramos las dos últimas.`}
+                    ? t("El evento empezó antes de que el radar tuviera imágenes de este lugar. Comparamos la primera y la última pasada.", "The event began before radar images were available here. We compare the first and last available passes.")
+                    : t(`El radar todavía no pasó después del evento; la próxima pasada sería cerca del ${shortDate(nextPass(source.passes[source.passes.length - 1].date))}. Mientras tanto, mostramos las dos últimas.`, `No post-event radar pass is available yet; the next is expected around ${shortDate(nextPass(source.passes[source.passes.length - 1].date))}. Meanwhile, we show the latest two.`)}
                 </p>
               ) : null}
 
               <section className="tarjeta">
-                {text && before && after ? (
+                {text && result && before && after ? (
                   <>
                     <h2 className="text-[22px] leading-tight font-bold tracking-[-0.02em]">{text.title}</h2>
                     <p className="mt-2 text-[15px] leading-relaxed text-tinta-suave">{text.detail}</p>
                     <div className="mt-5 grid grid-cols-2 gap-3">
-                      <Stat value={`≈ ${changedKm2.toLocaleString("es-CR")} km²`} label="Área que cambió" />
-                      <Stat value={`${daysBetween(before.date, after.date)} días`} label="Entre las dos imágenes" />
+                      <Stat value={`≈ ${displayPct(result.brighterPct + result.darkerPct, locale)}`} label={t("Píxeles con cambio aparente (aprox.)", "Apparent preview-pixel change (approx.)")} />
+                      <Stat value={`${daysBetween(before.date, after.date).toLocaleString(intlLocale(locale))} ${t("días", "days")}`} label={t("Entre las dos imágenes", "Between the two images")} />
                     </div>
                     <p className="mt-5 border-t border-linea pt-4 text-[15px] leading-relaxed text-tinta-suave">{hint}</p>
                   </>
@@ -344,8 +403,8 @@ export default function SurfaceStudy() {
                 <div className="mt-5 grid grid-cols-2 gap-3 border-t border-linea pt-5">
                   {(
                     [
-                      ["before", "Antes"],
-                      ["after", "Después"],
+                      ["before", t("Antes", "Before")],
+                      ["after", t("Después", "After")],
                     ] as const
                   ).map(([side, label]) => (
                     <label key={side} className="block">
@@ -353,7 +412,7 @@ export default function SurfaceStudy() {
                       <select
                         className="mt-2 h-11 w-full rounded-[8px] border border-linea-fuerte bg-elevada px-3 text-[15px]"
                         value={pair[side]}
-                        onChange={(event) => setChosen({ ...pair, [side]: Number(event.target.value) })}
+                        onChange={(event) => setChosen({ ...pair, sourceKey, [side]: Number(event.target.value) })}
                       >
                         {source.passes.map((pass, index) => (
                           <option
@@ -361,7 +420,7 @@ export default function SurfaceStudy() {
                             value={index}
                             disabled={side === "before" ? index >= pair.after : index <= pair.before}
                           >
-                            {shortDate(pass.date)}
+                            {shortDate(pass.date)} · {pass.status === "validado" ? t("Validada", "Validated") : t("Provisional", "Provisional")}
                           </option>
                         ))}
                       </select>
@@ -371,43 +430,49 @@ export default function SurfaceStudy() {
               </section>
 
               <section>
-                <Details title="Cómo leer la imagen">
+                <p className="mb-4 rounded-[10px] bg-hundida p-4 text-[13px] leading-relaxed text-tinta-suave">
+                  {t("Vista previa de 8 bits no calibrada: los porcentajes describen píxeles comparables con cambio aparente de brillo, no superficie dañada ni inundación confirmada. Un cambio no identifica su causa.", "Uncalibrated 8-bit preview: percentages describe comparable pixels with apparent brightness change, not damaged land or confirmed flooding. A change does not identify its cause.")}
+                  {provisional ? ` ${t("Esta comparación incluye al menos una pasada provisional; las diferencias de procesamiento o calibración pueden influir en el resultado.", "This comparison includes at least one provisional pass; processing or calibration differences may affect the result.")}` : ""}
+                </p>
+                <Details title={t("Cómo leer la imagen", "How to read the image")}>
                   <ul className="space-y-2">
                     <li>
-                      <strong className="text-tinta">Oscuro:</strong> agua o terreno liso. El agua refleja el
-                      radar lejos del satélite.
+                      <strong className="text-tinta">{t("Oscuro:", "Dark:")}</strong> {t("posible agua o terreno liso. El agua refleja el radar lejos del satélite.", "possible water or smooth ground. Water reflects radar away from the satellite.")}
                     </li>
                     <li>
-                      <strong className="text-tinta">Blanco y verde claro:</strong> bosque o vegetación densa.
+                      <strong className="text-tinta">{t("Blanco y verde claro:", "White and light green:")}</strong> {t("posible bosque o vegetación densa.", "possible forest or dense vegetation.")}
                     </li>
                     <li>
-                      <strong className="text-tinta">Magenta:</strong> vegetación con agua debajo, arrozales o
-                      construcciones. La señal rebota en el agua y luego en los tallos.
+                      <strong className="text-tinta">Magenta:</strong> {t("posible vegetación con agua debajo, arrozales o construcciones. La señal puede rebotar en el agua y luego en los tallos.", "possible flooded vegetation, rice fields or buildings. The signal may bounce off water and then stems.")}
                     </li>
                   </ul>
                 </Details>
-                <Details title="Cómo funciona el radar">
+                <Details title={t("Cómo funciona el radar", "How radar works")}>
                   <p>
-                    NISAR, de NASA e ISRO, lleva su propia luz: emite microondas de 24 cm y mide el eco. Por eso
-                    ve de día, de noche y con nubes. El eco cambia con la rugosidad del terreno y con la humedad.
-                    Pasa por el mismo lugar cada 12 días, siempre con el mismo ángulo, así que dos pasadas se
-                    pueden comparar.
+                    {t("NISAR, de NASA e ISRO, lleva su propia luz: emite microondas de 24 cm y mide el eco. Por eso ve de día, de noche y con nubes. El eco cambia con la rugosidad del terreno y con la humedad. Repite su órbita cada 12 días; comparamos pasadas de la misma órbita para mantener el ángulo de observación.", "NASA and ISRO's NISAR carries its own light: it emits 24 cm microwaves and measures the echo, operating day and night through clouds. The echo varies with surface roughness and moisture. Its orbit repeats every 12 days; we compare passes from the same orbit to keep the viewing angle consistent.")}
                   </p>
                 </Details>
-                {zone ? (
-                  <Details title="¿Por qué cambió?">
-                    <ul className="space-y-2">
-                      {zone.hypotheses.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </Details>
+                {story ? (
+                  <>
+                    <Details title={`${t("Zona de estudio:", "Study area:")} ${story.name}`}>
+                      <p>{story.lead}</p>
+                      <h3 className="mt-3 font-semibold text-tinta">{t("Qué mirar", "What to look for")}</h3>
+                      <ul className="mt-2 space-y-2">{story.look.map((item) => <li key={item}>{item}</li>)}</ul>
+                      <h3 className="mt-3 font-semibold text-tinta">{t("Huella humana", "Human footprint")}</h3>
+                      <p className="mt-2">{story.human}</p>
+                    </Details>
+                    <Details title={t("Hipótesis: ¿por qué pudo cambiar?", "Hypotheses: why might it have changed?")}>
+                      <ul className="space-y-2">
+                        {story.hypotheses.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </Details>
+                  </>
                 ) : null}
-                <Details title="Datos">
+                <Details title={t("Datos", "Data")}>
                   <p>
-                    NASA-ISRO NISAR, producto L2 GCOV, vista previa pública de ASF DAAC. Rojo y azul: HH; verde:
-                    HV. El cambio compara el brillo HH suavizado; se ignora el agua oscura en ambas fechas. Las
-                    cifras son aproximadas.
+                    {t("NASA-ISRO NISAR, producto L2 GCOV, vista previa pública de ASF DAAC. Rojo y azul: HH; verde: HV. Se compara el brillo HH suavizado, no gamma0 calibrado; se ignoran los píxeles oscuros en ambas fechas. El umbral visual es 38/255, sin significado físico calibrado. Las cifras son aproximadas.", "NASA-ISRO NISAR L2 GCOV, public ASF DAAC preview. Red and blue: HH; green: HV. We compare smoothed HH brightness, not calibrated gamma0; pixels dark on both dates are ignored. The visual threshold is 38/255, without calibrated physical meaning. Figures are approximate.")}
                   </p>
                   <p className="mt-2 text-[13px] break-all">
                     {before?.granule}
@@ -422,15 +487,15 @@ export default function SurfaceStudy() {
           <section className="mt-14" aria-labelledby="pasadas">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 id="pasadas" className="text-[24px] font-bold tracking-[-0.02em]">
-                Pasadas del radar
+                {t("Pasadas del radar", "Radar passes")}
               </h2>
               <p className="text-[14px] text-tinta-suave">
-                {source.passes.length} imágenes · elija una para compararla
+                {source.passes.length.toLocaleString(intlLocale(locale))} {t("imágenes · elija una para compararla", "images · choose one to compare")}
               </p>
             </div>
             <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
               {source.passes.map((pass, index) => {
-                const role = index === pair.before ? "Antes" : index === pair.after ? "Después" : null;
+                const role = index === pair.before ? t("Antes", "Before") : index === pair.after ? t("Después", "After") : null;
                 return (
                   <button
                     key={pass.date}
@@ -453,7 +518,7 @@ export default function SurfaceStudy() {
                     <div className="px-3 py-2.5">
                       <p className="text-[14px] font-semibold text-tinta">{shortDate(pass.date)}</p>
                       <p className={`mt-0.5 text-[12px] font-semibold ${role ? "text-primario-fuerte" : "text-tinta-suave"}`}>
-                        {role ?? (pass.status === "validado" ? "Validada" : "Provisional")}
+                        {role ?? (pass.status === "validado" ? t("Validada", "Validated") : t("Provisional", "Provisional"))}
                       </p>
                     </div>
                   </button>
