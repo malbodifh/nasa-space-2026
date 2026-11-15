@@ -15,8 +15,41 @@ type Scenario = {
   /** Distancia y rumbo (grados desde el norte) respecto a la persona. */
   km: number;
   bearing: number;
+  /** Lugar fijo del guion, cuando el escenario no depende de dónde está la persona. */
+  fixed?: LatLon;
   alert: Omit<DisasterAlert, "id" | "source" | "date" | "lat" | "lon" | "distanceKm" | "url">;
 };
+
+/**
+ * Franja costera del escenario de tsunami simulado: de Sámara a Jacó, mar adentro y tierra
+ * adentro. Es un dibujo de guion para mostrar el ejercicio, **no** un modelo de inundación, ni un
+ * mapa de run-up, ni una zona oficial: no se deriva de magnitud, profundidad ni distancia.
+ */
+export const TSUNAMI_DEMO_AREA: LatLon[] = [
+  { lat: 9.89, lon: -86.13 },
+  { lat: 9.80, lon: -85.41 },
+  { lat: 9.66, lon: -85.17 },
+  { lat: 9.50, lon: -85.07 },
+  { lat: 9.44, lon: -85.17 },
+  { lat: 9.62, lon: -85.27 },
+  { lat: 9.74, lon: -85.51 },
+  { lat: 9.82, lon: -86.17 },
+];
+
+/**
+ * Flechas del guion: marcan el sentido en que el escenario llega a la costa (noreste). Son
+ * triángulos calculados, no simbolización oficial ni una simulación hidrodinámica.
+ */
+export const TSUNAMI_DEMO_FLOW: LatLon[][] = [
+  { lat: 9.86, lon: -85.85 },
+  { lat: 9.78, lon: -85.45 },
+  { lat: 9.68, lon: -85.22 },
+  { lat: 9.56, lon: -85.05 },
+].map((anchor) => [
+  offsetPoint(anchor, 11, 55),
+  offsetPoint(anchor, -7, 15),
+  offsetPoint(anchor, -7, 95),
+]);
 
 export const DEMO_SCENARIOS: Scenario[] = [
   {
@@ -39,16 +72,19 @@ export const DEMO_SCENARIOS: Scenario[] = [
   {
     id: "tsunami",
     label: "Tsunami",
-    hint: "Advertencia en el Pacífico",
-    km: 110,
-    bearing: 250,
+    hint: "Pacífico central, costa de Sámara a Jacó",
+    // Sismo ficticio frente a Nicoya, para que la franja costera quede junto al epicentro.
+    km: 0,
+    bearing: 0,
+    fixed: { lat: 9.62, lon: -86.15 },
     alert: {
       category: "tsunami",
       categoryLabel: "Tsunami",
       title: "Advertencia de tsunami simulada",
       level: "red",
       magnitudeValue: 7.4,
-      detail: "Aléjese de la costa y suba a terreno alto.",
+      detail:
+        "Escenario ilustrativo: la franja sombreada sobre la costa es parte del guion, no un modelo de inundación ni una zona oficial. Aléjese de la costa y suba a terreno alto.",
     },
   },
   {
@@ -108,7 +144,7 @@ export function offsetPoint(from: LatLon, km: number, bearing: number): LatLon {
 export function buildDemoAlerts(scenarioId: string, point: LatLon, at: number): DisasterAlert[] {
   const chosen = scenarioId === DEMO_ALL ? DEMO_SCENARIOS : DEMO_SCENARIOS.filter((s) => s.id === scenarioId);
   return chosen.map((scenario, index) => {
-    const where = offsetPoint(point, scenario.km, scenario.bearing);
+    const where = scenario.fixed ?? offsetPoint(point, scenario.km, scenario.bearing);
     return {
       ...scenario.alert,
       id: `demo-${scenario.id}-${at}`,

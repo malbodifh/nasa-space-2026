@@ -4,23 +4,17 @@ import { BellRing, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
 import { useLocale } from "@/components/LocaleProvider";
-import { displayDetail, eventTitle, intlLocale } from "@/lib/display-i18n";
-import { fromAlert } from "@/lib/events";
 import type { DisasterAlert } from "@/lib/types";
 
-export type Toast = { id: string; title: string; body: string; href: string | null; alert?: DisasterAlert; simulatedTest?: boolean };
+export type Toast = { id: string; title: string; body: string; href: string | null; alert?: DisasterAlert };
 
 const SHOW_MS = 9000;
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => void }) {
-  const { locale, t } = useLocale();
-  const title = toast.simulatedTest ? t("Aviso de prueba · demostración", "Test notification · simulated")
-    : toast.alert?.id.startsWith("demo-") ? `${t("[Demostración]", "[Simulated]")} ${eventTitle(fromAlert(toast.alert), locale)}` : toast.alert ? eventTitle(fromAlert(toast.alert), locale) : toast.title;
-  const body = toast.simulatedTest ? t("Así le llegará una alerta nueva para su ubicación. Este aviso es simulado.", "This is how a new alert for your location will appear. This notification is simulated.")
-    : toast.alert ? [
-      toast.alert.detail ? displayDetail(toast.alert.detail, locale) : null,
-      `${t("A", "At")} ${Math.round(toast.alert.distanceKm).toLocaleString(intlLocale(locale))} km · ${toast.alert.source === "Demostración" ? t("Demostración", "Simulation") : toast.alert.source}`,
-    ].filter(Boolean).join(" · ") : toast.body;
+  const { t } = useLocale();
+  // El emisor del aviso decide el texto: aquí solo se muestra. Así el mismo mensaje vale para el
+  // aviso de la página y para la notificación del sistema.
+  const { title, body } = toast;
   useEffect(() => {
     const timer = window.setTimeout(() => onClose(toast.id), SHOW_MS);
     return () => window.clearTimeout(timer);

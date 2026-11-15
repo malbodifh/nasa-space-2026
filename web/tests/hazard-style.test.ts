@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { alertZones, hazardColor, hazardOf, type ZoneInput } from "@/lib/hazard-style";
+import { alertZones, hazardColor, hazardOf, YELLOW_MAX, type ZoneInput } from "@/lib/hazard-style";
 
 const NOW = Date.parse("2026-11-15T06:00:00Z");
 const recent = "2026-11-15T05:30:00Z";
@@ -49,8 +49,16 @@ describe("áreas de alerta", () => {
 
   it("un huracán tiene áreas más grandes que una tormenta", () => {
     const storm = { category: "severeStorms", source: "NHC", level: "orange", date: recent } as const;
-    expect(alertZones({ ...storm, title: "Huracán Prueba" }, NOW)).toEqual({ red: 100, yellow: 300 });
-    expect(alertZones({ ...storm, title: "Tormenta tropical Prueba" }, NOW)).toEqual({ red: 50, yellow: 200 });
+    expect(alertZones({ ...storm, title: "Huracán Prueba" }, NOW)).toEqual({ red: 60, yellow: 150 });
+    expect(alertZones({ ...storm, title: "Tormenta tropical Prueba" }, NOW)).toEqual({ red: 40, yellow: 100 });
+  });
+
+  it("ningún radio supera el techo visual, ni siquiera con un sismo enorme", () => {
+    for (const magnitudeValue of [4, 5, 6, 7, 8, 9]) {
+      const zone = alertZones(input({ magnitudeValue }), NOW)!;
+      expect(zone.yellow).toBeLessThanOrEqual(YELLOW_MAX);
+      expect(zone.red).toBeLessThan(zone.yellow);
+    }
   });
 
   it("una detección de radar no tiene área", () => {

@@ -83,6 +83,13 @@ export type Zones = { red: number; yellow: number };
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const round = (km: number) => (km < 10 ? Math.round(km * 10) / 10 : Math.round(km));
 
+/**
+ * Techo visual de los radios: con encuadres de cientos de kilómetros, un círculo mayor tapaba el
+ * mapa y se leía como área afectada. Es una decisión de presentación, no un cálculo de amenaza.
+ */
+export const YELLOW_MAX = 150;
+const RED_MAX = 50;
+
 /** Magnitud del sismo: la numérica o la que viene en el título («M 4.5 · …»). */
 function magnitudeOf(input: ZoneInput): number | null {
   if (Number.isFinite(input.magnitudeValue)) return input.magnitudeValue as number;
@@ -109,8 +116,8 @@ export function alertZones(input: ZoneInput, now = Date.now()): Zones | null {
       const m = magnitudeOf(input);
       if (m === null) return null;
       return {
-        red: round(clamp(10 ** (0.45 * m - 1.1), 1, 150)),
-        yellow: round(clamp(10 ** (0.45 * m - 0.3), 5, 400)),
+        red: round(clamp(10 ** (0.45 * m - 1.1), 1, RED_MAX)),
+        yellow: round(clamp(10 ** (0.45 * m - 0.3), 5, YELLOW_MAX)),
       };
     }
     case "volcan":
@@ -118,7 +125,7 @@ export function alertZones(input: ZoneInput, now = Date.now()): Zones | null {
     case "tsunami":
       return null;
     case "ciclon":
-      return /hurac/i.test(input.title) ? { red: 100, yellow: 300 } : { red: 50, yellow: 200 };
+      return /hurac/i.test(input.title) ? { red: 60, yellow: 150 } : { red: 40, yellow: 100 };
     case "inundacion":
       return { red: 10, yellow: 30 };
     case "lluvia":

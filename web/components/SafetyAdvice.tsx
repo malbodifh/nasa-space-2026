@@ -54,7 +54,9 @@ export default function SafetyAdvice({
                   : t("No hay magnitud verificada en este reporte.", "No verified magnitude is available in this report.")}</p>
               ) : null}
               <p>{alert.category === "tsunami"
-                ? t("El alcance territorial no está determinado: consulte el reporte y las autoridades oficiales. La distancia al epicentro no determina qué costas están amenazadas.", "The territorial scope is unknown: check the report and official authorities. Distance to the epicenter does not determine which coasts are threatened.")
+                ? alert.source === "Demostración"
+                  ? t("Escenario simulado: la franja del mapa es parte del guion, no un modelo de inundación ni una zona oficial.", "Simulated scenario: the map band is part of the script, not an inundation model or an official zone.")
+                  : t("El alcance territorial no está determinado: consulte el reporte y las autoridades oficiales. La distancia al epicentro no determina qué costas están amenazadas.", "The territorial scope is unknown: check the report and official authorities. Distance to the epicenter does not determine which coasts are threatened.")
                 : !advice.current
                 ? t("Reporte vencido o fecha no verificable: consulte información actual.", "Report expired or date unverifiable: check current information.")
                 : !advice.distanceKnown

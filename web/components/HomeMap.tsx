@@ -19,6 +19,7 @@ import { basemapStyle, readBasemap, saveBasemap, type BasemapId } from "@/lib/ba
 import { categoryLabel, displayTimeAgo, eventTitle, intlLocale } from "@/lib/display-i18n";
 import { studyHref, type EventItem } from "@/lib/events";
 import { bboxForRadius, circlePolygon } from "@/lib/geo";
+import { TSUNAMI_DEMO_AREA, TSUNAMI_DEMO_FLOW } from "@/lib/demo-scenarios";
 import { alertZones, HAZARD_ORDER, HAZARD_STYLE, hazardOf, type Hazard } from "@/lib/hazard-style";
 import type { LatLon } from "@/lib/types";
 
@@ -33,6 +34,7 @@ type Props = {
 const EMPTY = { type: "FeatureCollection" as const, features: [] };
 const RED = "#DC2626";
 const YELLOW = "#EAB308";
+const TSUNAMI = "#1F5FA6";
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "")
@@ -49,15 +51,26 @@ function motionDuration(duration: number): number {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : duration;
 }
 
-function fit(map: MapLibreMap, point: LatLon, radiusKm: number, duration: number) {
+/**
+ * Encuadra la ubicación. Si el escenario simulado de tsunami está activo, amplía el encuadre para
+ * que su franja costera quede a la vista: si no, el área cae fuera de pantalla.
+ */
+function fit(map: MapLibreMap, point: LatLon, radiusKm: number, duration: number, includeDemoArea: boolean) {
   const [west, south, east, north] = bboxForRadius(point, radiusKm * 1.15);
-  map.fitBounds(
-    [
-      [west, south],
-      [east, north],
-    ],
-    { padding: 16, duration: motionDuration(duration) },
-  );
+  // Con el escenario activo se encuadra su franja: si no, cae fuera de la vista de la ubicación.
+  const lats = TSUNAMI_DEMO_AREA.map((corner) => corner.lat);
+  const lons = TSUNAMI_DEMO_AREA.map((corner) => corner.lon);
+  const pad = 0.4;
+  const bounds: [[number, number], [number, number]] = includeDemoArea
+    ? [
+        [Math.min(...lons) - pad, Math.min(...lats) - pad],
+        [Math.max(...lons) + pad, Math.max(...lats) + pad],
+      ]
+    : [
+        [west, south],
+        [east, north],
+      ];
+  map.fitBounds(bounds, { padding: 16, duration: motionDuration(duration) });
 }
 
 const HAZARD_EN: Record<Hazard, string> = {
@@ -72,7 +85,8 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
   const mapRef = useRef<MapLibreMap | null>(null);
   const popupRef = useRef<Popup | null>(null);
   const textRef = useRef(t);
-  const fittedRef = useRef<{ map: MapLibreMap; lat: number; lon: number; radiusKm: number } | null>(null);
+  const fittedRef = useRef<{ map: MapLibreMap; lat: number; lon: number; radiusKm: number; demoArea: boolean } | null>(null);
+  const hasTsunamiDemo = active.some((item) => item.category === "tsunami" && item.id.startsWith("demo-"));
   const initialRef = useRef({ point, radiusKm });
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<"webgl" | "style" | null>(null);
@@ -174,6 +188,36 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
       map.addSource("zones", { type: "geojson", data: EMPTY });
       map.addSource("me", { type: "geojson", data: EMPTY });
       map.addSource("events", { type: "geojson", data: EMPTY });
+
+      // Escenario simulado de tsunami: franja de guion, solo en modo demo.
+      map.addLayer({
+        id: "zone-demo-fill",
+        type: "fill",
+        source: "zones",
+        filter: ["==", ["get", "ring"], "demo"],
+        paint: { "fill-color": TSUNAMI, "fill-opacity": 0.28 },
+      });
+      map.addLayer({
+        id: "zone-demo-line",
+        type: "line",
+        source: "zones",
+        filter: ["==", ["get", "ring"], "demo"],
+        paint: { "line-color": TSUNAMI, "line-width": 2, "line-dasharray": [3, 2] },
+      });
+      map.addLayer({
+        id: "zone-demo-arrows",
+        type: "fill",
+        source: "zones",
+        filter: ["==", ["get", "ring"], "demo-arrow"],
+        paint: { "fill-color": TSUNAMI, "fill-opacity": 0.95 },
+      });
+      map.addLayer({
+        id: "zone-demo-arrows-line",
+        type: "line",
+        source: "zones",
+        filter: ["==", ["get", "ring"], "demo-arrow"],
+        paint: { "line-color": "#FFFFFF", "line-width": 1.5 },
+      });
 
       // Primero el radio amarillo y encima el rojo, que es más pequeño. El trazo discontinuo
       // recuerda que son radios de proximidad, no perímetros oficiales.
@@ -288,32 +332,49 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
       properties: {},
     });
     const previous = fittedRef.current;
-    if (previous?.map !== map || previous.lat !== point.lat || previous.lon !== point.lon || previous.radiusKm !== radiusKm) {
-      fit(map, point, radiusKm, previous?.map === map ? 600 : 0);
-      fittedRef.current = { map, lat: point.lat, lon: point.lon, radiusKm };
+    const demoArea = hasTsunamiDemo;
+    if (previous?.map !== map || previous.lat !== point.lat || previous.lon !== point.lon
+      || previous.radiusKm !== radiusKm || previous.demoArea !== demoArea) {
+      fit(map, point, radiusKm, previous?.map === map ? 600 : 0, demoArea);
+      fittedRef.current = { map, lat: point.lat, lon: point.lon, radiusKm, demoArea };
     }
-  }, [ready, point, radiusKm, styleVersion]);
+  }, [ready, point, radiusKm, styleVersion, hasTsunamiDemo]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
+    // La franja solo acompaña al escenario simulado; un boletín real nunca dibuja área.
+    const ring = (points: LatLon[], property: string) => ({
+      type: "Feature" as const,
+      geometry: {
+        type: "Polygon" as const,
+        coordinates: [[...points, points[0]].map((corner) => [corner.lon, corner.lat])],
+      },
+      properties: { ring: property },
+    });
+    const demoArea = hasTsunamiDemo
+      ? [ring(TSUNAMI_DEMO_AREA, "demo"), ...TSUNAMI_DEMO_FLOW.map((arrow) => ring(arrow, "demo-arrow"))]
+      : [];
     (map.getSource("zones") as GeoJSONSource | undefined)?.setData({
       type: "FeatureCollection",
-      features: zones.flatMap(({ item, zone }) =>
-        (
-          [
-            ["yellow", zone.yellow],
-            ["red", zone.red],
-          ] as const
-        )
-          .filter(([, radius]) => radius > 0)
-          .map(([ring, radius]) => {
-            const circle = circlePolygon({ lat: item.lat, lon: item.lon }, radius);
-            return { ...circle, properties: { ring } };
-          }),
-      ) as never,
+      features: [
+        ...demoArea,
+        ...zones.flatMap(({ item, zone }) =>
+          (
+            [
+              ["yellow", zone.yellow],
+              ["red", zone.red],
+            ] as const
+          )
+            .filter(([, radius]) => radius > 0)
+            .map(([ring, radius]) => {
+              const circle = circlePolygon({ lat: item.lat, lon: item.lon }, radius);
+              return { ...circle, properties: { ring } };
+            }),
+        ),
+      ] as never,
     });
-  }, [ready, zones, styleVersion]);
+  }, [ready, zones, hasTsunamiDemo, styleVersion]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -323,12 +384,12 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
         item.id,
         zone.red > 0
           ? t(
-              `Radio rojo de proximidad ${zone.red.toLocaleString(intlLocale(locale))} km · amarillo ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimados; no son zona de afectación)`,
-              `Red proximity radius ${zone.red.toLocaleString(intlLocale(locale))} km · yellow ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimated; not an impact area)`,
+              `Referencia visual: radio rojo ${zone.red.toLocaleString(intlLocale(locale))} km · amarillo ${zone.yellow.toLocaleString(intlLocale(locale))} km. Estimados y con tope de escala: no son zona de afectación ni perímetro oficial.`,
+              `Visual reference: red radius ${zone.red.toLocaleString(intlLocale(locale))} km · yellow ${zone.yellow.toLocaleString(intlLocale(locale))} km. Estimated and scale-capped: not an impact area or an official perimeter.`,
             )
           : t(
-              `Radio amarillo de proximidad ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimado; no es zona de afectación)`,
-              `Yellow proximity radius ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimated; not an impact area)`,
+              `Referencia visual: radio amarillo ${zone.yellow.toLocaleString(intlLocale(locale))} km. Estimado y con tope de escala: no es zona de afectación.`,
+              `Visual reference: yellow radius ${zone.yellow.toLocaleString(intlLocale(locale))} km. Estimated and scale-capped: not an impact area.`,
             ),
       ]),
     );
@@ -416,14 +477,14 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
             <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 border-t border-linea pt-2 text-[12px] text-tinta-suave">
               <li className="inline-flex items-center gap-1.5">
                 <span className="size-2.5 rounded-full border-2 border-dashed" style={{ borderColor: RED, backgroundColor: `${RED}22` }} aria-hidden />
-                 {t("Radio rojo de proximidad (estimado)", "Red proximity radius (estimated)")}
+                 {t("Referencia roja de cercanía", "Red proximity reference")}
               </li>
               <li className="inline-flex items-center gap-1.5">
                 <span className="size-2.5 rounded-full border-2 border-dashed" style={{ borderColor: YELLOW, backgroundColor: `${YELLOW}22` }} aria-hidden />
-                 {t("Radio amarillo de proximidad (estimado)", "Yellow proximity radius (estimated)")}
+                 {t("Referencia amarilla de cercanía", "Yellow proximity reference")}
               </li>
               <li className="w-full text-[11px] leading-snug text-tinta-suave">
-                {t("Los radios indican cercanía, no el área afectada.", "Radii indicate proximity, not the affected area.")}
+                {t("Son referencias de cercanía con tope visual: no son el área afectada ni un perímetro oficial.", "These are proximity references with a visual cap: not the affected area or an official perimeter.")}
               </li>
             </ul>
           ) : null}

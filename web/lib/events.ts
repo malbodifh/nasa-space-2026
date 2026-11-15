@@ -116,13 +116,17 @@ export function locationStatus(active: DisasterAlert[]): {
   if (relevant.length === 0) return { tone: "exito", title: "Sin alertas para su ubicación", nearest: null };
   const serious = relevant.find((alert) => alert.category !== "tsunami" && (alert.level === "red" || alert.level === "orange"))
     ?? relevant.find((alert) => alert.level === "red" || alert.level === "orange");
-  if (serious) return {
+  if (serious) {
     // Un boletín regional no confirma que la costa de la persona esté incluida: se destaca, pero
-    // no se afirma peligro en su ubicación.
-    tone: serious.category === "tsunami" ? "aviso" : "peligro",
-    title: serious.category === "tsunami" ? "Boletín regional de tsunami: alcance local desconocido" : "Alerta para su ubicación",
-    nearest: serious,
-  };
+    // no se afirma peligro en su ubicación. El escenario simulado sí dibuja su franja costera.
+    const demo = serious.source === "Demostración";
+    if (serious.category !== "tsunami") return { tone: "peligro", title: "Alerta para su ubicación", nearest: serious };
+    return {
+      tone: demo ? "peligro" : "aviso",
+      title: demo ? "Simulación de tsunami: costa marcada en el mapa" : "Boletín regional de tsunami: alcance local desconocido",
+      nearest: serious,
+    };
+  }
   return {
     tone: "aviso",
     title: relevant.length === 1 ? "1 aviso para su ubicación" : `${relevant.length} avisos para su ubicación`,

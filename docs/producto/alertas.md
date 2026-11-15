@@ -62,11 +62,11 @@ Para algunas amenazas **en curso**, el mapa dibuja radios de proximidad; si no, 
 
 | Amenaza | Roja | Amarilla |
 |---|---|---|
-| Sismo | 10^(0,45·M − 1,1) km (1–150) | 10^(0,45·M − 0,3) km (5–400) |
+| Sismo | 10^(0,45·M − 1,1) km (1–50) | 10^(0,45·M − 0,3) km (5–150) |
 | Volcán | 5 km | 15 km |
 | Tsunami | sin círculo | sin círculo |
-| Huracán | 100 km | 300 km |
-| Tormenta o depresión | 50 km | 200 km |
+| Huracán | 60 km | 150 km |
+| Tormenta o depresión | 40 km | 100 km |
 | Inundación | 10 km | 30 km |
 | Deslizamiento | 2 km | 5 km |
 | Lluvia fuerte | 10 km si es naranja | 25 km |
@@ -116,6 +116,10 @@ riesgo, el mapa con áreas roja y amarilla, la lista y el aviso del navegador.
 
 - Siempre se marcan: franja «Modo demo», etiqueta «Simulación», fuente «Demostración» y sin
   enlace oficial.
+- El tsunami del demo es el único caso con área: usa un **guion costero fijo** de Sámara a Jacó
+  (`TSUNAMI_DEMO_AREA`) con flechas hacia la costa (`TSUNAMI_DEMO_FLOW`). Es ilustrativo —no un
+  modelo de inundación, ni un run-up, ni un polígono oficial— y no se deriva de magnitud ni de
+  distancia. Un boletín de tsunami **real** sigue mostrándose solo como punto.
 - Viven solo en el navegador (no pasan por `/api/events`) y se quitan con «Salir del demo».
 - Código: `web/lib/demo-scenarios.ts`.
 

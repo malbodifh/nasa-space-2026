@@ -152,7 +152,7 @@ const SOURCES: SourceStatus[] = [
     auth: "sin clave",
     mode: "live",
     usedBy: ["/api/events"],
-    note: "Pacífico y Atlántico/Caribe. Vigilancia, aviso o advertencia: alerta a cualquier distancia. Caché 2 min.",
+    note: "PHEB es PTWC y PAAQ es NTWC. Se lee el CAP enlazado para cancelación y vencimiento; el alcance territorial no se determina. Caché 2 min.",
   },
   {
     id: "nhc",

@@ -104,12 +104,18 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null, point: L
         title: [
           alert.id.startsWith("demo-") ? t("[Demostración]", "[Simulated]") : "",
           // Nunca se presenta un boletín regional como peligro en la ubicación de quien lo recibe.
-          alert.category === "tsunami" ? t("Boletín regional de tsunami", "Regional tsunami bulletin") : "",
+          alert.category === "tsunami" && alert.source !== "Demostración"
+            ? t("Boletín regional de tsunami", "Regional tsunami bulletin")
+            : "",
           eventTitle(fromAlert(alert), locale),
         ].filter(Boolean).join(" · "),
         body: [
           alert.detail ? displayDetail(alert.detail, locale) : null,
-          alert.category === "tsunami" ? t("No determina si su costa está incluida; verifique en fuentes oficiales.", "Does not determine whether your coast is included; check official sources.") : null,
+          alert.category === "tsunami"
+            ? alert.source === "Demostración"
+              ? t("Franja de guion: no es un modelo de inundación ni una zona oficial.", "Script band: not an inundation model or an official zone.")
+              : t("No determina si su costa está incluida; verifique en fuentes oficiales.", "Does not determine whether your coast is included; check official sources.")
+            : null,
           `${t("A", "At")} ${Math.round(alert.distanceKm).toLocaleString(intlLocale(locale))} km · ${alert.source === "Demostración" ? t("Demostración", "Simulation") : alert.source}`,
         ].filter(Boolean).join(" · "),
         href: studyHref(fromAlert(alert)),
@@ -178,7 +184,7 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null, point: L
   /** Pide permiso si falta y envía un aviso de prueba; `notice` cuenta qué pasó. */
   const test = useCallback(async () => {
     setToasts((current) => [
-      { id: `prueba-${Date.now()}`, title: t("Aviso de prueba · demostración", "Test notification · simulated"), body: t("Así le llegará una alerta nueva para su ubicación. Este aviso es simulado.", "This is how a new alert for your location will appear. This notification is simulated."), href: null, simulatedTest: true },
+      { id: `prueba-${Date.now()}`, title: t("Aviso de prueba · demostración", "Test notification · simulated"), body: t("Así le llegará una alerta nueva para su ubicación. Este aviso es simulado.", "This is how a new alert for your location will appear. This notification is simulated."), href: null },
       ...current,
     ]);
     const current = permission === "default" ? await enable() : permission;
