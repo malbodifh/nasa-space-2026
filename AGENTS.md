@@ -41,8 +41,9 @@ make clean      # cachés + PNGs; NO borra los PDF versionados
 - `.venv` local es Python **3.14**; CI usa **3.12**. No uses sintaxis exclusiva de 3.14.
 - `make guides` requiere `typst` en `PATH`; CI fija **0.15.1**.
 - La ruta tiene un espacio (`NASA SPACEAPPS`): citá siempre en shell.
-- Cuando exista `web/`: `pnpm --dir web dev|build|lint|test`. **Todavía no existen**; no los
-  inventes como si funcionaran.
+- Frontend: `pnpm --dir web dev|build|lint|test` (Next 16 + Turbopack).
+- Deploy: Vercel con **root directory `web/`**, pnpm y Node 22. Sin variables obligatorias;
+  `FIRMS_MAP_KEY` es opcional. Ver [`web/README.md`](web/README.md).
 
 ## Decisiones cerradas
 
@@ -93,9 +94,8 @@ make clean      # cachés + PNGs; NO borra los PDF versionados
 - **Nunca** commitear directo en `main`, `staging` o `develop`, ni forzar push.
 - Una tarea = una rama (`feat/`, `fix/`, `docs/`) = un PR. Commits en español e imperativo.
 - Autor: `Trizzoth <304232853+Trizzoth@users.noreply.github.com>`.
-- CI corre Ruff + Pytest + Typst. **El job `frontend` está desactualizado**: busca
-  `src/frontend/package.json`, usa npm y Node 20. Al crear `web/`, cambiarlo a `web/` + pnpm +
-  Node 22.
+- CI corre Ruff + Pytest + Typst + frontend. El job `frontend` usa `web/`, pnpm 11.28.5 y
+  Node 22 (lint + test + build).
 - `gh` tiene `push` pero **no `admin`**: no se pueden crear protecciones ni cambiar el default.
 
 ## Gotchas
