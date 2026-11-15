@@ -1,4 +1,5 @@
 import type { LatLon } from "@/lib/types";
+import type { SarZone } from "@/lib/sar";
 
 type Query = { get: (name: string) => string | null };
 
@@ -75,6 +76,22 @@ export function parseStudyInput(params: Query): StudyInput {
 }
 
 export type StudySelection = { sourceKey: string; before: number; after: number };
+
+/** Un enlace radar solo puede usar la base publicada y una pasada posterior de esa zona. */
+export function parseRadarPair(params: Query, zone: SarZone | null) {
+  const raw = params.get("base");
+  if (raw === null) return { status: "missing" } as const;
+  const base = parseStudyDate(raw);
+  const date = parseStudyDate(params.get("fecha"));
+  if (!zone || params.get("zona") !== zone.id || base.status !== "valid"
+    || base.date !== zone.baseline || date.status !== "valid" || !date.date) {
+    return { status: "invalid" } as const;
+  }
+  const before = zone.acquisitions.findIndex((pass) => pass.date === base.date);
+  const after = zone.acquisitions.findIndex((pass) => pass.date === date.date);
+  if (before < 0 || after <= before) return { status: "invalid" } as const;
+  return { status: "valid", before, after, note: null } as const;
+}
 
 /** A query/source change must not reuse indexes from the previous image strip. */
 export function scopedStudyPair(selection: StudySelection | null, sourceKey: string, count: number) {

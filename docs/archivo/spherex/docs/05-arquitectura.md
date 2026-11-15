@@ -257,7 +257,7 @@ Usuario ingresa RA/Dec nueva
 - **Frontend:** probar en Chrome y Firefox; mobile no es prioridad.
 - **Datos:** validar que los 5 targets tengan al menos 10 frames.
 - **Demo:** ensayar con internet apagado (modo cache).
-- **Checklist:** [10-submission-checklist.md](10-submission-checklist.md).
+- **Checklist:** `10-submission-checklist.md` (documento histórico no conservado).
 
 ---
 

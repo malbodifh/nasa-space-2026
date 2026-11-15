@@ -44,7 +44,7 @@ function levelOf(value?: string): AlertLevel {
 }
 
 export async function getGdacsAlerts(point: LatLon): Promise<DisasterAlert[]> {
-  const key = `gdacs:${point.lat.toFixed(1)}:${point.lon.toFixed(1)}`;
+  const key = `gdacs:${point.lat}:${point.lon}`;
 
   return cached(key, 30 * 60 * 1000, async () => {
     const today = new Date();

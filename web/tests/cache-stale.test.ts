@@ -46,4 +46,35 @@ describe("falla suave de la caché", () => {
     expect(result.stale).toBe(false);
     expect(result.cached).toBe(false);
   });
+
+  it("mantiene stale durante la gracia y lo limpia tras recuperarse", async () => {
+    const key = `stale-grace-${Math.random()}`;
+    await cached(key, 120_000, async () => "bueno");
+    vi.advanceTimersByTime(120_001);
+    await cached(key, 120_000, async () => { throw new Error("caída"); });
+    const refresh = vi.fn(async () => "nuevo");
+    expect(await withCacheTracking(() => cached(key, 120_000, refresh))).toEqual({
+      value: "bueno", cached: true, stale: true,
+    });
+    expect(refresh).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(60_001);
+    expect(await withCacheTracking(() => cached(key, 120_000, refresh))).toEqual({
+      value: "nuevo", cached: false, stale: false,
+    });
+  });
+
+  it("marca stale en todos los requests que comparten un refresco fallido", async () => {
+    const key = `stale-concurrent-${Math.random()}`;
+    await cached(key, 1_000, async () => "bueno");
+    vi.advanceTimersByTime(1_001);
+    let fail!: (error: Error) => void;
+    const refresh = vi.fn(() => new Promise<string>((_, reject) => { fail = reject; }));
+    const first = withCacheTracking(() => cached(key, 1_000, refresh));
+    const second = withCacheTracking(() => cached(key, 1_000, refresh));
+    fail(new Error("caída"));
+    const results = await Promise.all([first, second]);
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(results.map((result) => result.stale)).toEqual([true, true]);
+    expect(results.map((result) => result.value)).toEqual(["bueno", "bueno"]);
+  });
 });

@@ -102,11 +102,12 @@ export function medianOffset(before: Float32Array, after: Float32Array): number 
 
 export type ChangeResult = {
   mask: Uint8ClampedArray;
+  comparableCount: number;
   darkerPct: number;
   brighterPct: number;
 };
 
-/** Píxeles que se oscurecieron o aclararon más que el umbral; ignora agua oscura en ambas fechas. */
+/** Píxeles que superaron el umbral; excluye los oscuros en ambas fechas, no una máscara de agua. */
 export function changeMask(
   before: Float32Array,
   after: Float32Array,
@@ -121,7 +122,7 @@ export function changeMask(
   for (let k = 0; k < before.length; k += 1) {
     const a = before[k];
     const b = after[k] - offset;
-    if (Number.isNaN(a) || Number.isNaN(b)) continue;
+    if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
     if (Math.max(a, b) < darkInBoth) continue;
     counted += 1;
     const d = b - a;
@@ -138,6 +139,7 @@ export function changeMask(
   }
   return {
     mask,
+    comparableCount: counted,
     darkerPct: counted ? (darker / counted) * 100 : 0,
     brighterPct: counted ? (brighter / counted) * 100 : 0,
   };

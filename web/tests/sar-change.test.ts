@@ -46,6 +46,7 @@ describe("sar-change", () => {
     for (let y = 0; y < 10; y += 1) for (let x = 0; x < 5; x += 1) afterPx[(y * 10 + x) * 4] = 200;
     const after = smoothHH(afterPx, 10, 10);
     const result = changeMask(before, after);
+    expect(result.comparableCount).toBe(100);
     expect(result.brighterPct).toBeGreaterThan(30);
     expect(result.darkerPct).toBe(0);
   });
@@ -54,8 +55,18 @@ describe("sar-change", () => {
     const before = smoothHH(solid(8, 8, 10), 8, 8);
     const after = smoothHH(solid(8, 8, 60), 8, 8);
     const result = changeMask(before, after);
+    expect(result.comparableCount).toBe(0);
     expect(result.brighterPct).toBe(0);
     expect(result.darkerPct).toBe(0);
+  });
+
+  it("no cuenta píxeles sin solapamiento válido en ambas fechas", () => {
+    const result = changeMask(
+      new Float32Array([100, NaN, NaN]),
+      new Float32Array([NaN, 150, NaN]),
+    );
+    expect(result.comparableCount).toBe(0);
+    expect(result.mask.every((value) => value === 0)).toBe(true);
   });
 
   it("corrige un brillo general distinto con la mediana", () => {

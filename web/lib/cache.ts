@@ -4,6 +4,7 @@ type Entry<T> = {
   expires: number;
   value?: T;
   promise?: Promise<T>;
+  stale?: boolean;
 };
 
 const MAX_ENTRIES = 200;
@@ -53,14 +54,17 @@ export async function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>
   const now = Date.now();
   const hit = store.get(key) as Entry<T> | undefined;
 
+  if (hit?.promise) {
+    noteHit();
+    const value = await hit.promise;
+    if (hit.stale) noteStale();
+    return value;
+  }
   if (hit && hit.expires > now) {
     if (hit.value !== undefined) {
       noteHit();
+      if (hit.stale) noteStale();
       return hit.value;
-    }
-    if (hit.promise) {
-      noteHit();
-      return hit.promise;
     }
   }
 
@@ -72,6 +76,7 @@ export async function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>
   // Si el refresco falla y había un valor anterior, se sirve ese dato vencido en lugar de
   // dejar la fuente vacía. Es la regla de falla suave: 200 con el último dato y aviso.
   const previous = hit?.value;
+  const entry: Entry<T> = { expires: now + ttlMs, value: previous };
 
   const promise = fn()
     .then((value) => {
@@ -80,15 +85,18 @@ export async function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>
     })
     .catch((error) => {
       if (previous !== undefined) {
-        noteStale();
+        entry.stale = true;
         // Gracia corta para no golpear una fuente caída en cada request.
-        store.set(key, { expires: Date.now() + Math.min(ttlMs, 60_000), value: previous });
+        store.set(key, { expires: Date.now() + Math.min(ttlMs, 60_000), value: previous, stale: true });
         return previous;
       }
       store.delete(key);
       throw error;
     });
 
-  store.set(key, { expires: now + ttlMs, promise });
-  return promise;
+  entry.promise = promise;
+  store.set(key, entry);
+  const value = await promise;
+  if (entry.stale) noteStale();
+  return value;
 }

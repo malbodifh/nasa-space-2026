@@ -17,6 +17,7 @@
 9. [`e2e-playwright.md`](e2e-playwright.md): navegación real con Playwright MCP y resultados
    observados después de las correcciones.
 10. [`correcciones-ui.md`](correcciones-ui.md): TEST-1 y TEST-2 cerrados, con lo que falta probar.
+11. [`cierre-auditoria.md`](cierre-auditoria.md): correcciones de la auditoría final y límites de entrega.
 
 Los informes baseline son fotografías de sus versiones: no se reescriben como si las correcciones
 siempre hubieran existido. Un hallazgo se cierra con evidencia de retest, no solo con un cambio.
@@ -44,7 +45,9 @@ El coordinador deriva cada reporte al implementador y solicita retest independie
 
 ## Estado al cerrar la jornada del 15/11
 
-- `make check`, `tsc --noEmit`, ESLint, **321 tests** en 28 archivos y `next build`: verdes.
+- Cierre inicial: `make check`, `tsc --noEmit`, ESLint, **321 tests** en 28 archivos y `next build`: verdes.
+- Cierre de auditoría: **358 tests en 31 archivos**, lint, TypeScript y build verdes con Node 22;
+  Ruff, 5 tests Python y Typst verdes. Evidencia y límites en [`cierre-auditoria.md`](cierre-auditoria.md).
 - Verificación en navegador con Playwright MCP sobre el build de producción local: menú,
   inglés, demo, cuatro zonas SAR, entradas inválidas y móvil 390 px, todo PASS.
 - Correcciones aplicadas: validación de coordenadas, `hazard` en modo prueba, frescura de

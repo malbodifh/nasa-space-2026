@@ -331,20 +331,18 @@ export async function getOsmOverlays(point: LatLon, radiusKm: number): Promise<O
   const snapshot = fromSnapshot(point);
   if (snapshot) return snapshot;
 
-  const key = `osm:${point.lat.toFixed(2)}:${point.lon.toFixed(2)}:${Math.round(radiusKm)}`;
+  const key = `osm:${point.lat}:${point.lon}:${radiusKm}`;
 
-  return cached(key, 24 * 60 * 60 * 1000, async () => {
-    try {
-      return await fetchOverpass(point, radiusKm);
-    } catch {
-      // Fuera de la región demo no hay snapshot: devolvemos capas vacías.
-      return {
-        roads: { type: "FeatureCollection", features: [] },
-        protectedAreas: { type: "FeatureCollection", features: [] },
-        fallback: true,
-        mode: "empty" as const,
-        fetchedAt: null,
-      };
-    }
-  });
+  try {
+    return await cached(key, 24 * 60 * 60 * 1000, () => fetchOverpass(point, radiusKm));
+  } catch {
+    // Sin dato previo ni snapshot: vacío sin cachearlo para permitir reintentos.
+    return {
+      roads: { type: "FeatureCollection", features: [] },
+      protectedAreas: { type: "FeatureCollection", features: [] },
+      fallback: true,
+      mode: "empty",
+      fetchedAt: null,
+    };
+  }
 }

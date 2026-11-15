@@ -95,7 +95,7 @@ def simplify(points, tolerance=0.0008):
                 y += dy * t
         return (p[0] - x) ** 2 + (p[1] - y) ** 2
 
-    keep = [points[0]]
+    keep = {0, len(points) - 1}
     stack = [(0, len(points) - 1)]
     while stack:
         first, last = stack.pop()
@@ -107,10 +107,9 @@ def simplify(points, tolerance=0.0008):
                 best, index = dist, i
         if index > 0:
             stack.append((first, index))
-            keep.append(points[index])
+            keep.add(index)
             stack.append((index, last))
-    keep.append(points[-1])
-    return keep
+    return [points[index] for index in sorted(keep)]
 
 
 def split_ring(ring, max_jump=0.05):

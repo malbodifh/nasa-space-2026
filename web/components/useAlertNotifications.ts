@@ -92,7 +92,7 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null) {
       for (const alert of relevant) seen.add(alert.id);
       saveSeen(seen);
       // Al abrir la página por primera vez no se avisa de lo que ya estaba, salvo el modo demo.
-      const toSend = fresh.filter((alert) => (firstVisit ? alert.id.startsWith("demo-") : true)).slice(0, 3);
+      const toSend = fresh.filter((alert) => (firstVisit ? alert.id.startsWith("demo-") : true));
       if (toSend.length === 0) return;
       const items = toSend.map((alert) => ({
         id: alert.id,
@@ -102,7 +102,7 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null) {
         alert,
       }));
       // El aviso dentro de la página siempre se muestra; el del sistema, solo con permiso.
-      setToasts((current) => [...items.filter((item) => !current.some((c) => c.id === item.id)), ...current].slice(0, 4));
+      setToasts((current) => [...current, ...items.filter((item) => !current.some((c) => c.id === item.id))]);
       if (permission === "granted") {
         for (const item of items) void show(item.title, item.body, item.href, item.id, locale);
       }
@@ -130,7 +130,7 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null) {
     setToasts((current) => [
       { id: `prueba-${Date.now()}`, title: t("Aviso de prueba · demostración", "Test notification · simulated"), body: t("Así le llegará una alerta nueva para su ubicación. Este aviso es simulado.", "This is how a new alert for your location will appear. This notification is simulated."), href: null, simulatedTest: true },
       ...current,
-    ].slice(0, 4));
+    ]);
     const current = permission === "default" ? await enable() : permission;
     if (current === "unsupported") {
       setNotice({ es: "Este navegador no permite avisos del sistema; los verá dentro de la página.", en: "This browser does not support system notifications; you will see them on this page." });

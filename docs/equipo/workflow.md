@@ -35,7 +35,7 @@ flowchart LR
 ```
 
 ### Paso a paso
-1. Elegí una tarea del [backlog](14-backlog.md).
+1. Elegí una tarea de los [pendientes actuales](../estado.md#3-pendientes).
 2. Abrí un issue con la plantilla **Tarea** (incluye contrato de datos).
 3. Creá la rama: `feat/p0-07-endpoint-salud`.
 4. Hacé commits chicos.
@@ -50,12 +50,11 @@ flowchart LR
 
 ### Ramas
 
-El equipo trabaja con **4 niveles**. Nadie escribe directo en `main`.
+Flujo vigente: **persona → develop → main**. `staging` se eliminó el 15/11/2026.
+Nadie escribe directo en `main`; crear ramas requiere autorización explícita.
 
 ```text
-main        producción. Solo recibe merges desde staging. Siempre funciona.
-  ↑
-staging     puente de integración. Junta develop + ramas en revisión y se prueba el demo completo.
+main        producción. Solo recibe PRs revisados. Siempre funciona.
   ↑
 develop     desarrollo. Integración diaria del equipo.
   ↑
@@ -64,9 +63,8 @@ andy / david / samuel / jorge / leo    rama personal de cada integrante
 
 | Rama | Quién escribe | Sale hacia | Regla |
 |---|---|---|---|
-| `main` | nadie directo | — | Solo merge desde `staging` + tag de versión |
-| `staging` | el que integra (Andy) | `main` | Demo completo verificado; si falla, no pasa |
-| `develop` | merges de PRs | `staging` | Integración diaria; puede estar roja por horas, no por días |
+| `main` | nadie directo | — | Solo PR revisado y CI verde |
+| `develop` | merges de PRs | `main` | Integración diaria; demo verificado antes de promover |
 | `andy`, `david`, `samuel`, `jorge`, `leo` | su dueño | `develop` | Trabajo libre; nadie más commitea acá |
 
 ### Ciclo de trabajo
@@ -83,11 +81,11 @@ git push origin andy
 
 Promoción:
 ```text
-andy/david/... --PR--> develop --PR--> staging --PR--> main
+andy/david/... --PR--> develop --PR--> main
 ```
 
-- **develop → staging:** cuando el demo funciona de punta a punta.
-- **staging → main:** cuando el demo corre sin internet, el video de respaldo existe y el pitch está listo. Ahí se tagea (`v0.1.0-demo`).
+- **develop → main:** cuando el demo funciona de punta a punta, CI está verde y el equipo
+  aprueba la revisión. Verificar los fallbacks sin red; las fuentes en vivo requieren internet.
 
 ### Nombres de commits y ramas
 
@@ -121,14 +119,13 @@ El puente existe justamente para que un error **no llegue a producción**.
 | Error en tu rama, sin push | Deshacer el último commit | `git reset --hard HEAD~1` |
 | Error en tu rama, con push | Revertir sin borrar historia | `git revert <sha>` + push |
 | Rompiste `develop` | Revertir el merge | `git revert -m 1 <sha-del-merge>` |
-| Rompiste `staging` | Revertir ahí; `main` sigue sano | `git checkout staging && git revert <sha>` |
-| Llegó a `main` (caso raro) | Hotfix directo y tag nuevo | `fix/...` → `main` → merge back a `develop` y `staging` |
+| Llegó a `main` (caso raro) | Hotfix revisado y tag nuevo | `fix/...` → `main` → merge back a `develop` |
 | Perdiste trabajo | Recuperar desde reflog | `git reflog` y `git checkout -b rescate <sha>` |
 | Querés ver qué cambió | Comparar ramas | `git log --oneline develop..andy` |
 
 **Reglas de oro ante un error:**
 1. **Avisar en el canal antes de arreglar.** Nadie más debe mergear mientras tanto.
-2. **Nunca `push --force` sobre `develop`, `staging` ni `main`.** Solo en tu rama personal y avisando.
+2. **Nunca `push --force` sobre `develop` ni `main`.** En una rama personal también requiere autorización.
 3. **Revertir, no reescribir.** En ramas compartidas la historia se agrega, no se borra.
 4. **Si `main` está roto:** arreglar primero, preguntar después.
 

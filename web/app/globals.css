@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -23,18 +21,6 @@
   --color-peligro: #b42318;
   --color-info: #1f5fa6;
 
-  /* Nombres anteriores, apuntando a la paleta nueva. */
-  --color-paper: #f7f7f6;
-  --color-sheet: #ffffff;
-  --color-ink: #0a0b0f;
-  --color-ink2: #5a5f6e;
-  --color-ash: #5a5f6e;
-  --color-rule: #e3e5eb;
-  --color-burnt: #3f51d6;
-  --color-ember: #946200;
-  --color-forest: #1b7a3e;
-  --color-ochre: #946200;
-  --color-wine: #b42318;
 }
 
 @theme inline {
@@ -144,22 +130,6 @@
     @apply text-[13px] leading-none font-semibold text-tinta-suave;
   }
 
-  /* Clases de la interfaz anterior, adaptadas a la paleta nueva. */
-  .eyebrow {
-    @apply text-[12px] font-semibold text-tinta-suave;
-  }
-  .stamp {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-linea px-2.5 py-1 text-[12px] font-semibold text-tinta-suave;
-  }
-  .data-row {
-    @apply flex items-baseline justify-between gap-3 border-b border-linea py-1.5 last:border-b-0;
-  }
-  .data-key {
-    @apply text-[13px] text-tinta-suave;
-  }
-  .data-value {
-    @apply text-[13px] font-semibold text-tinta;
-  }
 }
 
 .maplibregl-popup-content {

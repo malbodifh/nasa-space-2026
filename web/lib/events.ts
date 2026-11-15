@@ -25,6 +25,8 @@ export type EventItem = {
   /** Enlace al reporte original de la fuente. */
   url?: string | null;
   magnitudeValue?: number;
+  radarZoneId?: string;
+  radarBaseDate?: string;
 };
 
 export type Tone = "exito" | "aviso" | "peligro" | "neutro";
@@ -75,6 +77,8 @@ export function radarDetections(point: LatLon, minPct = 5, zones: SarZone[] = SA
       categoryLabel: "Detectado por radar",
       title: `Cambio de la superficie en ${zone.name}`,
       date: peak.date,
+      radarZoneId: zone.id,
+      radarBaseDate: base.date,
       lat: zone.center.lat,
       lon: zone.center.lon,
       distanceKm: Math.round(distanceKm(point, zone.center) * 10) / 10,
@@ -138,7 +142,7 @@ export function placeName(point: LatLon): string {
 }
 
 /** Enlace a la página que compara la superficie antes y después del evento. */
-export function studyHref(item: Pick<EventItem, "lat" | "lon" | "date" | "title" | "categoryLabel">): string {
+export function studyHref(item: Pick<EventItem, "lat" | "lon" | "date" | "title" | "categoryLabel" | "radarZoneId" | "radarBaseDate">): string {
   const params = new URLSearchParams({
     lat: item.lat.toFixed(4),
     lon: item.lon.toFixed(4),
@@ -146,6 +150,10 @@ export function studyHref(item: Pick<EventItem, "lat" | "lon" | "date" | "title"
     titulo: item.title,
     tipo: item.categoryLabel,
   });
+  if (item.radarZoneId && item.radarBaseDate) {
+    params.set("zona", item.radarZoneId);
+    params.set("base", item.radarBaseDate);
+  }
   return `/superficie?${params.toString()}`;
 }
 

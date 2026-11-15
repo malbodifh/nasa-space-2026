@@ -90,14 +90,14 @@ async function fetchEonet(
   status: "open" | "closed",
   days?: number,
 ): Promise<DisasterAlert[]> {
-  const key = `eonet:${status}:${days ?? ""}:${point.lat.toFixed(1)}:${point.lon.toFixed(1)}`;
+  const key = `eonet:${status}:${days ?? ""}:${point.lat}:${point.lon}`;
 
   return cached(key, 30 * 60 * 1000, async () => {
     const [west, south, east, north] = bboxForRadius(point, MAX_ALERT_KM);
     const url =
       `${EONET_URL}?status=${status}&limit=200` +
       (days ? `&days=${days}` : "") +
-      `&bbox=${west.toFixed(2)},${south.toFixed(2)},${east.toFixed(2)},${north.toFixed(2)}`;
+      `&bbox=${west.toFixed(2)},${north.toFixed(2)},${east.toFixed(2)},${south.toFixed(2)}`;
 
     const response = await fetch(url, {
       headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.1 (hackathon)" },

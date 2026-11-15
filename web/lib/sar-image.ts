@@ -109,6 +109,7 @@ export type PairResult = {
   bounds: Bounds;
   width: number;
   height: number;
+  comparableCount: number;
   darkerPct: number;
   brighterPct: number;
 };
@@ -151,6 +152,7 @@ export async function comparePair(
     bounds: win.bounds,
     width: win.width,
     height: win.height,
+    comparableCount: result.comparableCount,
     darkerPct: result.darkerPct,
     brighterPct: result.brighterPct,
   };
