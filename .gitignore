@@ -39,6 +39,7 @@ Thumbs.db
 # Íconos de la app (excepción al ignore de PNG)
 !web/app/apple-icon.png
 !web/app/icon.png
+!web/public/icons/*.png
 
 # Secretos
 *.key

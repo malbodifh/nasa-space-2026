@@ -158,7 +158,7 @@ export default function HomeView() {
 
   const status = locationStatus(active);
   const relevant = useMemo(() => (events || demoAlerts.length ? affecting(allAlerts) : null), [events, demoAlerts.length, allAlerts]);
-  const notifications = useAlertNotifications(relevant);
+  const notifications = useAlertNotifications(relevant, location.status === "buscando" ? null : point);
   function exitDemo() {
     setDemo(null);
     for (const toast of notifications.toasts) {
@@ -366,6 +366,21 @@ export default function HomeView() {
                     {notifications.permission === "denied" ? t("Probar aviso", "Test notification") : t("Avisarme de alertas nuevas", "Notify me of new alerts")}
                   </button>
                 )}
+                {notifications.permission === "granted" ? (
+                  <p className="text-[13px] leading-snug text-tinta-suave">
+                    {notifications.pushOn
+                      ? t("Recibirá los avisos aunque cierre la página. Se usa su ubicación aproximada.", "You will get alerts even with the page closed. Your approximate location is used.")
+                      : t("Los avisos llegan mientras la página esté abierta.", "Alerts arrive while the page is open.")}
+                    {notifications.pushOn ? (
+                      <>
+                        {" "}
+                        <button type="button" onClick={() => void notifications.disablePush()} className="font-semibold underline underline-offset-4">
+                          {t("Dejar de recibirlos", "Stop receiving them")}
+                        </button>
+                      </>
+                    ) : null}
+                  </p>
+                ) : null}
                 {notifications.notice ? (
                   <p role="status" className="text-[13px] leading-snug text-tinta-suave">
                     {notifications.notice}
