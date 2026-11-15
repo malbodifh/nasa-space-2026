@@ -14,7 +14,7 @@ y una fuente caída responde con el último dato o se marca «sin respuesta»; n
 | USGS FDSN | sismos regionales, con PAGER/MMI | no | 2 min |
 | OVSICORI-UNA (`latest.geojson`) | sismos locales; `manual` = revisado, `automatic` = preliminar | no | 2 min |
 | RSN UCR-ICE (RSS) | sismos sentidos, con «sentido en» (hora de Costa Rica, UTC−6) | no | 2 min |
-| NOAA PTWC/NTWC (Atom) | boletines de tsunami, Pacífico y Caribe | no | 2 min |
+| NOAA PTWC/NTWC (Atom) | boletines de tsunami de ambos centros; el alcance territorial no se determina | no | 2 min |
 | NOAA NHC (`CurrentStorms.json`) | ciclones activos | no | 10 min |
 | Open-Meteo | lluvia pronosticada en 24 h (modelo, no aviso del IMN) | no | 30 min |
 | GDACS | alertas oficiales con nivel | no | — |

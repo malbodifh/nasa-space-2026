@@ -139,6 +139,7 @@ export type AlertSource =
   | "OVSICORI"
   | "RSN"
   | "PTWC"
+  | "NTWC"
   | "NHC"
   | "NASA FIRMS"
   | "Open-Meteo"

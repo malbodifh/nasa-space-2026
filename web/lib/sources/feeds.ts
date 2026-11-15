@@ -20,7 +20,7 @@ async function get(url: string, as: "text" | "json"): Promise<unknown> {
 
 const cell = (point: LatLon) => `${point.lat}:${point.lon}`;
 
-/** Boletines de tsunami: Pacífico (PHEB) y Atlántico/Caribe (PAAQ). Se renuevan cada 2 min. */
+/** Boletines de tsunami de PTWC (PHEB) y NTWC (PAAQ). Se renuevan cada 2 min. */
 export async function getTsunamiBulletins(point: LatLon): Promise<DisasterAlert[]> {
   return cached(`ptwc:${cell(point)}`, 2 * 60 * 1000, async () => {
     const feeds = await Promise.all(
@@ -28,8 +28,11 @@ export async function getTsunamiBulletins(point: LatLon): Promise<DisasterAlert[
     );
     const seen = new Set<string>();
     return feeds
-      .flatMap((xml) => parsePtwc(xml as string, point))
-      .filter((alert) => (seen.has(alert.id) ? false : (seen.add(alert.id), true)));
+      .flatMap((xml, index) => parsePtwc(xml as string, point, index === 0 ? "PTWC" : "NTWC"))
+      .filter((alert) => {
+        const id = alert.id.slice(alert.id.indexOf(":") + 1);
+        return seen.has(id) ? false : (seen.add(id), true);
+      });
   });
 }
 
