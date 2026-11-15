@@ -1,7 +1,9 @@
 import "server-only";
 
+import { feedIsStale, partitionCurrent } from "@/lib/alert-rules";
 import { distanceKm } from "@/lib/geo";
-import { getEonetAlerts } from "@/lib/sources/eonet";
+import { getEonetAlerts, getEonetHistory } from "@/lib/sources/eonet";
+import { getFires, getRainForecast, getStorms, getTsunamiBulletins } from "@/lib/sources/feeds";
 import { getGdacsAlerts } from "@/lib/sources/gdacs";
 import { getOsmOverlays } from "@/lib/sources/overpass";
 import { getSeismic } from "@/lib/sources/seismic";
@@ -15,6 +17,7 @@ import type {
   ProtectedAreaProps,
   RoadProps,
   SeismicEvent,
+  SourceStatus,
   VolcanoProps,
 } from "@/lib/types";
 
@@ -37,32 +40,161 @@ function dedupe(alerts: DisasterAlert[]): DisasterAlert[] {
     .sort((a, b) => a.distanceKm - b.distanceKm);
 }
 
-function seismicLevel(magnitude: number): DisasterAlert["level"] {
-  if (magnitude >= 6) return "red";
-  if (magnitude >= 5) return "orange";
-  if (magnitude >= 4) return "green";
+/** Nivel del sismo: el PAGER de USGS (impacto estimado) manda; si no hay, la magnitud. */
+function seismicLevel(event: SeismicEvent): DisasterAlert["level"] {
+  if (event.pager === "red") return "red";
+  if (event.pager === "orange" || event.pager === "yellow") return "orange";
+  if (event.magnitude >= 6) return "red";
+  if (event.magnitude >= 5) return "orange";
+  if (event.magnitude >= 4) return "green";
   return "info";
 }
 
-/** Solo los sismos recientes y perceptibles entran al inbox de alertas. */
-function seismicAlerts(events: SeismicEvent[]): DisasterAlert[] {
-  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+/** Solo los sismos recientes y perceptibles (o reportados como sentidos) entran a las alertas. */
+function seismicAlerts(events: SeismicEvent[], days = 7, minMagnitude = 3.5): DisasterAlert[] {
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
   return events
-    .filter((event) => event.magnitude >= 3.5 && Date.parse(event.time) >= cutoff)
+    .filter((event) => (event.magnitude >= minMagnitude || event.felt) && Date.parse(event.time) >= cutoff)
     .map((event) => ({
       id: `seismic:${event.source}:${event.id}`,
       source: event.source,
       category: "earthquakes",
       categoryLabel: "Sismo",
       title: `M ${event.magnitude.toFixed(1)} · ${event.place}`,
-      level: seismicLevel(event.magnitude),
+      level: seismicLevel(event),
       date: event.time,
       lat: event.lat,
       lon: event.lon,
       distanceKm: event.distanceKm,
       url: event.url ?? "https://www.ovsicori.una.ac.cr/",
       magnitude: event.depthKm !== null ? `Profundidad ${event.depthKm} km` : null,
+      magnitudeValue: event.magnitude,
+      felt: event.felt ?? null,
+      alsoReportedBy: event.alsoReportedBy ?? [],
+      quality: event.reviewed ? "revisado" : "preliminar",
+      detail: event.felt
+        ? `Sentido en ${event.felt}`
+        : event.mmi
+          ? `Intensidad máxima estimada ${event.mmi.toFixed(1)} (USGS)`
+          : null,
     }));
+}
+
+type Outcome = { id: string; label: string; result: PromiseSettledResult<DisasterAlert[]> };
+
+/**
+ * Incendios ocultos por ahora: los focos de FIRMS dan muchos falsos positivos en Costa Rica
+ * (calor de cráteres, industria, quemas agrícolas). El filtro de `filterFirms` queda listo
+ * para cuando se valide; cambiar a `true` los vuelve a mostrar.
+ */
+const SHOW_FIRES = false;
+
+const isFire = (category: string) => category === "wildfires" || category === "WF";
+
+/**
+ * Solo eventos, sin caminos. `alerts`: activos (EONET y GDACS abiertos, sismos de 7 días,
+ * boletines de tsunami, ciclones, fuegos de FIRMS y lluvia pronosticada).
+ * `history`: eventos cerrados de EONET del último año y sismos M4+ de 30 días.
+ * `sources`: si cada fuente respondió en esta consulta.
+ */
+export async function getEvents(point: LatLon): Promise<{
+  alerts: DisasterAlert[];
+  history: DisasterAlert[];
+  fallbackSources: string[];
+  sources: SourceStatus[];
+}> {
+  const [seismicResult, closedResult, ...feeds] = await Promise.allSettled([
+    getSeismic(point),
+    getEonetHistory(point, 365),
+    getEonetAlerts(point),
+    getGdacsAlerts(point),
+    getTsunamiBulletins(point),
+    getStorms(point),
+    SHOW_FIRES ? getFires(point) : Promise.resolve([]),
+    getRainForecast(point),
+  ]);
+  const outcomes: Outcome[] = [
+    { id: "eonet", label: "NASA EONET", result: feeds[0] },
+    { id: "gdacs", label: "GDACS", result: feeds[1] },
+    { id: "ptwc", label: "Tsunamis · NOAA PTWC", result: feeds[2] },
+    { id: "nhc", label: "Ciclones · NOAA NHC", result: feeds[3] },
+    ...(SHOW_FIRES ? [{ id: "firms", label: "Fuegos · NASA FIRMS", result: feeds[4] }] : []),
+    { id: "rain", label: "Lluvia · Open-Meteo", result: feeds[5] },
+  ];
+
+  const seismic = seismicResult.status === "fulfilled" ? seismicResult.value : null;
+  const failedSeismic = seismic ? seismic.failed : ["USGS", "OVSICORI", "RSN"];
+  const newestOf = (alerts: DisasterAlert[]) =>
+    alerts.reduce<string | null>((max, alert) => (!max || alert.date > max ? alert.date : max), null);
+  const sources: SourceStatus[] = [
+    ...outcomes.map(({ id, label, result }) => ({
+      id,
+      label,
+      ok: result.status === "fulfilled",
+      count: result.status === "fulfilled" ? result.value.length : 0,
+      latest: result.status === "fulfilled" ? newestOf(result.value) : null,
+    })),
+    {
+      id: "usgs",
+      label: "Sismos · USGS",
+      ok: !failedSeismic.includes("USGS"),
+      count: seismic?.global ?? 0,
+      latest: seismic?.latest.USGS ?? null,
+    },
+    {
+      id: "ovsicori",
+      label: "Sismos · OVSICORI",
+      ok: !failedSeismic.includes("OVSICORI"),
+      count: seismic?.local ?? 0,
+      latest: seismic?.latest.OVSICORI ?? null,
+      // OVSICORI regenera su archivo con cada sismo nuevo (~8 al día en la región). Horas sin
+      // cambios son normales; 12 h sin regenerarse indica que algo se detuvo.
+      stale: feedIsStale(seismic?.ovsicoriGeneratedAt ?? null, 12),
+    },
+    {
+      id: "rsn",
+      label: "Sismos sentidos · RSN",
+      ok: !failedSeismic.includes("RSN"),
+      count: seismic?.rsn ?? 0,
+      latest: seismic?.latest.RSN ?? null,
+    },
+    {
+      id: "eonet-historial",
+      label: "Historial · EONET",
+      ok: closedResult.status === "fulfilled",
+      count: closedResult.status === "fulfilled" ? closedResult.value.length : 0,
+      latest: closedResult.status === "fulfilled" ? newestOf(closedResult.value) : null,
+    },
+  ];
+
+  const events = seismic?.events ?? [];
+  // Vigencia por amenaza: lo que ya no tiene reportes recientes pasa al historial.
+  const { current: alerts, stale } = partitionCurrent(
+    dedupe([
+      ...outcomes.flatMap(({ result }) => (result.status === "fulfilled" ? result.value : [])),
+      ...seismicAlerts(events),
+    ]),
+  );
+  const active = new Set(alerts.map((alert) => alert.id));
+  const listed = new Set<string>();
+  const history = [
+    ...stale,
+    ...(closedResult.status === "fulfilled" ? closedResult.value : []),
+    ...seismicAlerts(events, 30, 4),
+  ].filter((alert) => {
+    if (active.has(alert.id) || listed.has(alert.id)) return false;
+    listed.add(alert.id);
+    return true;
+  });
+
+  // Incendios ocultos por ahora: también los de EONET y GDACS.
+  const shown = (alert: DisasterAlert) => SHOW_FIRES || !isFire(alert.category);
+  return {
+    alerts: alerts.filter(shown),
+    history: history.filter(shown),
+    fallbackSources: sources.filter((source) => !source.ok).map((source) => source.id),
+    sources,
+  };
 }
 
 export async function getOverlays(

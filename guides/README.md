@@ -1,6 +1,6 @@
 # guides/
 
-> **La verdad del proyecto está en [`documentacion.md`](../documentacion.md) y `docs/*.md`.**
+> **La verdad del proyecto está en [`docs/estado.md`](../docs/estado.md) y `docs/*.md`.**
 > Esta carpeta solo produce PDFs para leer o mostrar. No es documentación.
 
 ## Estructura
@@ -71,7 +71,7 @@ make docs
 
 1. Crear `guides/src/08-<tema>.typ` con `#import "theme.typ": *` y `#title_block(...)`.
 2. Agregar las dos líneas en `make guides` (PDF y PNG).
-3. Sumar la fila a la tabla de arriba y al índice de `documentacion.md`.
+3. Sumar la fila a la tabla de arriba y al índice de `docs/estado.md`.
 4. `make guides` y revisar el PDF antes de commitear.
 
 ### Recetas del tema

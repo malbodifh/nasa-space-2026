@@ -117,17 +117,77 @@ export function buildAlerts({
   });
 }
 
-export function buildTestAlert(point: LatLon, radiusKm: number, now = new Date()): AppAlert {
-  return {
-    id: `test:${now.getTime()}`,
+export type DemoHazard = "fire" | "earthquake" | "volcano" | "flood" | "storm";
+
+const DEMO_TEMPLATES: Record<DemoHazard, Omit<AppAlert, "id" | "createdAt">> = {
+  fire: {
     kind: "test",
     severity: "warning",
-    title: "Alerta de prueba",
-    body: `Este es un aviso simulado para ${point.lat.toFixed(3)}, ${point.lon.toFixed(3)} con radio de ${radiusKm} km. Sirve para verificar notificaciones, sonido y registro. No implica peligro.`,
-    source: "Modo prototipo",
-    url: null,
+    title: "Foco de calor a 8 km [DEMO]",
+    body: "NASA FIRMS detectó 3 focos de calor a 8 km · VIIRS S-NPP · FRP 42 MW. Aviso de demostración — no implica peligro real.",
+    source: "NASA FIRMS [demo]",
+    url: "https://firms.modaps.eosdis.nasa.gov/",
+    distanceKm: 8,
+    scope: "radius",
+  },
+  earthquake: {
+    kind: "test",
+    severity: "warning",
+    title: "Sismo M 5.2 a 42 km [DEMO]",
+    body: "USGS registró M 5.2 ML · profundidad 12 km · sentido en varias localidades. Aviso de demostración — no implica peligro real.",
+    source: "USGS [demo]",
+    url: "https://earthquake.usgs.gov/",
+    distanceKm: 42,
+    scope: "radius",
+  },
+  volcano: {
+    kind: "test",
+    severity: "critical",
+    title: "Volcán Poás — actividad elevada [DEMO]",
+    body: "OVSICORI reporta tremor continuo y columna de vapor de 300 m · radio de exclusión de 1 km activo. Aviso de demostración — no implica peligro real.",
+    source: "OVSICORI [demo]",
+    url: "https://www.ovsicori.una.ac.cr/",
+    distanceKm: 22,
+    scope: "radius",
+  },
+  flood: {
+    kind: "test",
+    severity: "warning",
+    title: "Inundación — cuenca del Río Grande [DEMO]",
+    body: "GDACS nivel naranja: desbordamiento a 35 km · zonas bajas en alerta preventiva · evitá pasos de río. Aviso de demostración — no implica peligro real.",
+    source: "GDACS [demo]",
+    url: "https://www.gdacs.org/",
+    distanceKm: 35,
+    scope: "radius",
+  },
+  storm: {
+    kind: "test",
+    severity: "watch",
+    title: "Tormenta tropical a 320 km [DEMO]",
+    body: "NHC: depresión tropical con trayectoria hacia Costa Rica en 48 h · vientos 75 km/h sostenidos. Aviso de demostración — no implica peligro real.",
+    source: "NHC [demo]",
+    url: "https://www.nhc.noaa.gov/",
+    distanceKm: 320,
+    scope: "region",
+  },
+};
+
+export function buildTestAlert(
+  point: LatLon,
+  radiusKm: number,
+  hazard: DemoHazard = "fire",
+  now = new Date(),
+): AppAlert {
+  void radiusKm; // reservado para futuras variantes por radio
+  const template = DEMO_TEMPLATES[hazard];
+  return {
+    ...template,
+    id: `test:${hazard}:${now.getTime()}`,
     createdAt: now.toISOString(),
-    distanceKm: 0,
-    scope: "point",
   };
+}
+
+/** Alerta de prueba básica sin tipo de amenaza (compatibilidad). */
+export function buildGenericTestAlert(point: LatLon, radiusKm: number, now = new Date()): AppAlert {
+  return buildTestAlert(point, radiusKm, "fire", now);
 }

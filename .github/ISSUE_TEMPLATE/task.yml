@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Antes de crear: revisá `documentacion.md` (estado y decisiones) y definí el contrato de datos.
+        Antes de crear: revisá `docs/estado.md` (estado y decisiones) y definí el contrato de datos.
   - type: input
     id: objective
     attributes:

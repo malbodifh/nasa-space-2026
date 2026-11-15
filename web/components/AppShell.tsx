@@ -1,6 +1,6 @@
 "use client";
 
-import { Crosshair, LocateFixed, RefreshCw } from "lucide-react";
+import { Crosshair, FlaskConical, LocateFixed, RefreshCw, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import {
   useCallback,
@@ -18,9 +18,11 @@ import BrandMark from "@/components/BrandMark";
 import { ClimateCard, MemoryCard, RiskCard, SourcesCard } from "@/components/cards";
 import CorrelationCard from "@/components/CorrelationCard";
 import HazardCard from "@/components/HazardCard";
+import { type DemoHazard } from "@/lib/alerts";
 import { correlate } from "@/lib/correlate";
 import ImageCompare from "@/components/ImageCompare";
 import LocationPicker from "@/components/LocationPicker";
+import RadarView, { type RadarFocus } from "@/components/RadarView";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -31,17 +33,29 @@ import {
   MEMORY_DATES,
   shortDate,
 } from "@/lib/demo";
+import { SAR_ZONES, zoneForPoint } from "@/lib/sar";
 import type {
   AlertsResponse,
   AppAlert,
   AssessResponse,
   Correlation,
+  DisasterAlert,
   LayerId,
   LayerState,
   OverlaysResponse,
 } from "@/lib/types";
 
+type View = "radar" | "alerts";
+
 const SEEN_KEY = "mdf:alerts:seen:v1";
+
+const DEMO_HAZARDS: { id: DemoHazard; label: string }[] = [
+  { id: "fire",       label: "Incendio"   },
+  { id: "earthquake", label: "Sismo"      },
+  { id: "volcano",    label: "Volcán"     },
+  { id: "flood",      label: "Inundación" },
+  { id: "storm",      label: "Tormenta"   },
+];
 
 function subscribeToPermission() {
   return () => {};
@@ -90,6 +104,9 @@ async function fetcher<T>(url: string): Promise<T> {
 }
 
 export default function AppShell() {
+  const [view, setView] = useState<View>("radar");
+  const [radarZoneId, setRadarZoneId] = useState(SAR_ZONES[0].id);
+  const [radarFocus, setRadarFocus] = useState<RadarFocus | null>(null);
   const [point, setPoint] = useState<Point>(DEMO_POINT);
   const [locationId, setLocationId] = useState(DEMO_LOCATION.id);
   const [radiusKm, setRadiusKm] = useState(DEMO_RADIUS_KM);
@@ -109,6 +126,7 @@ export default function AppShell() {
   const [toast, setToast] = useState<AppAlert | null>(null);
   const [testing, setTesting] = useState(false);
   const [testMode, setTestMode] = useState(false);
+  const [demoHazard, setDemoHazard] = useState<DemoHazard>("fire");
   const [testAlerts, setTestAlerts] = useState<AppAlert[]>([]);
   const [alertsError, setAlertsError] = useState<string | null>(null);
   const [hiddenHazards, setHiddenHazards] = useState<string[]>([]);
@@ -261,7 +279,7 @@ export default function AppShell() {
     }
   }, []);
 
-  const sendTest = useCallback(async () => {
+  const sendTest = useCallback(async (hazard: DemoHazard) => {
     setTesting(true);
     setAlertsError(null);
     try {
@@ -270,6 +288,7 @@ export default function AppShell() {
         lon: point.lon.toFixed(4),
         radius: String(radiusKm),
         test: "1",
+        hazard,
       });
       const response = await fetch(`/api/alerts?${params.toString()}`, { cache: "no-store" });
       if (!response.ok) throw new Error("El servicio de alertas no respondió");
@@ -288,10 +307,10 @@ export default function AppShell() {
   useEffect(() => {
     if (!testMode) return;
     const timer = window.setInterval(() => {
-      void sendTest();
+      void sendTest(demoHazard);
     }, 60_000);
     return () => window.clearInterval(timer);
-  }, [testMode, sendTest]);
+  }, [testMode, sendTest, demoHazard]);
 
   const onToggleLayer = useCallback((id: LayerId) => {
     setLayers((current) => ({ ...current, [id]: !current[id] }));
@@ -347,29 +366,142 @@ export default function AppShell() {
     onSelectLocation(DEMO_LOCATION.id);
   }
 
+  const openRadar = useCallback((alert: DisasterAlert) => {
+    const zone = zoneForPoint({ lat: alert.lat, lon: alert.lon });
+    if (!zone) return;
+    setRadarZoneId(zone.id);
+    setRadarFocus({ zoneId: zone.id, date: alert.date, nonce: Date.now(), title: alert.title });
+    setView("radar");
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 border-b border-ink bg-paper/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-[1600px] items-center gap-3 px-4 py-3 lg:px-6">
+        <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 lg:px-6">
           <BrandMark className="size-9 shrink-0" />
           <div className="min-w-0">
-            <p className="eyebrow truncate">Observatorio de desastres naturales</p>
-            <h1 className="font-display text-[26px] leading-none tracking-tight">Memoria de Fuego</h1>
+            <p className="eyebrow hidden truncate sm:block">Cambios de la superficie con radar NISAR</p>
+            <h1 className="whitespace-nowrap font-display text-[22px] leading-none tracking-tight sm:text-[26px]">
+              Memoria de Fuego
+            </h1>
           </div>
 
+          <nav
+            className="order-last flex w-full items-center gap-5 border-t border-rule pt-2 sm:order-none sm:ml-6 sm:w-auto sm:border-t-0 sm:pt-0"
+            aria-label="Secciones"
+          >
+            {(
+              [
+                ["radar", "Cambios con radar"],
+                ["alerts", "Alertas"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setView(value)}
+                aria-current={view === value ? "page" : undefined}
+                className={`font-mono text-[10px] uppercase tracking-[0.14em] transition ${
+                  view === value
+                    ? "text-ink underline decoration-burnt decoration-2 underline-offset-[6px]"
+                    : "text-ash hover:text-ink"
+                }`}
+              >
+                {label}
+                {value === "alerts" && (overlays?.alerts.length ?? 0) > 0 ? (
+                  <span className="ml-1.5 bg-burnt px-1 text-[9px] text-sheet">
+                    {overlays?.alerts.length}
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </nav>
+
           <div className="ml-auto flex items-center gap-3">
-            {isValidating && data ? (
+            {view === "alerts" && isValidating && data ? (
               <span className="hidden items-center gap-1.5 font-mono text-[10px] text-ash sm:inline-flex">
                 <RefreshCw className="size-3 animate-spin" />
                 actualizando
               </span>
             ) : null}
             <span className="hidden font-mono text-[10px] text-ash md:block">Costa Rica</span>
-            <span className="stamp">No es alerta oficial</span>
+            <span className="stamp hidden sm:inline-flex">No es alerta oficial</span>
+            <Button
+              type="button"
+              variant={testMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                const next = !testMode;
+                setTestMode(next);
+                if (!next) setTestAlerts([]);
+              }}
+              className={`rounded-none text-[11px] transition ${
+                testMode
+                  ? "bg-ochre text-sheet hover:bg-ochre/90 border-ochre"
+                  : "border-rule bg-transparent hover:bg-rule/40"
+              }`}
+              title={testMode ? "Desactivar modo demo" : "Activar modo demo para la presentación"}
+            >
+              <FlaskConical className="size-3.5" />
+              {testMode ? "Demo activo" : "Modo Demo"}
+            </Button>
           </div>
         </div>
       </header>
 
+      {testMode ? (
+        <div className="border-b border-ochre/40 bg-ochre/8 px-4 py-2.5">
+          <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2">
+            <span className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-ochre">
+              <FlaskConical className="size-3 shrink-0" />
+              Modo Demo — elegí una amenaza:
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {DEMO_HAZARDS.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => {
+                    setDemoHazard(id);
+                    void sendTest(id);
+                  }}
+                  disabled={testing}
+                  className={`rounded-none border px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] transition disabled:opacity-50 ${
+                    demoHazard === id
+                      ? "border-ochre bg-ochre/15 text-ochre"
+                      : "border-rule text-ash hover:border-ochre/60 hover:text-ochre"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+              {testing ? (
+                <span className="font-mono text-[9px] text-ash">enviando…</span>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={() => { setTestMode(false); setTestAlerts([]); }}
+              className="ml-auto flex items-center gap-1 font-mono text-[9px] text-ash hover:text-ink"
+              aria-label="Cerrar modo demo"
+            >
+              <X className="size-3" />
+              cerrar
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {view === "radar" ? (
+        <RadarView
+          zoneId={radarZoneId}
+          onZoneChange={(id) => {
+            setRadarZoneId(id);
+            setRadarFocus(null);
+          }}
+          focus={radarFocus}
+        />
+      ) : (
       <main className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)]">
         <aside className="order-2 flex flex-col bg-sheet/50 px-4 py-4 lg:order-1 lg:h-[calc(100dvh-74px)] lg:overflow-y-auto lg:border-r lg:border-rule lg:px-5">
           <section>
@@ -450,6 +582,8 @@ export default function AppShell() {
               onFocus={(alert) =>
                 setFocusPoint({ lat: alert.lat, lon: alert.lon, id: alert.id })
               }
+              onRadar={openRadar}
+              hasRadar={(alert) => zoneForPoint({ lat: alert.lat, lon: alert.lon }) !== null}
             />
           </div>
 
@@ -460,10 +594,8 @@ export default function AppShell() {
               failed={Boolean(alertsFetchError) || Boolean(alertsError)}
               permission={permission}
               testing={testing}
-              testMode={testMode}
               onEnable={enableNotifications}
-              onTest={sendTest}
-              onToggleTestMode={() => setTestMode((current) => !current)}
+              onTest={() => void sendTest(demoHazard)}
             />
             {alertsError && !alertsFetchError ? (
               <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.1em] text-burnt">
@@ -594,6 +726,7 @@ export default function AppShell() {
           />
         </section>
       </main>
+      )}
 
       {toast ? <AlertToast alert={toast} onClose={() => setToast(null)} /> : null}
     </div>

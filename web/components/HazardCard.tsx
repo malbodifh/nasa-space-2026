@@ -19,12 +19,16 @@ export default function HazardCard({
   hidden,
   onToggle,
   onFocus,
+  onRadar,
+  hasRadar,
 }: {
   alerts: DisasterAlert[];
   radiusKm: number;
   hidden: string[];
   onToggle: (category: string) => void;
   onFocus: (alert: DisasterAlert) => void;
+  onRadar?: (alert: DisasterAlert) => void;
+  hasRadar?: (alert: DisasterAlert) => boolean;
 }) {
   const groups = groupAlerts(alerts);
   const inRadius = alerts.filter((alert) => alert.distanceKm <= radiusKm);
@@ -92,12 +96,12 @@ export default function HazardCard({
       ) : (
         <ul className="mt-3 border-y border-rule">
           {nearest.map((alert) => (
-            <li key={alert.id} className="border-b border-rule/70 last:border-b-0">
+            <li key={alert.id} className="flex items-baseline gap-2 border-b border-rule/70 last:border-b-0">
               <button
                 type="button"
                 onClick={() => onFocus(alert)}
                 title="Centrar en el mapa"
-                className="group flex w-full items-baseline gap-2 py-2 text-left"
+                className="group flex min-w-0 flex-1 items-baseline gap-2 py-2 text-left"
               >
                 <AlertTriangle
                   className="mt-0.5 size-3 shrink-0"
@@ -114,6 +118,16 @@ export default function HazardCard({
                 </div>
                 <MapPin className="size-3 shrink-0 text-ash group-hover:text-burnt" aria-hidden />
               </button>
+              {onRadar && hasRadar?.(alert) ? (
+                <button
+                  type="button"
+                  onClick={() => onRadar(alert)}
+                  title="Ver el cambio de la superficie con radar NISAR"
+                  className="shrink-0 font-mono text-[9px] uppercase tracking-[0.1em] text-burnt underline underline-offset-4"
+                >
+                  Ver con radar
+                </button>
+              ) : null}
             </li>
           ))}
         </ul>

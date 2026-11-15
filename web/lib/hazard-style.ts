@@ -1,0 +1,135 @@
+/**
+ * Color de cada tipo de desastre y áreas de alerta (roja y amarilla) de las amenazas activas.
+ * Las áreas son estimaciones simples por amenaza, no zonas oficiales.
+ */
+import { isOngoing } from "@/lib/alert-rules";
+import type { AlertLevel } from "@/lib/types";
+
+export type Hazard =
+  | "sismo"
+  | "tsunami"
+  | "volcan"
+  | "inundacion"
+  | "ciclon"
+  | "lluvia"
+  | "deslizamiento"
+  | "incendio"
+  | "radar"
+  | "otro";
+
+export const HAZARD_STYLE: Record<Hazard, { label: string; color: string }> = {
+  sismo: { label: "Sismo", color: "#8B5A2B" },
+  tsunami: { label: "Tsunami", color: "#1F5FA6" },
+  volcan: { label: "Volcán", color: "#E8590C" },
+  inundacion: { label: "Inundación", color: "#0E9F9A" },
+  ciclon: { label: "Ciclón o tormenta", color: "#6D28D9" },
+  lluvia: { label: "Lluvia fuerte", color: "#38BDF8" },
+  deslizamiento: { label: "Deslizamiento", color: "#CA8A04" },
+  incendio: { label: "Incendio", color: "#F97316" },
+  radar: { label: "Detectado por radar", color: "#5266EB" },
+  otro: { label: "Otro", color: "#8A8F9E" },
+};
+
+/** Orden fijo de la leyenda. */
+export const HAZARD_ORDER: Hazard[] = [
+  "sismo",
+  "tsunami",
+  "volcan",
+  "inundacion",
+  "ciclon",
+  "lluvia",
+  "deslizamiento",
+  "incendio",
+  "radar",
+  "otro",
+];
+
+const BY_CATEGORY: Record<string, Hazard> = {
+  earthquakes: "sismo",
+  EQ: "sismo",
+  tsunami: "tsunami",
+  volcanoes: "volcan",
+  VO: "volcan",
+  floods: "inundacion",
+  FL: "inundacion",
+  severeStorms: "ciclon",
+  TC: "ciclon",
+  heavyRain: "lluvia",
+  landslides: "deslizamiento",
+  wildfires: "incendio",
+  WF: "incendio",
+  radar: "radar",
+};
+
+export function hazardOf(category: string): Hazard {
+  return BY_CATEGORY[category] ?? "otro";
+}
+
+export function hazardColor(category: string): string {
+  return HAZARD_STYLE[hazardOf(category)].color;
+}
+
+export type ZoneInput = {
+  category: string;
+  source: string;
+  level: AlertLevel;
+  date: string;
+  title: string;
+  magnitudeValue?: number;
+};
+
+export type Zones = { red: number; yellow: number };
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const round = (km: number) => (km < 10 ? Math.round(km * 10) / 10 : Math.round(km));
+
+/** Magnitud del sismo: la numérica o la que viene en el título («M 4.5 · …»). */
+function magnitudeOf(input: ZoneInput): number | null {
+  if (Number.isFinite(input.magnitudeValue)) return input.magnitudeValue as number;
+  const match = input.title.match(/M\s*(\d+(?:[.,]\d+)?)/);
+  return match ? Number(match[1].replace(",", ".")) : null;
+}
+
+/**
+ * Radios en km del área roja (mayor peligro) y amarilla (precaución) de una amenaza en curso.
+ * Devuelve null si el evento no está ocurriendo en este momento o si no tiene área (detecciones de radar, avisos
+ * informativos). Un radio de 0 significa que no hay área roja.
+ *
+ * - Sismo: roja donde se espera sacudida fuerte (intensidad VI o más) y amarilla donde se siente
+ *   (intensidad IV), con una relación aproximada magnitud–distancia para sismos superficiales.
+ * - Volcán: 5 km alrededor del cráter y 15 km por ceniza y lahares.
+ * - Tsunami: solo con vigilancia, aviso o advertencia del centro de alerta.
+ * - Ciclón: 100/300 km si es huracán; 50/200 km si es tormenta o depresión.
+ */
+export function alertZones(input: ZoneInput, now = Date.now()): Zones | null {
+  if (!isOngoing(input, now)) return null;
+  const hazard = hazardOf(input.category);
+  switch (hazard) {
+    case "sismo": {
+      const m = magnitudeOf(input);
+      if (m === null) return null;
+      return {
+        red: round(clamp(10 ** (0.45 * m - 1.1), 1, 150)),
+        yellow: round(clamp(10 ** (0.45 * m - 0.3), 5, 400)),
+      };
+    }
+    case "volcan":
+      return { red: 5, yellow: 15 };
+    case "tsunami":
+      if (input.level === "red") return { red: 300, yellow: 1000 };
+      if (input.level === "orange") return { red: 0, yellow: 500 };
+      return null;
+    case "ciclon":
+      return /hurac/i.test(input.title) ? { red: 100, yellow: 300 } : { red: 50, yellow: 200 };
+    case "inundacion":
+      return { red: 10, yellow: 30 };
+    case "lluvia":
+      return input.level === "orange" ? { red: 10, yellow: 25 } : { red: 0, yellow: 25 };
+    case "deslizamiento":
+      return { red: 2, yellow: 5 };
+    case "radar":
+      return null;
+    default:
+      return { red: 5, yellow: 20 };
+  }
+}

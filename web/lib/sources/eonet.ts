@@ -48,6 +48,20 @@ type EonetEvent = {
   geometry: EonetGeometry[];
 };
 
+/** EONET titula en inglés; las inundaciones de GDACS vienen como «Flood in País 123». */
+function translateTitle(title: string): string {
+  const flood = title.match(/^Flood in (.+?)(?:\s+\d+)?$/);
+  if (flood) return `Inundación en ${flood[1]}`;
+  const fire = title.match(/^Wildfires? in (.+?)(?:\s+\d+)?$/i);
+  if (fire) return `Incendio en ${fire[1]}`;
+  const volcano = title.match(/^(.+?)\s+Volcano(.*)$/);
+  if (volcano) return `Volcán ${volcano[1]}${volcano[2]}`;
+  return title
+    .replace(/^Tropical Storm\s+/i, "Tormenta tropical ")
+    .replace(/^Hurricane\s+/i, "Huracán ")
+    .replace(/^Tropical Depression\s+/i, "Depresión tropical ");
+}
+
 function lastCoordinate(geometry: EonetGeometry): [number, number] | null {
   if (geometry.type === "Point" && Array.isArray(geometry.coordinates)) {
     const [lon, lat] = geometry.coordinates as number[];
@@ -63,12 +77,26 @@ function lastCoordinate(geometry: EonetGeometry): [number, number] | null {
 }
 
 export async function getEonetAlerts(point: LatLon): Promise<DisasterAlert[]> {
-  const key = `eonet:${point.lat.toFixed(1)}:${point.lon.toFixed(1)}`;
+  return fetchEonet(point, "open");
+}
+
+/** Eventos ya cerrados de los últimos `days` días: el historial de la región. */
+export async function getEonetHistory(point: LatLon, days = 365): Promise<DisasterAlert[]> {
+  return fetchEonet(point, "closed", days);
+}
+
+async function fetchEonet(
+  point: LatLon,
+  status: "open" | "closed",
+  days?: number,
+): Promise<DisasterAlert[]> {
+  const key = `eonet:${status}:${days ?? ""}:${point.lat.toFixed(1)}:${point.lon.toFixed(1)}`;
 
   return cached(key, 30 * 60 * 1000, async () => {
     const [west, south, east, north] = bboxForRadius(point, MAX_ALERT_KM);
     const url =
-      `${EONET_URL}?status=open&limit=200` +
+      `${EONET_URL}?status=${status}&limit=200` +
+      (days ? `&days=${days}` : "") +
       `&bbox=${west.toFixed(2)},${south.toFixed(2)},${east.toFixed(2)},${north.toFixed(2)}`;
 
     const response = await fetch(url, {
@@ -86,7 +114,8 @@ export async function getEonetAlerts(point: LatLon): Promise<DisasterAlert[]> {
       if (!geometry) continue;
       const category = event.categories?.[0]?.id ?? "otros";
       const freshDays = FRESH_DAYS[category] ?? FRESH_DAYS.default;
-      if (Date.now() - new Date(geometry.date).getTime() > freshDays * 24 * 60 * 60 * 1000) continue;
+      const age = Date.now() - new Date(geometry.date).getTime();
+      if (status === "open" && age > freshDays * 24 * 60 * 60 * 1000) continue;
 
       const coordinate = lastCoordinate(geometry);
       if (!coordinate) continue;
@@ -100,7 +129,7 @@ export async function getEonetAlerts(point: LatLon): Promise<DisasterAlert[]> {
         source: "NASA EONET",
         category,
         categoryLabel: CATEGORY_LABEL[category] ?? category,
-        title: event.title,
+        title: translateTitle(event.title),
         level: "info" as AlertLevel,
         date: geometry.date,
         lat,

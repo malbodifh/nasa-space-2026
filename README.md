@@ -15,20 +15,18 @@
 make setup      # crea .venv e instala herramientas
 make check      # ruff + pytest
 make guides     # compila las guías Typst a PDF
-make docs       # compila el libro de documentación + un PDF por doc
 ```
 
 ## Qué hay acá
 
 | Ruta | Qué es |
 |---|---|
-| [`documentacion.md`](documentacion.md) | Fuente única de verdad: estado, decisiones, reglas |
+| [`docs/estado.md`](docs/estado.md) | Fuente única de verdad: estado, decisiones, reglas |
 | [`AGENTS.md`](AGENTS.md) | Base compartida para quien escriba código (humanos e IA) |
-| [`docs/02-challenges-2026.md`](docs/02-challenges-2026.md) | Los 14 retos, matriz /20 y método de votación |
+| [`docs/investigacion/retos-2026.md`](docs/investigacion/retos-2026.md) | Los 14 retos, matriz /20 y método de votación |
 | [`guides/dist/06-retos.pdf`](guides/dist/06-retos.pdf) | El mapa de retos para mostrar al equipo |
-| [`guides/dist/07-documentacion.pdf`](guides/dist/07-documentacion.pdf) | Documentación completa del proyecto, generada con Typst |
-| [`docs/18-workflow.md`](docs/18-workflow.md) | Ramas, PRs, commits y recuperación |
-| [`docs/19-herramientas.md`](docs/19-herramientas.md) | Comandos, CI y guías |
+| [`docs/equipo/workflow.md`](docs/equipo/workflow.md) | Ramas, PRs, commits y recuperación |
+| [`docs/tecnico/herramientas.md`](docs/tecnico/herramientas.md) | Comandos, CI y guías |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Cómo contribuir |
 
 ## Ramas

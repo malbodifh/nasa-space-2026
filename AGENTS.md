@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> Leé esto antes de tocar código. La fuente de verdad es [`documentacion.md`](documentacion.md)
+> Leé esto antes de tocar código. La fuente de verdad es [`docs/estado.md`](docs/estado.md)
 > y `docs/*.md`; si algo de acá contradice un documento, gana el documento.
 
 ## Contexto
@@ -19,13 +19,13 @@
 
 ## Leer primero
 
-1. [`documentacion.md`](documentacion.md) — estado y decisiones.
-2. [`docs/25-api-research.md`](docs/25-api-research.md) — APIs verificadas, core NASA y fallbacks.
-3. [`docs/26-spike-datos.md`](docs/26-spike-datos.md) — spike real y rebanada vertical propuesta.
-4. [`docs/24-arquitectura-app.md`](docs/24-arquitectura-app.md) — capas, contratos y deploy.
-5. [`docs/22-investigacion-desastres.md`](docs/22-investigacion-desastres.md) y
-   [`docs/23-plan-app.md`](docs/23-plan-app.md) — ciencia y producto.
-6. [`docs/18-workflow.md`](docs/18-workflow.md) — ramas, PRs y recuperación.
+1. [`docs/estado.md`](docs/estado.md) — estado y decisiones.
+2. [`docs/investigacion/apis-verificadas.md`](docs/investigacion/apis-verificadas.md) — APIs verificadas, core NASA y fallbacks.
+3. [`docs/investigacion/spike-datos.md`](docs/investigacion/spike-datos.md) — spike real y rebanada vertical propuesta.
+4. [`docs/tecnico/arquitectura.md`](docs/tecnico/arquitectura.md) — capas, contratos y deploy.
+5. [`docs/investigacion/desastres.md`](docs/investigacion/desastres.md) y
+   [`docs/archivo/plan-app-inicial.md`](docs/archivo/plan-app-inicial.md) — ciencia y producto.
+6. [`docs/equipo/workflow.md`](docs/equipo/workflow.md) — ramas, PRs y recuperación.
 
 ## Comandos
 
@@ -56,7 +56,7 @@ make clean      # cachés + PNGs; NO borra los PDF versionados
   tormentas, inundaciones, sismos, sequías, deslizamientos). GIBS/POWER solo puntúan
   condiciones de incendio; no se inventan scores para las demás amenazas.
 - Deploy **Vercel** con root directory `web/`; gestor **pnpm**.
-- Versiones fijadas en [`docs/23-plan-app.md`](docs/23-plan-app.md); no actualizar dependencias
+- Versiones fijadas en [`docs/archivo/plan-app-inicial.md`](docs/archivo/plan-app-inicial.md); no actualizar dependencias
   durante el hackathon.
 - La app vive en `web/` para no mezclar npm con Ruff/Pytest/Typst.
 
@@ -79,7 +79,7 @@ make clean      # cachés + PNGs; NO borra los PDF versionados
   viento/lluvia/PM2.5, OVSICORI solo como dato local. Atribuir siempre.
 - Sin dato NASA accesible no hay feature. No inventar cifras, probabilidades ni cobertura.
   Citar fuente, hora y latencia; decir “según NASA”, nunca “descubrimiento”.
-- Límites, contratos y fallbacks: [`docs/25-api-research.md`](docs/25-api-research.md).
+- Límites, contratos y fallbacks: [`docs/investigacion/apis-verificadas.md`](docs/investigacion/apis-verificadas.md).
 
 ## Arquitectura (cuando exista `web/`)
 
@@ -90,7 +90,7 @@ make clean      # cachés + PNGs; NO borra los PDF versionados
   hay score (`level: "info"`), no se inventa.
 - Mapa: **una sola instancia**; actualizar con `source.setData()`, no remontar. `dynamic(...,
   { ssr: false })` solo dentro de un client component.
-- Estructura, endpoints y ADRs: [`docs/24-arquitectura-app.md`](docs/24-arquitectura-app.md).
+- Estructura, endpoints y ADRs: [`docs/tecnico/arquitectura.md`](docs/tecnico/arquitectura.md).
 
 ## Git y CI
 
@@ -107,7 +107,7 @@ make clean      # cachés + PNGs; NO borra los PDF versionados
 - `make clean` **no** borra `guides/dist/`: ahí viven los PDF versionados. Sí borra los PNG.
 - `make guides` solo compila `guides/src/06-retos.typ`; los tests exigen que **cada** `.typ`
   (excepto `theme.typ`) tenga su PDF. Si agregás una guía, actualizá el Makefile.
-- `tests/test_repo.py` valida enlaces locales en `README.md`, `AGENTS.md`, `documentacion.md` y
+- `tests/test_repo.py` valida enlaces locales en `README.md`, `AGENTS.md`, `docs/estado.md` y
   `CONTRIBUTING.md`: un link roto rompe `make check`.
 - En `guides/src/theme.typ` el color de línea es `lineColor` (`line` tapa el built-in) y
   `section(titulo, color: c)` exige el argumento con nombre.

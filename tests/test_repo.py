@@ -12,18 +12,18 @@ LINK = re.compile(r"\]\((?![a-z]+:|#|mailto:)([^)#]+)(?:#[^)]*)?\)")
 
 
 def test_archivos_base_existen() -> None:
-    for name in ("README.md", "AGENTS.md", "documentacion.md", "Makefile"):
+    for name in ("README.md", "AGENTS.md", "docs/estado.md", "Makefile"):
         assert (ROOT / name).is_file(), f"falta {name}"
 
 
 def test_documentos_referenciados_existen() -> None:
     faltantes: list[str] = []
-    paginas = ("documentacion.md", "README.md", "AGENTS.md", "CONTRIBUTING.md")
+    paginas = ("docs/estado.md", "README.md", "AGENTS.md", "CONTRIBUTING.md")
     for name in paginas:
         page = ROOT / name
         for target in LINK.findall(page.read_text(encoding="utf-8")):
             target = target.strip()
-            if target and not (ROOT / target).exists():
+            if target and not (page.parent / target).exists():
                 faltantes.append(f"{page.name} -> {target}")
     assert not faltantes, "enlaces rotos:\n" + "\n".join(faltantes)
 

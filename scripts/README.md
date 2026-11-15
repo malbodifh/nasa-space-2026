@@ -12,5 +12,5 @@ make branches          # equivale a bash scripts/setup_branches.sh
 
 ## Scripts archivados
 
-`backups/ideas/spherex/scripts/` tiene `poc_spherex.py` y `align_diff.py`, del reto anterior.
+`docs/archivo/spherex/scripts/` tiene `poc_spherex.py` y `align_diff.py`, del reto anterior.
 No se usan en este proyecto, pero siguen documentados por si se retoman.

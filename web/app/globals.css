@@ -4,38 +4,44 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Paleta: neutros tranquilos con un solo azul (identidad visual de Aulemo). */
 @theme {
-  --color-paper: #f2eee5;
-  --color-sheet: #faf7ef;
-  --color-ink: #1b1a17;
-  --color-ink2: #3e3a33;
-  --color-ash: #6e675c;
-  --color-rule: #d6ccba;
-  --color-burnt: #b23a1a;
-  --color-ember: #d97706;
-  --color-forest: #33523f;
-  --color-ochre: #a16207;
-  --color-wine: #7f1d1d;
+  --color-superficie: #f7f7f6;
+  --color-elevada: #ffffff;
+  --color-hundida: #eeeeec;
+  --color-linea: #e3e5eb;
+  --color-linea-fuerte: #8a8f9e;
+  --color-tinta: #0a0b0f;
+  --color-tinta-suave: #5a5f6e;
+  --color-primario: #5266eb;
+  --color-primario-fuerte: #3f51d6;
+  --color-primario-suave: #eceefd;
+  --color-acento-claro: #a9b3f7;
+  --color-profundo: #171a23;
+  --color-exito: #1b7a3e;
+  --color-aviso: #946200;
+  --color-peligro: #b42318;
+  --color-info: #1f5fa6;
+
+  /* Nombres anteriores, apuntando a la paleta nueva. */
+  --color-paper: #f7f7f6;
+  --color-sheet: #ffffff;
+  --color-ink: #0a0b0f;
+  --color-ink2: #5a5f6e;
+  --color-ash: #5a5f6e;
+  --color-rule: #e3e5eb;
+  --color-burnt: #3f51d6;
+  --color-ember: #946200;
+  --color-forest: #1b7a3e;
+  --color-ochre: #946200;
+  --color-wine: #b42318;
 }
 
 @theme inline {
-  --font-sans: var(--font-plex-sans);
-  --font-mono: var(--font-plex-mono);
-  --font-display: var(--font-newsreader);
-  --font-heading: var(--font-newsreader);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
+  --font-sans: var(--font-jakarta);
+  --font-mono: var(--font-jakarta);
+  --font-display: var(--font-jakarta);
+  --font-heading: var(--font-jakarta);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -64,38 +70,29 @@
 }
 
 :root {
-  --background: #f2eee5;
-  --foreground: #1b1a17;
-  --card: #faf7ef;
-  --card-foreground: #1b1a17;
-  --popover: #faf7ef;
-  --popover-foreground: #1b1a17;
-  --primary: #1b1a17;
-  --primary-foreground: #f7f3ea;
-  --secondary: #e8e0d1;
-  --secondary-foreground: #1b1a17;
-  --muted: #e8e0d1;
-  --muted-foreground: #6e675c;
-  --accent: #e0d6c4;
-  --accent-foreground: #1b1a17;
-  --destructive: #a32b1a;
-  --border: #d6ccba;
-  --input: #d6ccba;
-  --ring: #b23a1a;
-  --chart-1: #b23a1a;
-  --chart-2: #33523f;
-  --chart-3: #a16207;
-  --chart-4: #7f1d1d;
-  --chart-5: #6e675c;
-  --radius: 0.25rem;
-  --sidebar: #faf7ef;
-  --sidebar-foreground: #1b1a17;
-  --sidebar-primary: #1b1a17;
-  --sidebar-primary-foreground: #f7f3ea;
-  --sidebar-accent: #e8e0d1;
-  --sidebar-accent-foreground: #1b1a17;
-  --sidebar-border: #d6ccba;
-  --sidebar-ring: #b23a1a;
+  --background: #f7f7f6;
+  --foreground: #0a0b0f;
+  --card: #ffffff;
+  --card-foreground: #0a0b0f;
+  --popover: #ffffff;
+  --popover-foreground: #0a0b0f;
+  --primary: #5266eb;
+  --primary-foreground: #ffffff;
+  --secondary: #eeeeec;
+  --secondary-foreground: #0a0b0f;
+  --muted: #eeeeec;
+  --muted-foreground: #5a5f6e;
+  --accent: #eceefd;
+  --accent-foreground: #0a0b0f;
+  --destructive: #b42318;
+  --border: #e3e5eb;
+  --input: #8a8f9e;
+  --ring: #5266eb;
+  --radius: 0.5rem;
+  --sombra-tarjeta:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 0 0 1px rgba(11, 16, 32, 0.09),
+    0 24px 60px -28px rgba(11, 16, 32, 0.35), 0 2px 8px rgba(11, 16, 32, 0.04);
+  --sombra-boton: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 24px -12px rgba(10, 11, 15, 0.35);
 }
 
 @layer base {
@@ -106,91 +103,96 @@
     @apply font-sans;
   }
   body {
-    @apply bg-background text-foreground;
-    background-color: var(--color-paper);
-    background-image: radial-gradient(rgba(27, 26, 23, 0.035) 0.5px, transparent 0.5px);
-    background-size: 3px 3px;
+    @apply bg-superficie text-tinta;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   ::selection {
-    background: rgba(178, 58, 26, 0.18);
+    background: #eceefd;
+  }
+  :focus-visible {
+    outline: 2px solid #5266eb;
+    outline-offset: 2px;
+    border-radius: 8px;
   }
 }
 
 @layer components {
+  .tarjeta {
+    @apply rounded-[14px] bg-elevada p-6 sm:p-[30px];
+    box-shadow: var(--sombra-tarjeta);
+  }
+  .boton {
+    @apply inline-flex h-11 items-center justify-center gap-2 rounded-full px-[22px] text-[15px] leading-none font-semibold whitespace-nowrap transition;
+  }
+  .boton-chico {
+    @apply h-[38px] px-4 text-[14px];
+  }
+  .boton-principal {
+    @apply bg-primario text-white hover:bg-primario-fuerte;
+    box-shadow: var(--sombra-boton);
+  }
+  .boton-cristal {
+    @apply bg-white/60 text-tinta hover:bg-white;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 0 0 1px rgba(11, 16, 32, 0.09),
+      0 2px 8px rgba(11, 16, 32, 0.04);
+  }
+  .etiqueta {
+    @apply text-[13px] leading-none font-semibold text-tinta-suave;
+  }
+
+  /* Clases de la interfaz anterior, adaptadas a la paleta nueva. */
   .eyebrow {
-    @apply font-mono text-[10px] uppercase tracking-[0.18em] text-ash;
+    @apply text-[12px] font-semibold text-tinta-suave;
   }
   .stamp {
-    @apply inline-flex items-center gap-1.5 border border-burnt px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-burnt;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-linea px-2.5 py-1 text-[12px] font-semibold text-tinta-suave;
   }
   .data-row {
-    @apply flex items-baseline justify-between gap-3 border-b border-rule/70 py-1.5 last:border-b-0;
+    @apply flex items-baseline justify-between gap-3 border-b border-linea py-1.5 last:border-b-0;
   }
   .data-key {
-    @apply text-[12px] text-ash;
+    @apply text-[13px] text-tinta-suave;
   }
   .data-value {
-    @apply font-mono text-[12px] text-ink;
+    @apply text-[13px] font-semibold text-tinta;
   }
-}
-
-/* Mapa: papel cálido, controles discretos */
-.map-warm .maplibregl-canvas {
-  filter: sepia(0.14) saturate(0.82) contrast(1.02);
 }
 
 .maplibregl-popup-content {
-  background: #faf7ef;
-  color: #1b1a17;
-  border: 1px solid #d6ccba;
-  border-radius: 2px;
-  padding: 9px 11px;
+  background: #ffffff;
+  color: #0a0b0f;
+  border-radius: 10px;
+  padding: 10px 12px;
   font-family: var(--font-sans);
-  font-size: 11px;
-  line-height: 1.5;
-  box-shadow: 4px 4px 0 rgba(27, 26, 23, 0.08);
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: var(--sombra-tarjeta);
 }
 
 .maplibregl-popup-tip {
-  border-top-color: #faf7ef;
-  border-bottom-color: #faf7ef;
+  border-top-color: #ffffff;
+  border-bottom-color: #ffffff;
 }
 
 .maplibregl-ctrl-group {
-  background: #faf7ef !important;
-  border: 1px solid #d6ccba !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-.maplibregl-ctrl button {
-  filter: none;
+  border-radius: 10px !important;
+  box-shadow: var(--sombra-tarjeta) !important;
 }
 
 .maplibregl-ctrl-attrib {
-  background: rgba(250, 247, 239, 0.85) !important;
-  color: #6e675c !important;
-  font-family: var(--font-mono);
-  font-size: 9px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #5a5f6e !important;
+  font-size: 10px !important;
 }
 
 input[type="range"] {
-  accent-color: #b23a1a;
+  accent-color: #5266eb;
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #d6ccba;
-  border: 2px solid #f2eee5;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
+select {
+  accent-color: #5266eb;
 }

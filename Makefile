@@ -34,22 +34,8 @@ check: lint test ## Lint + tests (lo mismo que corre CI)
 guides: ## Compilar las guías Typst a PDF y PNG
 	mkdir -p guides/dist
 	$(TYPST) compile guides/src/06-retos.typ guides/dist/06-retos.pdf
-	$(TYPST) compile --root . guides/src/07-documentacion.typ guides/dist/07-documentacion.pdf
 	$(TYPST) compile --format png --ppi 200 guides/src/06-retos.typ "guides/dist/06-retos-{p}.png"
 	@echo "Guías en guides/dist/"
-
-docs: ## Compilar la documentación completa (libro + un PDF por documento)
-	mkdir -p guides/dist
-	$(TYPST) compile --root . guides/src/07-documentacion.typ guides/dist/07-documentacion.pdf
-	@bash scripts/build_docs_pdf.sh
-	@echo "Documentación: guides/dist/07-documentacion.pdf"
-
-docs-convert: ## Convertir los .md a .typ para el libro (requiere pandoc)
-	@command -v $(PANDOC) >/dev/null 2>&1 || { \
-		echo "Falta pandoc. Instalalo o usá: make docs-convert PANDOC=/ruta/a/pandoc"; \
-		exit 1; \
-	}
-	$(PY) scripts/md_to_typst.py --pandoc $(PANDOC)
 
 branches: ## Crear las ramas del equipo si faltan (main, develop, staging, persona)
 	@bash scripts/setup_branches.sh

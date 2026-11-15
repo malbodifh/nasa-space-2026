@@ -2,10 +2,11 @@ import "server-only";
 
 import { cached } from "@/lib/cache";
 import { bboxForRadius } from "@/lib/geo";
-import { mergeSeismic, parseOvsicori, parseUsgs } from "@/lib/seismic-parse";
+import { mergeSeismic, parseOvsicori, parseRsn, parseUsgs } from "@/lib/seismic-parse";
 import type { LatLon, SeismicEvent } from "@/lib/types";
 
 const USGS_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query";
+const RSN_URL = "https://rsn.ucr.ac.cr/actividad-sismica/ultimos-sismos?format=feed&type=rss";
 const OVSICORI_URL =
   "https://www.ovsicori.una.ac.cr/sistemas/sismolive-staging/data/latest.geojson";
 const WINDOW_DAYS = 30;
@@ -16,13 +17,23 @@ export type SeismicResult = {
   events: SeismicEvent[];
   local: number;
   global: number;
+  rsn: number;
+  failed: ("USGS" | "OVSICORI" | "RSN")[];
   fallback: boolean;
+  /** Fecha del sismo más reciente de cada red. */
+  latest: Record<"USGS" | "OVSICORI" | "RSN", string | null>;
+  /** Cuándo OVSICORI generó su archivo: si es viejo, el feed se detuvo. */
+  ovsicoriGeneratedAt: string | null;
 };
+
+const newest = (events: SeismicEvent[]) =>
+  events.reduce<string | null>((max, event) => (!max || event.time > max ? event.time : max), null);
 
 export async function getSeismic(point: LatLon): Promise<SeismicResult> {
   const key = `seismic:${point.lat.toFixed(1)}:${point.lon.toFixed(1)}`;
 
-  return cached(key, 10 * 60 * 1000, async () => {
+  // Los sismos cambian por minuto: caché corta.
+  return cached(key, 2 * 60 * 1000, async () => {
     const [west, south, east, north] = bboxForRadius(point, MAX_KM);
     const start = new Date(Date.now() - WINDOW_DAYS * 24 * 60 * 60 * 1000)
       .toISOString()
@@ -34,7 +45,7 @@ export async function getSeismic(point: LatLon): Promise<SeismicResult> {
       `&minlatitude=${south.toFixed(3)}&maxlatitude=${north.toFixed(3)}` +
       `&minlongitude=${west.toFixed(3)}&maxlongitude=${east.toFixed(3)}`;
 
-    const [usgs, ovsicori] = await Promise.allSettled([
+    const [usgs, ovsicori, rsn] = await Promise.allSettled([
       fetch(usgsUrl, {
         headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.2" },
         signal: AbortSignal.timeout(12_000),
@@ -51,16 +62,42 @@ export async function getSeismic(point: LatLon): Promise<SeismicResult> {
         if (!response.ok) throw new Error(`OVSICORI ${response.status}`);
         return response.json();
       }),
+      fetch(RSN_URL, {
+        headers: { "User-Agent": "Mozilla/5.0 (AstralCodes-MemoriaDeFuego/0.3)" },
+        signal: AbortSignal.timeout(12_000),
+        cache: "no-store",
+      }).then((response) => {
+        if (!response.ok) throw new Error(`RSN ${response.status}`);
+        return response.text();
+      }),
     ]);
 
     const local = ovsicori.status === "fulfilled" ? parseOvsicori(ovsicori.value, point) : [];
     const global = usgs.status === "fulfilled" ? parseUsgs(usgs.value, point) : [];
+    const felt = rsn.status === "fulfilled" ? parseRsn(rsn.value, point) : [];
+    const failed = (
+      [
+        ["USGS", usgs],
+        ["OVSICORI", ovsicori],
+        ["RSN", rsn],
+      ] as const
+    )
+      .filter(([, result]) => result.status === "rejected")
+      .map(([name]) => name);
 
     return {
-      events: mergeSeismic(local, global),
+      // Primero la RSN (revisado y con «sentido en»), luego OVSICORI y al final USGS.
+      events: mergeSeismic(felt, local, global),
       local: local.length,
       global: global.length,
-      fallback: ovsicori.status === "rejected" || usgs.status === "rejected",
+      rsn: felt.length,
+      failed,
+      fallback: failed.length > 0,
+      latest: { USGS: newest(global), OVSICORI: newest(local), RSN: newest(felt) },
+      ovsicoriGeneratedAt:
+        ovsicori.status === "fulfilled"
+          ? ((ovsicori.value as { generatedAt?: string }).generatedAt ?? null)
+          : null,
     };
   });
 }

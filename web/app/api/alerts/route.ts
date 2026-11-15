@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { buildAlerts, buildTestAlert } from "@/lib/alerts";
+import { buildAlerts, buildTestAlert, type DemoHazard } from "@/lib/alerts";
 import { todayISO } from "@/lib/demo";
 import { assessRisk } from "@/lib/risk";
 import { getFireStats } from "@/lib/sources/gibs";
@@ -31,6 +31,9 @@ const querySchema = z.object({
     .enum(["0", "1"])
     .default("0")
     .transform((value) => value === "1"),
+  hazard: z
+    .enum(["fire", "earthquake", "volcano", "flood", "storm"])
+    .default("fire"),
 });
 
 export async function GET(request: Request) {
@@ -50,7 +53,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const { lat, lon, radius, test } = parsed.data;
+  const { lat, lon, radius, test, hazard } = parsed.data;
   const point = { lat, lon };
   const today = todayISO();
 
@@ -107,7 +110,7 @@ export async function GET(request: Request) {
     official: overlays?.alerts ?? [],
   });
 
-  if (test) alerts.unshift(buildTestAlert(point, radius));
+  if (test) alerts.unshift(buildTestAlert(point, radius, hazard as DemoHazard));
 
   const body: AlertsResponse = {
     data: {

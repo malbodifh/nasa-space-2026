@@ -36,20 +36,16 @@ export default function AlertInbox({
   failed,
   permission,
   testing,
-  testMode,
   onEnable,
   onTest,
-  onToggleTestMode,
 }: {
   alerts: AppAlert[];
   loading: boolean;
   failed: boolean;
   permission: NotificationPermission | "unsupported";
   testing: boolean;
-  testMode: boolean;
   onEnable: () => void;
   onTest: () => void;
-  onToggleTestMode: () => void;
 }) {
   const visible = alerts.slice(0, 4);
 
@@ -104,22 +100,11 @@ export default function AlertInbox({
           size="sm"
           onClick={onTest}
           disabled={testing}
-          className="rounded-none border-ink bg-transparent text-[11px] hover:bg-ink hover:text-paper"
+          className="rounded-none border-rule bg-transparent text-[11px] hover:bg-rule/40"
         >
           <FlaskConical className="size-3.5" />
-          {testing ? "Enviando…" : "Probar alerta"}
+          {testing ? "Enviando…" : "Probar de nuevo"}
         </Button>
-        <button
-          type="button"
-          onClick={onToggleTestMode}
-          aria-pressed={testMode}
-          className={`font-mono text-[9px] uppercase tracking-[0.1em] underline-offset-4 ${
-            testMode ? "text-burnt underline decoration-burnt" : "text-ash hover:text-ink"
-          }`}
-          title="Genera una alerta de prueba cada 60 s"
-        >
-          modo test
-        </button>
       </div>
 
       {failed ? (

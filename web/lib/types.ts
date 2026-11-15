@@ -122,9 +122,20 @@ export type VolcanoProps = {
 
 export type AlertLevel = "green" | "orange" | "red" | "info";
 
+export type AlertSource =
+  | "NASA EONET"
+  | "GDACS"
+  | "USGS"
+  | "OVSICORI"
+  | "RSN"
+  | "PTWC"
+  | "NHC"
+  | "NASA FIRMS"
+  | "Open-Meteo";
+
 export type DisasterAlert = {
   id: string;
-  source: "NASA EONET" | "GDACS" | "USGS" | "OVSICORI";
+  source: AlertSource;
   category: string;
   categoryLabel: string;
   title: string;
@@ -135,6 +146,27 @@ export type DisasterAlert = {
   distanceKm: number;
   url: string;
   magnitude?: string | null;
+  /** Magnitud numérica (sismos y tsunamis), para las reglas por amenaza. */
+  magnitudeValue?: number;
+  /** Lugares donde se sintió (RSN). */
+  felt?: string | null;
+  /** Otras redes que reportaron el mismo evento. */
+  alsoReportedBy?: string[];
+  /** Detalle corto y propio de la fuente (categoría del boletín, intensidad, mm de lluvia…). */
+  detail?: string | null;
+  /** Calidad del dato: revisado por un analista, preliminar (automático), pronóstico o satélite. */
+  quality?: "revisado" | "preliminar" | "pronóstico" | "detección satelital" | null;
+};
+
+export type SourceStatus = {
+  id: string;
+  label: string;
+  ok: boolean;
+  count: number;
+  /** Fecha del dato más reciente que trajo la fuente. */
+  latest?: string | null;
+  /** La fuente respondió, pero su archivo no se actualiza hace demasiado. */
+  stale?: boolean;
 };
 
 export type OverlaySource = {
@@ -161,9 +193,20 @@ export type OverlaysResponse = {
   meta: ApiMeta & { fallbackSources: string[] };
 };
 
+export type EventsResponse = {
+  data: { alerts: DisasterAlert[]; history: DisasterAlert[] };
+  meta: ApiMeta & { fallbackSources: string[]; sources: SourceStatus[] };
+};
+
 export type SeismicEvent = {
   id: string;
-  source: "USGS" | "OVSICORI";
+  source: "USGS" | "OVSICORI" | "RSN";
+  /** Nivel PAGER de USGS (impacto estimado), si existe. */
+  pager?: "green" | "yellow" | "orange" | "red" | null;
+  /** Intensidad máxima estimada (MMI), si existe. */
+  mmi?: number | null;
+  felt?: string | null;
+  alsoReportedBy?: string[];
   magnitude: number;
   depthKm: number | null;
   time: string;

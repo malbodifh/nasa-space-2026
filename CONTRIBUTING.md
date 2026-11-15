@@ -1,7 +1,7 @@
 # Contribuir — Astral Codes
 
 > **Regla:** si no está documentado, no existe. Si no se puede probar, no entra.
-> Workflow completo: [`docs/18-workflow.md`](docs/18-workflow.md).
+> Workflow completo: [`docs/equipo/workflow.md`](docs/equipo/workflow.md).
 
 ---
 
@@ -21,8 +21,8 @@ make guides         # compila las guías Typst
 ## 2. Antes de escribir código
 
 0. Leer [`AGENTS.md`](AGENTS.md): es la base compartida (setup, comandos, reglas y gotchas).
-1. El challenge todavía no está elegido: leer [`docs/02-challenges-2026.md`](docs/02-challenges-2026.md).
-2. Revisar el estado y las decisiones en [`documentacion.md`](documentacion.md).
+1. El challenge todavía no está elegido: leer [`docs/investigacion/retos-2026.md`](docs/investigacion/retos-2026.md).
+2. Revisar el estado y las decisiones en [`docs/estado.md`](docs/estado.md).
 3. Si el cambio define producto, primero se acuerda con el equipo y se anota en el Decision Log.
 
 ## 3. Ramas y commits
@@ -50,4 +50,4 @@ andy · david · samuel · jorge · leo   →  develop  →  staging  →  main
 
 ## 6. Dudas
 
-Si algo no está en `documentacion.md`, no existe: preguntá y actualizalo el mismo día.
+Si algo no está en `docs/estado.md`, no existe: preguntá y actualizalo el mismo día.

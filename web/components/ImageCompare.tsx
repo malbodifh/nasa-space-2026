@@ -24,7 +24,8 @@ function snapshotUrl(point: LatLon, date: string): string {
   return (
     `https://wvs.earthdata.nasa.gov/api/v1/snapshot?REQUEST=GetSnapshot` +
     `&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&CRS=EPSG:4326` +
-    `&BBOX=${west},${south},${east},${north}&WIDTH=900&HEIGHT=600` +
+    // Con EPSG:4326, Worldview espera latitud primero: sur, oeste, norte, este.
+    `&BBOX=${south},${west},${north},${east}&WIDTH=900&HEIGHT=600` +
     `&TIME=${date}&FORMAT=image/jpeg`
   );
 }

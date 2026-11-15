@@ -1,0 +1,387 @@
+"use client";
+
+import { Bell, BellRing, LocateFixed } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import useSWR from "swr";
+
+import EventList from "@/components/EventList";
+import SiteHeader from "@/components/SiteHeader";
+import { useAlertNotifications } from "@/components/useAlertNotifications";
+import { DEMO_POINT, shortDate } from "@/lib/demo";
+import {
+  affecting,
+  buildHistory,
+  FIRE_LABEL,
+  formatWhen,
+  fromAlert,
+  locationStatus,
+  NEAR_KM,
+  OFFICIAL_LABEL,
+  placeName,
+  radarDetections,
+  timeAgo,
+  type Tone,
+} from "@/lib/events";
+import { SAR_ZONES } from "@/lib/sar";
+import type { AssessResponse, EventsResponse, LatLon } from "@/lib/types";
+
+const HomeMap = dynamic(() => import("@/components/HomeMap"), {
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-hundida" />,
+});
+
+type LocationState = { point: LatLon; status: "buscando" | "gps" | "ejemplo" };
+
+// Costa Rica mide unos 460 km de punta a punta: con 450 km, desde cualquier lugar del país se
+// ven los eventos de todo el territorio (por ejemplo, un sismo en Golfito visto desde Liberia).
+const REGION_KM = 450;
+
+const TONE_DOT: Record<Tone, string> = {
+  exito: "bg-exito",
+  aviso: "bg-aviso",
+  peligro: "bg-peligro",
+  neutro: "bg-linea-fuerte",
+};
+
+const LATEST_RADAR = SAR_ZONES.flatMap((zone) => zone.acquisitions.map((item) => item.date)).sort().at(-1);
+
+async function fetcher<T>(url: string): Promise<T> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Error ${response.status}`);
+  return response.json() as Promise<T>;
+}
+
+function Stat({ value, label }: { value: string | number | null; label: string }) {
+  return (
+    <div className="tarjeta p-5 sm:p-5">
+      {value === null ? (
+        <div className="h-8 w-12 animate-pulse rounded-md bg-hundida" />
+      ) : (
+        <p className="text-[30px] leading-none font-bold tracking-[-0.03em] text-tinta">{value}</p>
+      )}
+      <p className="mt-2 text-[13px] leading-snug font-semibold text-tinta-suave">{label}</p>
+    </div>
+  );
+}
+
+export default function HomeView() {
+  const [location, setLocation] = useState<LocationState>({ point: DEMO_POINT, status: "buscando" });
+  const [activeLimit, setActiveLimit] = useState(5);
+  const [historyLimit, setHistoryLimit] = useState(6);
+  const [filter, setFilter] = useState("todos");
+
+  const locate = useCallback(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) =>
+        setLocation({
+          point: { lat: position.coords.latitude, lon: position.coords.longitude },
+          status: "gps",
+        }),
+      () => setLocation((current) => ({ ...current, status: "ejemplo" })),
+      { timeout: 8000, maximumAge: 5 * 60_000 },
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!("geolocation" in navigator)) {
+      const timer = window.setTimeout(() => setLocation((c) => ({ ...c, status: "ejemplo" })));
+      return () => window.clearTimeout(timer);
+    }
+    locate();
+  }, [locate]);
+
+  const { point } = location;
+  const query = `lat=${point.lat.toFixed(3)}&lon=${point.lon.toFixed(3)}`;
+  const ready = location.status !== "buscando";
+
+  const { data: events, error: eventsError } = useSWR<EventsResponse>(
+    ready ? `/api/events?${query}&radius=${REGION_KM}` : null,
+    fetcher,
+    { revalidateOnFocus: true, refreshInterval: 60_000 },
+  );
+  const { data: assess } = useSWR<AssessResponse>(ready ? `/api/assess?${query}&radius=25` : null, fetcher, {
+    revalidateOnFocus: false,
+  });
+
+  const active = useMemo(
+    () => [...(events?.data.alerts ?? [])].sort((a, b) => a.distanceKm - b.distanceKm),
+    [events],
+  );
+  const history = useMemo(
+    () =>
+      buildHistory(
+        events?.data.history ?? [],
+        radarDetections(point).filter((item) => (item.distanceKm ?? 0) <= REGION_KM),
+      ),
+    [events, point],
+  );
+  // La lista va de la más reciente a la más antigua; el estado sigue usando la más cercana.
+  const activeItems = useMemo(
+    () => [...active].sort((a, b) => b.date.localeCompare(a.date)).map(fromAlert),
+    [active],
+  );
+  const categories = useMemo(() => {
+    const counts = new Map<string, { label: string; count: number }>();
+    for (const item of history) {
+      const entry = counts.get(item.category) ?? { label: item.categoryLabel, count: 0 };
+      entry.count += 1;
+      counts.set(item.category, entry);
+    }
+    return [...counts.entries()].sort((a, b) => b[1].count - a[1].count);
+  }, [history]);
+  const filtered = filter === "todos" ? history : history.filter((item) => item.category === filter);
+
+  const status = locationStatus(active);
+  const relevant = useMemo(() => (events ? affecting(events.data.alerts) : null), [events]);
+  const notifications = useAlertNotifications(relevant);
+  const sources = events?.meta.sources ?? [];
+  const online = sources.filter((source) => source.ok).length;
+  const staleCount = sources.filter((source) => source.ok && source.stale).length;
+  const fire = assess?.data.risk.level;
+  const updated = events
+    ? new Intl.DateTimeFormat("es-CR", { hour: "2-digit", minute: "2-digit" }).format(
+        new Date(events.meta.updatedAt),
+      )
+    : null;
+
+  return (
+    <div className="min-h-screen">
+      <SiteHeader />
+
+      <main className="mx-auto w-full max-w-[1180px] px-4 pb-20 sm:px-6">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <section
+            className="h-[46vh] min-h-[300px] overflow-hidden rounded-[14px] bg-hundida lg:h-auto lg:min-h-[540px]"
+            style={{ boxShadow: "var(--sombra-tarjeta)" }}
+            aria-label="Mapa"
+          >
+            <HomeMap point={point} radiusKm={NEAR_KM} active={activeItems} history={history} />
+          </section>
+
+          <div className="flex flex-col gap-4">
+            <section className="tarjeta" aria-live="polite">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="etiqueta">
+                  {location.status === "buscando"
+                    ? "Buscando su ubicación…"
+                    : location.status === "gps"
+                      ? placeName(point)
+                      : `${placeName(point)} · ejemplo`}
+                </p>
+                {updated ? <p className="text-[12px] text-tinta-suave">Actualizado {updated}</p> : null}
+              </div>
+
+              {!events && !eventsError ? (
+                <div className="mt-4 h-16 animate-pulse rounded-lg bg-hundida" />
+              ) : eventsError ? (
+                <p className="mt-3 text-[16px] text-tinta-suave">No pudimos consultar las alertas. Intente más tarde.</p>
+              ) : (
+                <>
+                  <h1 className="mt-3 flex items-start gap-3 text-[28px] leading-tight font-bold tracking-[-0.025em]">
+                    <span className={`mt-[0.42em] size-3 shrink-0 rounded-full ${TONE_DOT[status.tone]}`} aria-hidden />
+                    {status.title}
+                  </h1>
+                  <p className="mt-2 text-[15px] leading-snug text-tinta-suave">
+                    {status.nearest
+                      ? `${status.nearest.title} · a ${Math.round(status.nearest.distanceKm)} km`
+                      : "Ningún evento reciente le afecta, según las reglas de cada amenaza."}
+                  </p>
+                  {status.nearest?.detail ? (
+                    <p className="mt-1 text-[14px] leading-snug text-tinta-suave">{status.nearest.detail}</p>
+                  ) : null}
+                  {status.nearest ? (
+                    <p className="mt-2 text-[13px] text-tinta-suave">
+                      {formatWhen(status.nearest.date)} ·{" "}
+                      <a
+                        href={status.nearest.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-semibold text-tinta underline underline-offset-4"
+                      >
+                        {OFFICIAL_LABEL[status.nearest.source] ?? "Reporte original"}
+                      </a>
+                    </p>
+                  ) : null}
+                </>
+              )}
+
+              <div className="mt-5 flex items-center justify-between gap-3 rounded-[10px] border border-linea bg-hundida px-4 py-3">
+                <span className="text-[14px] text-tinta-suave">Condiciones para incendios</span>
+                <span className="text-[14px] font-bold text-tinta">{fire ? FIRE_LABEL[fire] : "…"}</span>
+              </div>
+
+              <div className="mt-5 flex flex-col gap-2">
+                {location.status === "ejemplo" ? (
+                  <button type="button" onClick={locate} className="boton boton-principal w-full">
+                    <LocateFixed className="size-4" aria-hidden />
+                    Usar mi ubicación
+                  </button>
+                ) : null}
+                {notifications.permission === "granted" ? (
+                  <div className="flex items-center justify-between gap-3 rounded-[10px] bg-primario-suave px-4 py-3">
+                    <span className="inline-flex items-center gap-2 text-[14px] font-semibold text-primario-fuerte">
+                      <BellRing className="size-4" aria-hidden />
+                      Avisos activados
+                    </span>
+                    <button type="button" onClick={notifications.test} className="text-[13px] font-semibold text-primario-fuerte underline underline-offset-4">
+                      Probar
+                    </button>
+                  </div>
+                ) : notifications.permission === "denied" ? (
+                  <p className="text-[13px] text-tinta-suave">
+                    Los avisos están bloqueados en este navegador. Puede activarlos en la configuración del sitio.
+                  </p>
+                ) : notifications.permission === "unsupported" ? null : (
+                  <button
+                    type="button"
+                    onClick={notifications.enable}
+                    className={`boton w-full ${location.status === "ejemplo" ? "boton-cristal" : "boton-principal"}`}
+                  >
+                    <Bell className="size-4" aria-hidden />
+                    Avisarme de alertas nuevas
+                  </button>
+                )}
+              </div>
+            </section>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Stat value={events ? active.length : null} label="Eventos recientes en su región" />
+              <Stat
+                value={events ? active.filter((item) => item.category === "earthquakes").length : null}
+                label="Sismos en las últimas 72 h"
+              />
+              <Stat value={events ? history.length : null} label="Eventos en el último año" />
+              <Stat value={LATEST_RADAR ? shortDate(LATEST_RADAR).replace(/ \d{4}$/, "") : "—"} label="Última imagen de radar" />
+            </div>
+
+            <details className="tarjeta group p-5 sm:p-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                <span className="text-[15px] font-semibold text-tinta">Fuentes en vivo</span>
+                <span className="inline-flex items-center gap-2 text-[13px] font-semibold text-tinta-suave">
+                  <span
+                    className={`size-2 rounded-full ${!events ? "bg-linea-fuerte" : online === sources.length && staleCount === 0 ? "bg-exito" : "bg-aviso"}`}
+                    aria-hidden
+                  />
+                  {events
+                    ? `${online} de ${sources.length} en línea${staleCount ? ` · ${staleCount} desactualizada${staleCount > 1 ? "s" : ""}` : ""}`
+                    : "Consultando…"}
+                </span>
+              </summary>
+              <ul className="mt-4 space-y-2 border-t border-linea pt-4">
+                {sources.map((source) => (
+                  <li key={source.id} className="flex items-center justify-between gap-3 text-[13px]">
+                    <span className="inline-flex items-center gap-2 text-tinta">
+                      <span
+                        className={`size-2 rounded-full ${!source.ok ? "bg-peligro" : source.stale ? "bg-aviso" : "bg-exito"}`}
+                        aria-hidden
+                      />
+                      {source.label}
+                    </span>
+                    <span className={`text-right ${!source.ok || source.stale ? "font-semibold text-tinta" : "text-tinta-suave"}`}>
+                      {!source.ok
+                        ? "sin respuesta"
+                        : source.stale
+                          ? "desactualizada"
+                          : source.latest
+                            ? `último dato ${timeAgo(source.latest)}`
+                            : "sin eventos"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-[12px] leading-relaxed text-tinta-suave">
+                Se consultan cada minuto. «Último dato» es el evento más reciente que publicó cada fuente;
+                «sin eventos» significa que respondió, pero no hay nada que reportar en su región.
+              </p>
+            </details>
+          </div>
+        </div>
+
+        <div className="mt-14 grid gap-10 lg:grid-cols-2 lg:gap-6">
+          <section aria-labelledby="activas">
+            <h2 id="activas" className="text-[24px] font-bold tracking-[-0.02em]">
+              Alertas recientes
+            </h2>
+            <p className="mt-1 text-[15px] text-tinta-suave">
+              Las más recientes primero. «En curso» marca lo que ocurre en este momento.
+            </p>
+            <div className="mt-4">
+              {events ? (
+                <EventList
+                  items={activeItems}
+                  limit={activeLimit}
+                  onMore={() => setActiveLimit((value) => value + 6)}
+                  empty={`No hay alertas recientes a menos de ${REGION_KM} km.`}
+                />
+              ) : (
+                <div className="tarjeta h-64 animate-pulse" />
+              )}
+            </div>
+          </section>
+
+          <section aria-labelledby="historial">
+            <h2 id="historial" className="text-[24px] font-bold tracking-[-0.02em]">
+              Historial
+            </h2>
+            <p className="mt-1 text-[15px] text-tinta-suave">El último año en su región.</p>
+            {categories.length > 1 ? (
+              <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filtrar por tipo">
+                {[["todos", { label: "Todos", count: history.length }] as const, ...categories].map(([id, entry]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={filter === id}
+                    onClick={() => {
+                      setFilter(id);
+                      setHistoryLimit(6);
+                    }}
+                    className={`boton boton-chico ${filter === id ? "boton-principal" : "boton-cristal"}`}
+                  >
+                    {entry.label}
+                    <span className={filter === id ? "text-white/75" : "text-tinta-suave"}>{entry.count}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <div className="mt-4">
+              {events ? (
+                <EventList
+                  items={filtered}
+                  limit={historyLimit}
+                  onMore={() => setHistoryLimit((value) => value + 10)}
+                  empty="Sin eventos registrados en su región."
+                />
+              ) : (
+                <div className="tarjeta h-64 animate-pulse" />
+              )}
+            </div>
+          </section>
+        </div>
+
+        <footer className="mt-16 border-t border-linea pt-6 text-[13px] leading-relaxed text-tinta-suave">
+          <p>
+            No es una alerta oficial. En una emergencia llame al{" "}
+            <a href="tel:911" className="font-semibold text-tinta underline underline-offset-2">
+              911
+            </a>{" "}
+            o siga a la{" "}
+            <a
+              href="https://www.cne.go.cr/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-tinta underline underline-offset-2"
+            >
+              CNE
+            </a>
+            .
+          </p>
+          <p className="mt-2">
+            Datos: NASA EONET, GDACS, USGS, OVSICORI, NASA GIBS y POWER, radar NASA-ISRO NISAR. NASA no
+            respalda este proyecto.
+          </p>
+        </footer>
+      </main>
+    </div>
+  );
+}
