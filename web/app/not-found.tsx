@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <main className="mx-auto w-full max-w-[720px] px-4 py-24 sm:px-6">
+    <main id="contenido" className="mx-auto w-full max-w-[720px] px-4 py-24 sm:px-6">
       <p className="etiqueta">404</p>
       <h1 className="mt-3 text-[32px] leading-tight font-bold tracking-[-0.02em]">
         Esta página no existe

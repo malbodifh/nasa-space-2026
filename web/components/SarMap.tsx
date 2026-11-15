@@ -306,12 +306,14 @@ export default function SarMap({
     (map.getSource("zones") as GeoJSONSource | undefined)?.setData(zoneFeatures(zones, activeId));
     const bounds = zone.bounds.join(",");
     if (fittedRef.current?.map === map && fittedRef.current.bounds === bounds) return;
+    const reduce =
+      typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     map.fitBounds(
       [
         [zone.bounds[0], zone.bounds[1]],
         [zone.bounds[2], zone.bounds[3]],
       ],
-      { padding: 24, duration: 700 },
+      { padding: 24, duration: reduce ? 0 : 700 },
     );
     fittedRef.current = { map, bounds };
   }, [ready, zones, zone, activeId]);

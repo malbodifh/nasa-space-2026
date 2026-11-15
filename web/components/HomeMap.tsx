@@ -42,6 +42,12 @@ function escapeHtml(value: unknown): string {
     .replaceAll("'", "&#039;");
 }
 
+/** Quien pidió menos movimiento no debería ver el mapa desplazarse. */
+function motionDuration(duration: number): number {
+  if (typeof window === "undefined") return duration;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : duration;
+}
+
 function fit(map: MapLibreMap, point: LatLon, radiusKm: number, duration: number) {
   const [west, south, east, north] = bboxForRadius(point, radiusKm * 1.15);
   map.fitBounds(
@@ -49,7 +55,7 @@ function fit(map: MapLibreMap, point: LatLon, radiusKm: number, duration: number
       [west, south],
       [east, north],
     ],
-    { padding: 16, duration },
+    { padding: 16, duration: motionDuration(duration) },
   );
 }
 

@@ -158,7 +158,7 @@ export default function RadarView({
   const alerts: DisasterAlert[] = useMemo(() => events?.data.alerts ?? [], [events]);
 
   return (
-    <main className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)]">
+    <main id="contenido" className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)]">
       <aside className="order-2 flex flex-col gap-5 bg-sheet/50 px-4 py-4 lg:order-1 lg:h-[calc(100dvh-74px)] lg:overflow-y-auto lg:border-r lg:border-rule lg:px-5">
         <section aria-labelledby="zone-title">
           <p className="eyebrow">{t("Zona de estudio · radar NISAR", "Study area · NISAR radar")}</p>

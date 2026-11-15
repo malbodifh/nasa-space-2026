@@ -242,7 +242,7 @@ export default function SurfaceStudy() {
   const provisional = before?.status === "provisional" || after?.status === "provisional";
 
   return (
-    <main className="mx-auto w-full max-w-[1180px] px-4 pb-20 sm:px-6">
+    <main id="contenido" className="mx-auto w-full max-w-[1180px] px-4 pb-20 sm:px-6">
       <Link href="/" className="boton boton-cristal boton-chico">
         <ArrowLeft className="size-4" aria-hidden />
         {t("Volver", "Back")}

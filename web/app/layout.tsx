@@ -42,6 +42,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="es" className={`${jakarta.variable} h-full`}>
       <body className="min-h-full">
         <LocaleProvider>
+          <a
+            href="#contenido"
+            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-elevada focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-tinta focus:shadow-lg"
+          >
+            Saltar al contenido / Skip to content
+          </a>
           <SiteHeader />
           {children}
         </LocaleProvider>

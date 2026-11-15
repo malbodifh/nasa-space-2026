@@ -113,7 +113,7 @@ export default function AboutPage() {
   ];
 
   return (
-    <main className="mx-auto w-full max-w-[1180px] px-4 pt-6 pb-20 sm:px-6">
+    <main id="contenido" className="mx-auto w-full max-w-[1180px] px-4 pt-6 pb-20 sm:px-6">
       <section className="max-w-[820px]" aria-labelledby="about-title">
         <div className="mb-6 flex items-center gap-4">
           <BrandMark className="size-14 shrink-0" />

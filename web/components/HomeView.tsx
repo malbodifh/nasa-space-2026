@@ -170,7 +170,7 @@ export default function HomeView() {
   return (
     <div className="min-h-screen">
       <AlertToasts toasts={notifications.toasts} onClose={notifications.dismiss} />
-      <main className="mx-auto w-full max-w-[1180px] px-4 pb-20 sm:px-6">
+      <main id="contenido" className="mx-auto w-full max-w-[1180px] px-4 pb-20 sm:px-6">
         {demo ? (
           <div
             role="status"
