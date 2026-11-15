@@ -44,7 +44,7 @@ El coordinador deriva cada reporte al implementador y solicita retest independie
 
 ## Estado al cerrar la jornada del 15/11
 
-- `make check`, `tsc --noEmit`, ESLint, **328 tests** en 30 archivos y `next build`: verdes.
+- `make check`, `tsc --noEmit`, ESLint, **321 tests** en 28 archivos y `next build`: verdes.
 - Verificación en navegador con Playwright MCP sobre el build de producción local: menú,
   inglés, demo, cuatro zonas SAR, entradas inválidas y móvil 390 px, todo PASS.
 - Correcciones aplicadas: validación de coordenadas, `hazard` en modo prueba, frescura de
