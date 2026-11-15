@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { responseMeta } from "@/app/api/_lib/meta";
 import { latitude, longitude, queryValues, radius as radiusSchema } from "@/app/api/_lib/query";
+import { withCacheTracking } from "@/lib/cache";
 import { getOverlays } from "@/lib/sources/overlays";
 import type { OverlaysResponse } from "@/lib/types";
 
@@ -26,7 +27,8 @@ export async function GET(request: Request) {
   const { lat, lon, radius } = parsed.data;
 
   try {
-    const { data, fallbackSources } = await getOverlays({ lat, lon }, radius);
+    const { value: overlays, cached } = await withCacheTracking(() => getOverlays({ lat, lon }, radius));
+    const { data, fallbackSources } = overlays;
 
     const body: OverlaysResponse = {
       data,
@@ -34,7 +36,7 @@ export async function GET(request: Request) {
         ...responseMeta(started, [
           ...data.alerts.map((alert) => alert.date),
           ...data.seismic.map((event) => event.time),
-        ], fallbackSources.length > 0),
+        ], fallbackSources.length > 0, cached),
         fallbackSources,
       },
     };

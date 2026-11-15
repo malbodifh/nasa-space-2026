@@ -51,10 +51,11 @@ El coordinador deriva cada reporte al implementador y solicita retest independie
   metadata, GDACS por país, timeouts de Overpass, estados de error del catálogo NISAR,
   contraste, geolocalización por gesto y límites del estudio SAR.
 
-### Imprecisión conocida, no bloqueante
+### Caché
 
-`meta.cached` se informa `false` siempre. El proceso no puede saber si el CDN sirvió una
-copia; está documentado en `web/lib/types.ts` y no se presenta como certeza.
+`meta.cached` ahora informa si al menos una fuente vino de la caché en memoria del proceso;
+no cubre la caché del CDN, que el origen no puede observar. Tiene prueba propia en
+`web/tests/cache-tracking.test.ts`.
 
 ### Pendiente de medición
 

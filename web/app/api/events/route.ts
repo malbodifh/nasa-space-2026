@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { responseMeta } from "@/app/api/_lib/meta";
+import { withCacheTracking } from "@/lib/cache";
 import { latitude, longitude, queryValues, radius as radiusSchema } from "@/app/api/_lib/query";
 import { affects } from "@/lib/alert-rules";
 import { getEvents } from "@/lib/sources/overlays";
@@ -25,7 +26,8 @@ export async function GET(request: Request) {
   }
 
   const { lat, lon, radius } = parsed.data;
-  const { alerts, history, fallbackSources, sources } = await getEvents({ lat, lon });
+  const { value: events, cached } = await withCacheTracking(() => getEvents({ lat, lon }));
+  const { alerts, history, fallbackSources, sources } = events;
   // Un tsunami o un ciclón lejano puede afectar igual: las reglas por amenaza mandan sobre el radio.
   const near = (alert: DisasterAlert) => alert.distanceKm <= radius || affects(alert);
   const visibleAlerts = alerts.filter(near);
@@ -45,7 +47,7 @@ export async function GET(request: Request) {
   const body: EventsResponse = {
     data: { alerts: visibleAlerts, history: visibleHistory },
     meta: {
-      ...responseMeta(started, sources.map((source) => source.latest), fallbackSources.length > 0),
+      ...responseMeta(started, sources.map((source) => source.latest), fallbackSources.length > 0, cached),
       fallbackSources,
       sources: visibleSources,
     },

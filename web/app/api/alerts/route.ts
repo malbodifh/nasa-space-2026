@@ -3,6 +3,7 @@ import { z } from "zod";
 import { responseMeta } from "@/app/api/_lib/meta";
 import { latitude, longitude, queryValues, radius as radiusSchema } from "@/app/api/_lib/query";
 import { buildAlerts, buildTestAlert } from "@/lib/alerts";
+import { withCacheTracking } from "@/lib/cache";
 import { todayISO } from "@/lib/demo";
 import { assessRisk } from "@/lib/risk";
 import { getFireStats } from "@/lib/sources/gibs";
@@ -71,7 +72,7 @@ export async function GET(request: Request) {
   }
   const today = todayISO();
 
-  const [fireResult, climateResult, overlayResult] = await Promise.allSettled([
+  const { value: results, cached } = await withCacheTracking(() => Promise.allSettled([
     withBudget(getFireStats(point, radius, today), 6_000, {
       date: today,
       count: 0,
@@ -94,7 +95,8 @@ export async function GET(request: Request) {
       },
       fallbackSources: ["osm", "eonet", "gdacs", "seismic"],
     }),
-  ]);
+  ]));
+  const [fireResult, climateResult, overlayResult] = results;
 
   const current: FireStats =
     fireResult.status === "fulfilled"
@@ -140,7 +142,7 @@ export async function GET(request: Request) {
         ...current.points.map((point) => point.date),
         climate?.lastDate,
         ...(overlays?.alerts.map((alert) => alert.date) ?? []),
-      ], fallbackSources.length > 0),
+      ], fallbackSources.length > 0, cached),
       fallbackSources,
     },
   };

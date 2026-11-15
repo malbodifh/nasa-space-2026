@@ -1,7 +1,12 @@
 import { reportTime } from "@/lib/alert-rules";
 import type { ApiMeta } from "@/lib/types";
 
-export function responseMeta(started: number, dates: (string | null | undefined)[], fallback: boolean): ApiMeta {
+export function responseMeta(
+  started: number,
+  dates: (string | null | undefined)[],
+  fallback: boolean,
+  cached = false,
+): ApiMeta {
   const now = Date.now();
   const times = dates.flatMap((date) => {
     const at = date ? reportTime(date) : Number.NaN;
@@ -10,7 +15,7 @@ export function responseMeta(started: number, dates: (string | null | undefined)
   // La frescura la define el dato más reciente, no el más viejo del historial.
   const newest = times.length ? Math.max(...times) : null;
   return {
-    cached: false,
+    cached,
     requestedAt: new Date(started).toISOString(),
     updatedAt: new Date(now).toISOString(),
     dataUpdatedAt: newest === null ? null : new Date(newest).toISOString(),

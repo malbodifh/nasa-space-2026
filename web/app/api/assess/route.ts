@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { responseMeta } from "@/app/api/_lib/meta";
 import { latitude, longitude, queryValues, radius as radiusSchema } from "@/app/api/_lib/query";
-import { withTimeout } from "@/lib/cache";
+import { withCacheTracking, withTimeout } from "@/lib/cache";
 import { DEFAULT_MEMORY_DATE, todayISO } from "@/lib/demo";
 import { assessRisk, emptyFireStats } from "@/lib/risk";
 import { getFireStats } from "@/lib/sources/gibs";
@@ -34,13 +34,14 @@ export async function GET(request: Request) {
   const today = todayISO();
   const memoryDate = date ?? DEFAULT_MEMORY_DATE;
 
-  const [currentResult, memoryResult, climateResult] = await Promise.allSettled([
+  const { value: results, cached } = await withCacheTracking(() => Promise.allSettled([
     withTimeout(getFireStats(point, radius, today), 6_000),
     withTimeout(memoryDate === today
       ? getFireStats(point, radius, today)
       : getFireStats(point, radius, memoryDate), 6_000),
     withTimeout(getClimate(point), 6_000),
-  ]);
+  ]));
+  const [currentResult, memoryResult, climateResult] = results;
 
   const current: FireStats =
     currentResult.status === "fulfilled" ? currentResult.value : emptyFireStats(today);
@@ -62,7 +63,7 @@ export async function GET(request: Request) {
         ...memory.points.map((point) => point.date),
         climate?.lastDate,
       ], !current.available || !memory.available || !climate ||
-        current.fallback || memory.fallback || climate.fallback),
+        current.fallback || memory.fallback || climate.fallback, cached),
     },
   };
 

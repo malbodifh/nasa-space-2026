@@ -78,8 +78,8 @@ export type AssessData = {
 
 export type ApiMeta = {
   /**
-   * Caché de la respuesta HTTP completa. No es verificable desde el proceso: el CDN puede
-   * servir una copia aunque el origen no lo sepa, así que hoy se informa `false`.
+   * `true` si al menos una fuente se sirvió de la caché en memoria del proceso.
+   * No informa sobre la caché del CDN, que el origen no puede observar.
    */
   cached: boolean;
   /** Legado: hora de generación de la respuesta, no de observación. */

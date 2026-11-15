@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+
 type Entry<T> = {
   expires: number;
   value?: T;
@@ -6,6 +8,24 @@ type Entry<T> = {
 
 const MAX_ENTRIES = 200;
 const store = new Map<string, Entry<unknown>>();
+
+type CacheContext = { hits: number };
+const context = new AsyncLocalStorage<CacheContext>();
+
+/**
+ * Ejecuta una consulta y devuelve si al menos una fuente vino de la caché en memoria.
+ * No informa sobre la caché del CDN, que el proceso no puede ver.
+ */
+export async function withCacheTracking<T>(fn: () => Promise<T>): Promise<{ value: T; cached: boolean }> {
+  const state: CacheContext = { hits: 0 };
+  const value = await context.run(state, fn);
+  return { value, cached: state.hits > 0 };
+}
+
+function noteHit(): void {
+  const state = context.getStore();
+  if (state) state.hits += 1;
+}
 
 /** Presupuesto de una fuente: el agregador conserva las otras aunque esta se cuelgue. */
 export async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -27,8 +47,14 @@ export async function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>
   const hit = store.get(key) as Entry<T> | undefined;
 
   if (hit && hit.expires > now) {
-    if (hit.value !== undefined) return hit.value;
-    if (hit.promise) return hit.promise;
+    if (hit.value !== undefined) {
+      noteHit();
+      return hit.value;
+    }
+    if (hit.promise) {
+      noteHit();
+      return hit.promise;
+    }
   }
 
   if (store.size > MAX_ENTRIES) {
