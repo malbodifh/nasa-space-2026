@@ -5,8 +5,7 @@
 
 ## Qué ve la persona
 
-En la portada, «Ver orientación de emergencia» abre una ventana con «Qué puede hacer» para
-un reporte vigente priorizado por las reglas existentes. Se cierra con el botón o Escape.
+La portada muestra «Qué puede hacer» para un reporte vigente priorizado por las reglas existentes.
 Si no hay uno prioritario, elige uno relevante o el más cercano vigente; si no hay reportes, ofrece preparación.
 No resume todas las amenazas ni evalúa la seguridad de una vivienda.
 
