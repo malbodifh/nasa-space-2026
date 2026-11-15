@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, ExternalLink } from "lucide-react";
 
-import BrandMark from "@/components/BrandMark";
+import GamaLogo from "@/components/GamaLogo";
 import { useLocale } from "@/components/LocaleProvider";
 
 const REPO = "https://github.com/malbodifh/nasa-space-2026/blob/develop";
@@ -116,7 +116,7 @@ export default function AboutPage() {
     <main id="contenido" className="mx-auto w-full max-w-[1180px] px-4 pt-6 pb-20 sm:px-6">
       <section className="max-w-[820px]" aria-labelledby="about-title">
         <div className="mb-6 flex items-center gap-4">
-          <BrandMark className="size-14 shrink-0" />
+          <GamaLogo className="size-14 shrink-0" />
           <div>
             <p className="etiqueta">{t("Acerca de la app", "About the app")}</p>
             <p className="mt-1 text-sm text-tinta-suave">Astral Codes · NASA Space Apps 2026</p>
