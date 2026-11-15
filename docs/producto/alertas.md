@@ -53,12 +53,12 @@ nota «Sin reportes nuevos desde esta fecha.».
 | Inundación, ciclón | 48 h |
 | Ciclón del NHC, lluvia pronosticada | mientras estén publicados |
 
-## 4. Color y áreas
+## 4. Color y radios de proximidad
 
 Cada tipo de desastre tiene su color (`HAZARD_STYLE`): sismo café, tsunami azul, volcán naranja,
 inundación turquesa, ciclón violeta, lluvia celeste, deslizamiento ocre, radar azul de marca.
 
-Si la amenaza está **en curso**, el mapa dibuja dos radios; si no, ninguno:
+Si la amenaza está **en curso**, el mapa dibuja dos radios de proximidad; si no, ninguno:
 
 | Amenaza | Roja | Amarilla |
 |---|---|---|
@@ -73,7 +73,8 @@ Si la amenaza está **en curso**, el mapa dibuja dos radios; si no, ninguno:
 | Lluvia fuerte | 10 km si es naranja | 25 km |
 | Radar, avisos informativos | sin área | sin área |
 
-Las áreas son **estimaciones simples**, no zonas oficiales, y así se dice en el popup.
+Los radios son **estimaciones simples de proximidad**, no zonas oficiales ni áreas de afectación,
+y así se dice en el popup y en la leyenda.
 
 ## 5. Varias fuentes, un solo evento
 
@@ -126,7 +127,14 @@ Cada alerta nueva que afecta a la persona se avisa de dos formas:
 Solo funcionan con la página abierta. Al abrir la página por primera vez no se avisa de lo que ya
 estaba, salvo las simulaciones del modo demo. «Probar aviso» envía los dos tipos y dice qué pasó.
 
-## 10. PWA y avisos push
+## 10. Orientación para civiles
+
+La tarjeta «Qué puede hacer» presenta dos acciones por amenaza, fuentes oficiales y datos
+desplegables del reporte. Usa las reglas existentes de cercanía y vigencia para priorizar su
+lectura, sin calcular intensidad local, daños ni órdenes de evacuación.
+Ver [`prevencion.md`](prevencion.md): no hay modelo entrenado ni generación libre de consejos;
+las máscaras SAR no se usan para decidir esas recomendaciones.
+## 11. PWA y avisos push
 
 La app es instalable (`web/app/manifest.ts`, íconos en `web/public/icons/`) y envía avisos push aunque la página esté cerrada.
 

@@ -14,7 +14,7 @@
 | Evento | NASA Space Apps Challenge 2026 |
 | Integrantes | Andy, David, Samuel, Jorge, Leo |
 | Reto de trabajo | **Dancing with the SARs** (NISAR). La votación formal sigue sin registrarse: confirmar con el equipo y anotarlo en [`decisiones/`](decisiones/) |
-| Producto | **Memoria de Fuego**: alertas de desastres para Costa Rica y, por cada evento, cómo cambió la superficie vista con radar NISAR |
+| Producto | **Memoria de Fuego**: alertas de desastres para Costa Rica y, por cada evento, una comparación visual de la superficie antes y después con radar NISAR |
 | Región | Costa Rica |
 | Repo | [malbodifh/nasa-space-2026](https://github.com/malbodifh/nasa-space-2026) |
 | Deploy | [Producción](https://nasa-space-2026.vercel.app/) · `main` recibió `develop` mediante PR #21; las correcciones de auditoría siguen en revisión por separado |
@@ -29,6 +29,8 @@
   FIRMS está conectado pero oculto. Reglas en [`producto/alertas.md`](producto/alertas.md).
 - **Radar NISAR** real (ASF DAAC), con 4 zonas precalculadas. Método en
   [`producto/nisar.md`](producto/nisar.md).
+- **Prevención en desarrollo:** tarjeta ES/EN «Qué puede hacer», con protocolos consultables
+  y límites de uso civil. Alcance en [`producto/prevencion.md`](producto/prevencion.md).
 - **Qué no hace**: [`producto/limites.md`](producto/limites.md).
 - **Revisión en `develop` (no certifica producción):** menú y ayuda bilingüe ES/EN,
   auditoría independiente, correcciones de APIs/modo demo, límites del estudio SAR y
@@ -50,6 +52,9 @@
 6. Idea guardada: línea de tiempo SAR con imagen grande, barra deslizante por fecha y botones
    anterior/siguiente accesibles. Usar solo capturas reales disponibles, conservar el comparador
    antes/después y no interpretar cambios de brillo como daños confirmados. Implementación pendiente.
+7. Detector de cambios satelitales entrenado y evaluado con evidencia independiente:
+   [`requisitos y límites`](investigacion/validacion-cambio-satelital.md). No hay modelo entrenado;
+   las máscaras actuales de previews no confirman peligro ni daños.
 
 ## 4. Decisiones
 

@@ -7,7 +7,8 @@
    sitio (usa Cloudflare Turnstile): se enlaza a ellos.
 2. **No predecimos.** Mostramos lo que ya ocurrió o lo que un modelo oficial pronostica (por
    ejemplo, lluvia de Open-Meteo, que es un modelo y no un aviso del IMN).
-3. **Las áreas roja y amarilla son estimaciones simples**, no zonas oficiales.
+3. **Los radios rojo y amarillo son estimaciones de proximidad**, no zonas oficiales ni áreas de
+   afectación.
 4. **El radar usa vistas previas**, no datos calibrados. Los porcentajes corresponden a píxeles
    comparables con cambio de brillo, no a área afectada ni a daños. Comparar colecciones
    provisionales y validadas puede introducir cambios de procesamiento.

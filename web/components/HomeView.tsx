@@ -7,6 +7,7 @@ import useSWR from "swr";
 
 import AlertToasts from "@/components/AlertToasts";
 import EventList from "@/components/EventList";
+import SafetyDialog from "@/components/SafetyDialog";
 import { useLocale } from "@/components/LocaleProvider";
 import { useAlertNotifications } from "@/components/useAlertNotifications";
 import { DEMO_POINT } from "@/lib/demo";
@@ -210,7 +211,7 @@ export default function HomeView() {
         ) : null}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
           <section
-            className="h-[46vh] min-h-[300px] overflow-hidden rounded-[14px] bg-hundida lg:h-auto lg:min-h-[540px]"
+            className="h-[46vh] min-h-[300px] min-w-0 overflow-hidden rounded-[14px] bg-hundida lg:h-[70vh] lg:min-h-[540px] lg:max-h-[720px] lg:self-start"
             style={{ boxShadow: "var(--sombra-tarjeta)" }}
             aria-label={t("Mapa", "Map")}
           >
@@ -255,7 +256,7 @@ export default function HomeView() {
                       ? t("Una o más fuentes no respondieron, así que pueden faltar eventos. Esto no significa que no haya peligro.", "One or more sources did not respond, so events may be missing. This does not mean there is no hazard.")
                       : status.nearest
                         ? `${eventTitle(fromAlert(status.nearest), locale)} · ${t("a ", "")}${Math.round(status.nearest.distanceKm).toLocaleString(intlLocale(locale))} km${t("", " away")}`
-                        : t("Ningún evento reciente le afecta, según las reglas de cada amenaza.", "No recent events affect your location under the rules for each hazard.")}
+                        : t("Ningún evento reciente supera los filtros de proximidad de la app. La ausencia de alertas no garantiza seguridad.", "No recent event passes the app's proximity filters. The absence of alerts does not guarantee safety.")}
                   </p>
                   {incomplete && !noAlerts ? (
                     <p className="mt-2 text-[13px] leading-snug text-tinta-suave">
@@ -292,6 +293,7 @@ export default function HomeView() {
               </div>
 
               <div className="mt-5 flex flex-col gap-2">
+                <SafetyDialog alerts={active} exampleLocation={location.status !== "gps"} incomplete={incomplete || Boolean(eventsError)} />
                 <button
                   type="button"
                   onClick={() => setDemoOpen((open) => !open)}
@@ -439,7 +441,7 @@ export default function HomeView() {
               {t("Alertas recientes", "Recent alerts")}
             </h2>
             <p className="mt-1 text-[15px] text-tinta-suave">
-              {t("Las más recientes primero. «En curso» marca lo que ocurre en este momento.", "Newest first. “Ongoing” marks what is happening right now.")}
+              {t("Las más recientes primero. «En curso» usa una ventana de tiempo desde el último reporte; no es un estado oficial.", "Newest first. “Ongoing” uses a time window since the latest report; it is not an official status.")}
             </p>
             <div className="mt-4">
               {events || demo ? (
