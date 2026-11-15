@@ -12,7 +12,9 @@ import {
 } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 
+import { useLocale } from "@/components/LocaleProvider";
 import OverlayPanel from "@/components/OverlayPanel";
+import { categoryLabel } from "@/lib/display-i18n";
 import { bboxForRadius, circlePolygon } from "@/lib/geo";
 import { hazardFor } from "@/lib/hazards";
 import type {
@@ -79,12 +81,34 @@ export default function MapCanvas({
   hiddenHazards,
   focusPoint,
 }: Props) {
+  const { locale, t } = useLocale();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const onPickRef = useRef(onPick);
   const popupRef = useRef<Popup | null>(null);
+  const textRef = useRef(t);
+  const sourceDataRef = useRef(new Map<string, unknown>());
   const [ready, setReady] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<"webgl" | "style" | null>(null);
+  const [degraded, setDegraded] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    textRef.current = t;
+    popupRef.current?.remove();
+    const map = mapRef.current;
+    if (!map) return;
+    map.getCanvas().setAttribute("aria-label", t("Mapa interactivo de capas", "Interactive layer map"));
+    for (const [selector, label] of [
+      [".maplibregl-ctrl-zoom-in", t("Acercar", "Zoom in")],
+      [".maplibregl-ctrl-zoom-out", t("Alejar", "Zoom out")],
+      [".maplibregl-ctrl-attrib-button", t("Fuentes del mapa", "Map attribution")],
+    ]) {
+      const button = map.getContainer().querySelector(selector);
+      button?.setAttribute("aria-label", label);
+      button?.setAttribute("title", label);
+    }
+  }, [t, ready]);
 
   useEffect(() => {
     onPickRef.current = onPick;
@@ -103,12 +127,13 @@ export default function MapCanvas({
         zoom: 9,
         minZoom: 3,
         maxZoom: 15,
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
         attributionControl: false,
       });
     } catch {
       // WebGL2 solo se puede detectar después del montaje.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setError("Tu navegador no soporta WebGL2, necesario para el mapa.");
+      setError("webgl");
       return;
     }
 
@@ -118,9 +143,37 @@ export default function MapCanvas({
     map.addControl(new NavigationControl({ showCompass: false }), "top-right");
     map.addControl(new AttributionControl({ compact: true }), "bottom-right");
     popupRef.current = new Popup({ closeButton: false, offset: 10, maxWidth: "260px" });
+    let disposed = false;
+    let styleReady = false;
+    const dispose = () => {
+      if (disposed) return;
+      disposed = true;
+      clearTimeout(timeout);
+      resizeObserver.disconnect();
+      popupRef.current?.remove();
+      popupRef.current = null;
+      map.remove();
+      mapRef.current = null;
+      sourceDataRef.current.clear();
+    };
+    const fail = () => {
+      if (disposed) return;
+      setError("style");
+      setReady(false);
+      dispose();
+    };
+    const timeout = window.setTimeout(fail, 15_000);
+    map.on("error", () => {
+      if (disposed) return;
+      if (!styleReady) fail();
+      else setDegraded(true);
+    });
 
     // "style.load" llega antes que "load": el mapa aparece sin esperar teselas.
     map.on("style.load", () => {
+      if (disposed) return;
+      styleReady = true;
+      clearTimeout(timeout);
       map.resize();
       setReady(true);
       map.addSource("borders", { type: "geojson", data: EMPTY });
@@ -326,9 +379,9 @@ export default function MapCanvas({
         popupRef.current
           .setLngLat(event.lngLat)
           .setHTML(
-            `<strong>${escapeHtml(p.satellite ?? "Satélite")}</strong> · ${escapeHtml(p.instrument ?? "")}<br/>` +
+            `<strong>${escapeHtml(p.satellite ?? textRef.current("Satélite", "Satellite"))}</strong> · ${escapeHtml(p.instrument ?? "")}<br/>` +
               `${escapeHtml(p.distanceKm)} km · FRP ${escapeHtml(Number.isFinite(frp) ? frp : "—")} MW<br/>` +
-              `<span style="color:#6e675c">${escapeHtml(p.date)} ${escapeHtml(p.time ?? "")} · confianza ${escapeHtml(p.confidence ?? "—")}</span>`,
+              `<span style="color:#6e675c">${escapeHtml(p.date)} ${escapeHtml(p.time ?? "")} · ${escapeHtml(textRef.current("confianza", "confidence"))} ${escapeHtml(p.confidence ?? "—")}</span>`,
           )
           .addTo(map);
       });
@@ -341,8 +394,8 @@ export default function MapCanvas({
           .setLngLat(event.lngLat)
           .setHTML(
             `<strong>${escapeHtml(p.name)}</strong><br/>` +
-              `${escapeHtml(p.type ?? "Volcán")}${p.elevation ? ` · ${escapeHtml(p.elevation)} m` : ""}<br/>` +
-              `<span style="color:#6e675c">${escapeHtml(p.country ?? "")} · última erupción: ${escapeHtml(p.lastEruption ?? "sin registro")}</span>` +
+              `${escapeHtml(p.type ?? textRef.current("Volcán", "Volcano"))}${p.elevation ? ` · ${escapeHtml(p.elevation)} m` : ""}<br/>` +
+              `<span style="color:#6e675c">${escapeHtml(p.country ?? "")} · ${escapeHtml(textRef.current("última erupción", "last eruption"))}: ${escapeHtml(p.lastEruption ?? textRef.current("sin registro", "no record"))}</span>` +
               link(p.url, "Smithsonian GVP"),
           )
           .addTo(map);
@@ -369,8 +422,8 @@ export default function MapCanvas({
           .setHTML(
             `<strong>M ${escapeHtml(p.magnitude)}</strong> · ${escapeHtml(p.place)}<br/>` +
               `<span style="color:#6e675c">${escapeHtml(p.source)} · ${escapeHtml(p.distanceKm)} km · ${escapeHtml(p.time).slice(0, 16).replace("T", " ")}</span>` +
-              (p.depthKm !== null && p.depthKm !== undefined ? `<br/>Profundidad ${escapeHtml(p.depthKm)} km` : "") +
-              link(p.url, "Ver evento"),
+              (p.depthKm !== null && p.depthKm !== undefined ? `<br/>${escapeHtml(textRef.current("Profundidad", "Depth"))} ${escapeHtml(p.depthKm)} km` : "") +
+              link(p.url, textRef.current("Ver evento", "View event")),
           )
           .addTo(map);
       });
@@ -383,9 +436,9 @@ export default function MapCanvas({
           .setLngLat(event.lngLat)
           .setHTML(
             `<strong>${escapeHtml(p.title)}</strong><br/>` +
-              `${escapeHtml(p.categoryLabel)} · nivel ${escapeHtml(p.level)}<br/>` +
+              `${escapeHtml(p.categoryLabel)} · ${escapeHtml(textRef.current("nivel", "level"))} ${escapeHtml(p.level)}<br/>` +
               `<span style="color:#6e675c">${escapeHtml(p.source)} · ${escapeHtml(p.distanceKm)} km · ${escapeHtml(String(p.date).slice(0, 10))}</span>` +
-              link(p.url, "Reporte oficial"),
+              link(p.url, textRef.current("Reporte original", "Original report")),
           )
           .addTo(map);
       });
@@ -422,15 +475,10 @@ export default function MapCanvas({
       });
     });
 
-    return () => {
-      resizeObserver.disconnect();
-      popupRef.current?.remove();
-      map.remove();
-      mapRef.current = null;
-    };
+    return dispose;
     // El mapa se crea una sola vez; el centro y los datos se actualizan en los efectos siguientes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [attempt]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -490,7 +538,7 @@ export default function MapCanvas({
         title: alert.title,
         source: alert.source,
         level: alert.level,
-        categoryLabel: alert.categoryLabel,
+        categoryLabel: categoryLabel(alert.category, alert.categoryLabel, locale),
         distanceKm: alert.distanceKm,
         date: alert.date,
         url: alert.url,
@@ -526,10 +574,14 @@ export default function MapCanvas({
     ];
 
     for (const [id, data] of collections) {
+      if (sourceDataRef.current.get(id) === data) continue;
       const source = map.getSource(id) as GeoJSONSource | undefined;
-      if (source) source.setData(data as never);
+      if (source) {
+        source.setData(data as never);
+        sourceDataRef.current.set(id, data);
+      }
     }
-  }, [ready, overlays, hiddenHazards]);
+  }, [ready, overlays, hiddenHazards, locale]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -574,7 +626,12 @@ export default function MapCanvas({
 
   return (
     <div className="map-warm relative h-full w-full overflow-hidden bg-paper">
-      <div ref={containerRef} className="h-full w-full" aria-label="Mapa de focos de calor y capas" />
+      <div ref={containerRef} className="h-full w-full" aria-label={t("Mapa de focos de calor y capas", "Map of heat detections and layers")} />
+      {degraded && !error ? (
+        <p role="status" className="absolute bottom-20 left-3 right-14 rounded-lg bg-white/95 p-2 text-[12px] text-tinta-suave">
+          {t("Algunas capas del mapa no pudieron cargarse.", "Some map layers could not be loaded.")}
+        </p>
+      ) : null}
 
       <div className="pointer-events-none absolute left-3 top-3 z-10">
         <OverlayPanel
@@ -586,35 +643,45 @@ export default function MapCanvas({
       </div>
 
       {!ready && !error ? (
-        <div className="absolute inset-0 grid place-items-center bg-paper/70 font-mono text-[11px] text-ash">
-          Cargando mapa…
+        <div role="status" className="absolute inset-0 grid place-items-center bg-paper/70 font-mono text-[11px] text-ash">
+          {t("Cargando mapa…", "Loading map…")}
         </div>
       ) : null}
       {error ? (
-        <div className="absolute inset-0 grid place-items-center bg-paper/90 p-6 text-center font-mono text-[11px] text-burnt">
-          {error}
+        <div role="status" className="absolute inset-0 grid place-items-center bg-paper/90 p-6 text-center text-[14px] text-tinta-suave">
+          <div>
+            <p>{error === "webgl"
+              ? t("Su navegador no puede mostrar el mapa.", "Your browser cannot display the map.")
+              : t("No se pudo cargar el mapa. Puede seguir consultando los datos.", "The map could not load. You can still view the data.")}</p>
+            <button type="button" className="boton boton-chico boton-principal mt-3" onClick={() => {
+              setError(null);
+              setDegraded(false);
+              setReady(false);
+              setAttempt((value) => value + 1);
+            }}>{t("Reintentar mapa", "Retry map")}</button>
+          </div>
         </div>
       ) : null}
 
       <div className="pointer-events-none absolute bottom-4 left-4 border border-rule bg-sheet/95 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.1em] text-ash shadow-[3px_3px_0_rgba(27,26,23,0.06)]">
         <div className="flex items-center gap-2">
           <span className="inline-block size-1.5 bg-ember" />
-          {memoryMode ? "Memoria · NASA GIBS" : "Focos recientes · NASA GIBS"}
+          {memoryMode ? t("Memoria · NASA GIBS", "History · NASA GIBS") : t("Focos recientes · NASA GIBS", "Recent detections · NASA GIBS")}
         </div>
         <div className="mt-1 flex items-center gap-2">
           <span className="inline-block size-2 border border-forest" />
-          Tu punto · {radiusKm} km
+          {t("Su punto", "Your point")} · {radiusKm} km
         </div>
         {overlays && overlays.alerts.length > 0 ? (
           <div className="mt-1 flex items-center gap-2">
             <span className="inline-block size-2 rounded-full bg-burnt" />
-            {overlays.alerts.length} eventos
+            {overlays.alerts.length} {t("eventos", "events")}
           </div>
         ) : null}
       </div>
 
       <div className="pointer-events-none absolute right-4 top-4 hidden border border-rule bg-sheet/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-ash lg:block">
-        {memoryMode ? "Archivo" : "Ahora"}
+        {memoryMode ? t("Archivo", "Archive") : t("Ahora", "Now")}
       </div>
     </div>
   );

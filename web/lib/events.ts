@@ -59,7 +59,7 @@ export function fromAlert(alert: DisasterAlert): EventItem {
   };
 }
 
-/** Cambios fuertes que el radar detectó en las zonas de estudio (≥ `minPct` del área). */
+/** Cambio aparente en vistas previas (≥ `minPct` de píxeles comparables), no daño confirmado. */
 export function radarDetections(point: LatLon, minPct = 5, zones: SarZone[] = SAR_ZONES): EventItem[] {
   const items: EventItem[] = [];
   for (const zone of zones) {
@@ -80,6 +80,7 @@ export function radarDetections(point: LatLon, minPct = 5, zones: SarZone[] = SA
       distanceKm: Math.round(distanceKm(point, zone.center) * 10) / 10,
       level: "info",
       source: "NASA-ISRO NISAR",
+      detail: "Comparación de vistas previas de 8 bits. No identifica la causa ni confirma daños.",
     });
   }
   return items;
@@ -218,5 +219,5 @@ export const OFFICIAL_LABEL: Record<string, string> = {
   "NASA FIRMS": "Mapa de FIRMS",
   GDACS: "Reporte de GDACS",
   "NASA EONET": "Fuente en EONET",
-  "Open-Meteo": "Avisos del IMN",
+  "Open-Meteo": "Pronóstico Open-Meteo",
 };

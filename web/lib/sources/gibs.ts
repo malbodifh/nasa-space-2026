@@ -39,6 +39,7 @@ function tileRange(bbox: [number, number, number, number]): TileRange {
 }
 
 function toNumber(value: unknown): number | null {
+  if (value === null || value === undefined || (typeof value === "string" && !value.trim())) return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }
@@ -142,6 +143,7 @@ export async function getFireStats(
     const range = tileRange(bboxForRadius(point, radiusKm));
     const points: FirePoint[] = [];
     let available = false;
+    let missing = false;
 
     const tasks: Promise<void>[] = [];
     for (let x = range.x0; x <= range.x1; x += 1) {
@@ -152,9 +154,9 @@ export async function getFireStats(
               if (tile !== null) {
                 available = true;
                 points.push(...tile);
-              }
+              } else missing = true;
             })
-            .catch(() => undefined),
+            .catch(() => { missing = true; }),
         );
       }
     }
@@ -164,6 +166,7 @@ export async function getFireStats(
       return fromPoints(date, radiusKm, point, demoMemory.points, true, true);
     }
 
-    return fromPoints(date, radiusKm, point, points, available, false);
+    // Una parte del radio sin respuesta no equivale a ausencia de focos en todo el radio.
+    return fromPoints(date, radiusKm, point, points, available && !missing, missing || !available);
   });
 }

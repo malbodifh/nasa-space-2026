@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useLocale } from "@/components/LocaleProvider";
+import { displayDetail, eventTitle, intlLocale } from "@/lib/display-i18n";
 
 import type { Toast } from "@/components/AlertToasts";
 import { fromAlert, studyHref } from "@/lib/events";
@@ -39,8 +41,8 @@ function saveSeen(seen: Set<string>) {
  * Muestra un aviso del sistema. Usa el service worker si está listo (único camino que funciona en
  * Chrome para Android) y, si no, el constructor clásico. Devuelve si el navegador lo aceptó.
  */
-async function show(title: string, body: string, href: string | null, tag: string): Promise<boolean> {
-  const options = { body, tag, icon: "/icon.svg", lang: "es", data: { href }, renotify: true } as NotificationOptions;
+async function show(title: string, body: string, href: string | null, tag: string, lang: string): Promise<boolean> {
+  const options = { body, tag, icon: "/icon.svg", lang, data: { href }, renotify: true } as NotificationOptions;
   try {
     const registration = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : undefined;
     if (registration?.active) {
@@ -67,9 +69,10 @@ async function show(title: string, body: string, href: string | null, tag: strin
  * abierta. Las alertas que ya estaban al abrir la página no se notifican.
  */
 export function useAlertNotifications(relevant: DisasterAlert[] | null) {
+  const { locale, t } = useLocale();
   const browser = useSyncExternalStore<Permission>(subscribe, snapshot, () => "default");
   const [requested, setRequested] = useState<Permission | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ es: string; en: string } | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const permission = requested ?? browser;
   const seenRef = useRef<Set<string> | null>(null);
@@ -93,18 +96,19 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null) {
       if (toSend.length === 0) return;
       const items = toSend.map((alert) => ({
         id: alert.id,
-        title: alert.id.startsWith("demo-") ? `[Demo] ${alert.title}` : alert.title,
-        body: [alert.detail, `A ${Math.round(alert.distanceKm)} km · ${alert.source}`].filter(Boolean).join(" · "),
+        title: alert.id.startsWith("demo-") ? `${t("[Demostración]", "[Simulated]")} ${eventTitle(fromAlert(alert), locale)}` : eventTitle(fromAlert(alert), locale),
+        body: [alert.detail ? displayDetail(alert.detail, locale) : null, `${t("A", "At")} ${Math.round(alert.distanceKm).toLocaleString(intlLocale(locale))} km · ${alert.source === "Demostración" ? t("Demostración", "Simulation") : alert.source}`].filter(Boolean).join(" · "),
         href: studyHref(fromAlert(alert)),
+        alert,
       }));
       // El aviso dentro de la página siempre se muestra; el del sistema, solo con permiso.
       setToasts((current) => [...items.filter((item) => !current.some((c) => c.id === item.id)), ...current].slice(0, 4));
       if (permission === "granted") {
-        for (const item of items) void show(item.title, item.body, item.href, item.id);
+        for (const item of items) void show(item.title, item.body, item.href, item.id, locale);
       }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [relevant, permission]);
+  }, [relevant, permission, locale, t]);
 
   const enable = useCallback(async (): Promise<Permission> => {
     if (!("Notification" in window)) {
@@ -124,32 +128,33 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null) {
   /** Pide permiso si falta y envía un aviso de prueba; `notice` cuenta qué pasó. */
   const test = useCallback(async () => {
     setToasts((current) => [
-      { id: `prueba-${Date.now()}`, title: "Aviso de prueba", body: "Así le llegará una alerta nueva para su ubicación.", href: null },
+      { id: `prueba-${Date.now()}`, title: t("Aviso de prueba · demostración", "Test notification · simulated"), body: t("Así le llegará una alerta nueva para su ubicación. Este aviso es simulado.", "This is how a new alert for your location will appear. This notification is simulated."), href: null, simulatedTest: true },
       ...current,
     ].slice(0, 4));
     const current = permission === "default" ? await enable() : permission;
     if (current === "unsupported") {
-      setNotice("Este navegador no permite avisos del sistema; los verá dentro de la página.");
+      setNotice({ es: "Este navegador no permite avisos del sistema; los verá dentro de la página.", en: "This browser does not support system notifications; you will see them on this page." });
       return;
     }
     if (current !== "granted") {
-      setNotice("El sistema tiene los avisos bloqueados, por eso solo los verá dentro de la página. Para recibirlos fuera, actívelos con el candado junto a la dirección.");
+      setNotice({ es: "El sistema tiene los avisos bloqueados, por eso solo los verá dentro de la página. Para recibirlos fuera, actívelos con el candado junto a la dirección.", en: "System notifications are blocked, so you will only see them on this page. To receive them outside the page, enable them using the lock icon next to the address." });
       return;
     }
     const sent = await show(
-      "Aviso de prueba",
-      "Así le llegará una alerta nueva para su ubicación.",
+      t("Aviso de prueba · demostración", "Test notification · simulated"),
+      t("Así le llegará una alerta nueva para su ubicación. Este aviso es simulado.", "This is how a new alert for your location will appear. This notification is simulated."),
       null,
       `prueba-${Date.now()}`,
+      locale,
     );
     setNotice(
       sent
-        ? "Aviso enviado. Si no lo ve, revise el modo «No molestar» o «Asistente de concentración» del sistema."
-        : "El navegador rechazó el aviso. Pruebe con Chrome o Edge en una página https o localhost.",
+        ? { es: "Aviso enviado. Si no lo ve, revise el modo «No molestar» o «Asistente de concentración» del sistema.", en: "Notification sent. If it doesn't appear, check your system's Do Not Disturb or Focus settings." }
+        : { es: "El navegador rechazó el aviso. Pruebe con Chrome o Edge en una página https o localhost.", en: "The browser rejected the notification. Try Chrome or Edge on an HTTPS page or localhost." },
     );
-  }, [permission, enable]);
+  }, [permission, enable, locale, t]);
 
   const dismiss = useCallback((id: string) => setToasts((current) => current.filter((toast) => toast.id !== id)), []);
 
-  return { permission, enable, test, notice, toasts, dismiss };
+  return { permission, enable, test, notice: notice ? t(notice.es, notice.en) : null, toasts, dismiss };
 }

@@ -2,7 +2,7 @@
 
 > **Única fuente viva del estado.** Cambia a diario. Si algo no está acá o enlazado desde acá,
 > no existe. Cada decisión nueva se registra en [`decisiones/`](decisiones/) y se enlaza abajo.
-> Última actualización: **2026-11-14**.
+> Última actualización: **2026-11-15**.
 
 ---
 
@@ -17,25 +17,33 @@
 | Producto | **Memoria de Fuego**: alertas de desastres para Costa Rica y, por cada evento, cómo cambió la superficie vista con radar NISAR |
 | Región | Costa Rica |
 | Repo | [malbodifh/nasa-space-2026](https://github.com/malbodifh/nasa-space-2026) |
-| Deploy | Pendiente (Vercel, Root Directory `web/`; ver [`tecnico/herramientas.md`](tecnico/herramientas.md)) |
+| Deploy | [Producción](https://nasa-space-2026.vercel.app/) · las mejoras locales de `develop` requieren revisión y publicación por separado |
 | Entrega | Domingo 15/11/2026, **23:59** hora local del evento |
 
 ## 2. Qué existe hoy
 
 - **App** en [`web/`](../web/README.md): portada con alertas y mapa, y página de estudio con
   imágenes de radar comparadas.
-- **Alertas** con 9 fuentes en vivo (USGS, OVSICORI, RSN, PTWC, NHC, Open-Meteo, GDACS, EONET y
-  NISAR). FIRMS está conectado pero oculto. Reglas en [`producto/alertas.md`](producto/alertas.md).
+- **Alertas** con 8 fuentes (USGS, OVSICORI, RSN, PTWC, NHC, Open-Meteo, GDACS y EONET).
+  NISAR aporta una capa informativa de cambio, no un feed de alertas en tiempo real.
+  FIRMS está conectado pero oculto. Reglas en [`producto/alertas.md`](producto/alertas.md).
 - **Radar NISAR** real (ASF DAAC), con 4 zonas precalculadas. Método en
   [`producto/nisar.md`](producto/nisar.md).
 - **Qué no hace**: [`producto/limites.md`](producto/limites.md).
+- **Revisión en `develop` (no certifica producción):** menú y ayuda bilingüe ES/EN,
+  auditoría independiente, correcciones de APIs/modo demo, límites del estudio SAR y
+  rendimiento. Guía de uso en [`producto/guia-app.md`](producto/guia-app.md) y pruebas en
+  [`qa/pruebas.md`](qa/pruebas.md). Resumen y pendientes en [`qa/README.md`](qa/README.md).
 
 ## 3. Pendientes
 
 1. Registrar el reto elegido (ver §1).
-2. Deploy en Vercel con `FIRMS_MAP_KEY` como variable de entorno.
-3. Confirmación cruzada entre fuentes y nivel de confianza por alerta.
-4. Video de 30 s y submission en inglés.
+2. Revisar los cambios de `develop` y repetir PageSpeed sobre su preview, sin promover a `main`
+   automáticamente. [`Línea base de producción`](qa/rendimiento-baseline.md).
+3. Completar validación científica independiente y pruebas con personas usuarias.
+4. Video de 30 s y submission en inglés; [`borrador EN`](entrega/submission-en.md).
+5. Confirmar logo definitivo si reemplaza al existente y licencia del código. No se asignó una
+   licencia en nombre del equipo.
 
 ## 4. Decisiones
 

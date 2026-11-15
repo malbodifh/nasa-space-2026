@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useLocale } from "@/components/LocaleProvider";
 
 import type { AppAlert } from "@/lib/types";
 
@@ -25,6 +26,7 @@ export default function AlertToast({
   alert: AppAlert;
   onClose: () => void;
 }) {
+  const { t } = useLocale();
   return (
     <div
       role="alert"
@@ -33,12 +35,12 @@ export default function AlertToast({
     >
       <div className="flex items-baseline justify-between gap-2">
         <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-ash">
-          {LABEL[alert.severity]} · {alert.source}
+          {t(LABEL[alert.severity], { critical: "Critical", warning: "Warning", watch: "Watch", info: "Information" }[alert.severity])} · {alert.source}
         </span>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Cerrar alerta"
+          aria-label={t("Cerrar alerta", "Dismiss alert")}
           className="-mr-1 -mt-1 p-1 text-ash hover:text-ink"
         >
           <X className="size-3.5" />
@@ -54,11 +56,11 @@ export default function AlertToast({
             rel="noreferrer"
             className="font-mono text-[9px] uppercase tracking-[0.12em] text-ink underline underline-offset-4 hover:text-burnt"
           >
-            Ver fuente
+            {t("Ver fuente", "View source")}
           </a>
         ) : (
           <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-ash">
-            Prototipo
+            {t("Prototipo", "Prototype")}
           </span>
         )}
         <button
@@ -66,7 +68,7 @@ export default function AlertToast({
           onClick={onClose}
           className="font-mono text-[9px] uppercase tracking-[0.12em] text-ash underline underline-offset-4 hover:text-ink"
         >
-          Entendido
+          {t("Entendido", "Got it")}
         </button>
       </div>
     </div>

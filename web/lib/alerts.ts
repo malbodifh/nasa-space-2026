@@ -71,7 +71,7 @@ export function buildAlerts({
           : `NASA GIBS registró ${current.count} ${current.count === 1 ? "detección" : "detecciones"} en el radio de ${radiusKm} km.`,
       source: "NASA GIBS",
       url: "https://gibs.earthdata.nasa.gov/",
-      createdAt,
+      createdAt: nearest?.date ?? current.date,
       distanceKm: current.nearestKm,
       scope: near ? "point" : "radius",
     });

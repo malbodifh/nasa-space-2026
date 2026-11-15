@@ -5,7 +5,7 @@ export const NISAR_COLLECTIONS = [
   { shortName: "NISAR_L2_GCOV_PROVISIONAL_V1", status: "provisional" as const },
 ];
 
-export const GRANULE_PATTERN = /^NISAR_L2_PR_GCOV_[A-Z0-9_]+$/;
+export const GRANULE_PATTERN = /^NISAR_L2_PR_GCOV_[A-Z0-9_]{1,180}$/;
 
 export type NisarSearch = {
   frame: string;

@@ -57,7 +57,7 @@ describe("risk", () => {
   });
 
   it("queda bajo con clima húmedo y sin focos", () => {
-    const risk = assessRisk(emptyFireStats("2026-11-14"), wetClimate, 50);
+    const risk = assessRisk({ ...emptyFireStats("2026-11-14"), available: true }, wetClimate, 50);
     expect(["low", "moderate"]).toContain(risk.level);
     expect(risk.score).toBeLessThan(50);
   });

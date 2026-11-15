@@ -70,9 +70,12 @@ export async function getGdacsAlerts(point: LatLon): Promise<DisasterAlert[]> {
       if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue;
 
       const distance = distanceKm(point, { lat, lon });
-      if (distance > MAX_ALERT_KM) continue;
-
       const props = feature.properties;
+      // Una sequía regional tiene el centroide lejos pero puede incluir a Costa Rica
+      // en su lista de países. Filtrar solo por distancia la haría desaparecer.
+      const mentionsCostaRica = /\bcosta\s+rica\b/i.test(props.country ?? "");
+      if (distance > MAX_ALERT_KM && !mentionsCostaRica) continue;
+
       alerts.push({
         id: `GDACS-${props.eventtype}-${props.eventid}`,
         source: "GDACS",
@@ -80,7 +83,7 @@ export async function getGdacsAlerts(point: LatLon): Promise<DisasterAlert[]> {
         categoryLabel: CATEGORY_LABEL[props.eventtype] ?? props.eventtype,
         title: props.eventname ?? props.description ?? "Evento sin nombre",
         level: levelOf(props.alertlevel),
-        date: props.todate ?? props.datemodified ?? from.toISOString(),
+        date: props.datemodified ?? props.fromdate ?? "",
         lat,
         lon,
         distanceKm: Math.round(distance * 10) / 10,

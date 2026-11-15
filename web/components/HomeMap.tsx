@@ -12,8 +12,10 @@ import {
 } from "maplibre-gl";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { useLocale } from "@/components/LocaleProvider";
 import { isOngoing } from "@/lib/alert-rules";
-import { relativeDay, studyHref, type EventItem } from "@/lib/events";
+import { categoryLabel, displayTimeAgo, eventTitle, intlLocale } from "@/lib/display-i18n";
+import { studyHref, type EventItem } from "@/lib/events";
 import { bboxForRadius, circlePolygon } from "@/lib/geo";
 import { alertZones, HAZARD_ORDER, HAZARD_STYLE, hazardOf, type Hazard } from "@/lib/hazard-style";
 import type { LatLon } from "@/lib/types";
@@ -51,14 +53,41 @@ function fit(map: MapLibreMap, point: LatLon, radiusKm: number, duration: number
   );
 }
 
-const km = (value: number) => `${value.toLocaleString("es-CR")} km`;
+const HAZARD_EN: Record<Hazard, string> = {
+  sismo: "Earthquake", tsunami: "Tsunami", volcan: "Volcano", inundacion: "Flood",
+  ciclon: "Cyclone or storm", lluvia: "Heavy rain", deslizamiento: "Landslide",
+  incendio: "Wildfire", radar: "Detected by radar", otro: "Other",
+};
 
 export default function HomeMap({ point, radiusKm, active, history }: Props) {
+  const { locale, t } = useLocale();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  const popupRef = useRef<Popup | null>(null);
+  const textRef = useRef(t);
+  const fittedRef = useRef<{ map: MapLibreMap; lat: number; lon: number; radiusKm: number } | null>(null);
   const initialRef = useRef({ point, radiusKm });
   const [ready, setReady] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<"webgl" | "style" | null>(null);
+  const [degraded, setDegraded] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    textRef.current = t;
+    popupRef.current?.remove();
+    const map = mapRef.current;
+    if (!map) return;
+    map.getCanvas().setAttribute("aria-label", t("Mapa interactivo de alertas", "Interactive alert map"));
+    for (const [selector, label] of [
+      [".maplibregl-ctrl-zoom-in", t("Acercar", "Zoom in")],
+      [".maplibregl-ctrl-zoom-out", t("Alejar", "Zoom out")],
+      [".maplibregl-ctrl-attrib-button", t("Fuentes del mapa", "Map attribution")],
+    ]) {
+      const button = map.getContainer().querySelector(selector);
+      button?.setAttribute("aria-label", label);
+      button?.setAttribute("title", label);
+    }
+  }, [t, ready]);
 
   // Solo los eventos que ocurren en este momento tienen área; si ya pasaron, no se dibuja.
   const zones = useMemo(
@@ -87,12 +116,13 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
         zoom: 7,
         minZoom: 3,
         maxZoom: 13,
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
         attributionControl: false,
       });
     } catch {
       // WebGL2 solo se puede detectar después del montaje.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setError("Su navegador no puede mostrar el mapa.");
+      setError("webgl");
       return;
     }
     mapRef.current = map;
@@ -101,8 +131,37 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
     map.addControl(new NavigationControl({ showCompass: false }), "top-right");
     map.addControl(new AttributionControl({ compact: true }), "bottom-right");
     const popup = new Popup({ closeButton: false, offset: 12, maxWidth: "260px" });
+    popupRef.current = popup;
+    let disposed = false;
+    let styleReady = false;
+    const dispose = () => {
+      if (disposed) return;
+      disposed = true;
+      clearTimeout(timeout);
+      observer.disconnect();
+      popup.remove();
+      map.remove();
+      mapRef.current = null;
+      popupRef.current = null;
+      fittedRef.current = null;
+    };
+    const fail = () => {
+      if (disposed) return;
+      setError("style");
+      setReady(false);
+      dispose();
+    };
+    const timeout = window.setTimeout(fail, 15_000);
+    map.on("error", () => {
+      if (disposed) return;
+      if (!styleReady) fail();
+      else setDegraded(true);
+    });
 
     map.on("style.load", () => {
+      if (disposed) return;
+      styleReady = true;
+      clearTimeout(timeout);
       map.addSource("zones", { type: "geojson", data: EMPTY });
       map.addSource("me", { type: "geojson", data: EMPTY });
       map.addSource("events", { type: "geojson", data: EMPTY });
@@ -165,9 +224,9 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
           .setLngLat(event.lngLat)
           .setHTML(
             `<p style="font-weight:600">${escapeHtml(p.title)}</p>` +
-              `<p style="color:#5A5F6E">${escapeHtml(p.label)} · ${escapeHtml(p.when)}${p.ongoing ? " · en curso" : ""}</p>` +
+              `<p style="color:#5A5F6E">${escapeHtml(p.label)} · ${escapeHtml(p.when)}${p.ongoing ? escapeHtml(textRef.current(" · en curso", " · ongoing")) : ""}</p>` +
               (p.zones ? `<p style="color:#5A5F6E;margin-top:4px">${escapeHtml(p.zones)}</p>` : "") +
-              `<a href="${escapeHtml(p.href)}" style="display:inline-block;margin-top:6px;color:#3F51D6;font-weight:600">Ver cómo cambió la superficie →</a>`,
+              `<a href="${escapeHtml(p.href)}" style="display:inline-block;margin-top:6px;color:#3F51D6;font-weight:600">${escapeHtml(textRef.current("Ver cómo cambió la superficie", "See how the surface changed"))} →</a>`,
           )
           .addTo(map);
       });
@@ -177,17 +236,11 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
       map.on("mouseleave", "events-circle", () => {
         map.getCanvas().style.cursor = "";
       });
-      fit(map, initialRef.current.point, initialRef.current.radiusKm, 0);
       setReady(true);
     });
 
-    return () => {
-      observer.disconnect();
-      popup.remove();
-      map.remove();
-      mapRef.current = null;
-    };
-  }, []);
+    return dispose;
+  }, [attempt]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -197,7 +250,11 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
       geometry: { type: "Point", coordinates: [point.lon, point.lat] },
       properties: {},
     });
-    fit(map, point, radiusKm, 600);
+    const previous = fittedRef.current;
+    if (previous?.map !== map || previous.lat !== point.lat || previous.lon !== point.lon || previous.radiusKm !== radiusKm) {
+      fit(map, point, radiusKm, previous?.map === map ? 600 : 0);
+      fittedRef.current = { map, lat: point.lat, lon: point.lon, radiusKm };
+    }
   }, [ready, point, radiusKm]);
 
   useEffect(() => {
@@ -228,8 +285,14 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
       zones.map(({ item, zone }) => [
         item.id,
         zone.red > 0
-          ? `Área roja ${km(zone.red)} · amarilla ${km(zone.yellow)} (estimadas)`
-          : `Área amarilla ${km(zone.yellow)} (estimada)`,
+          ? t(
+              `Área roja ${zone.red.toLocaleString(intlLocale(locale))} km · amarilla ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimadas, no oficiales)`,
+              `Red area ${zone.red.toLocaleString(intlLocale(locale))} km · yellow ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimated, unofficial)`,
+            )
+          : t(
+              `Área amarilla ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimada, no oficial)`,
+              `Yellow area ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimated, unofficial)`,
+            ),
       ]),
     );
     (map.getSource("events") as GeoJSONSource | undefined)?.setData({
@@ -242,9 +305,9 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
         type: "Feature",
         geometry: { type: "Point", coordinates: [item.lon, item.lat] },
         properties: {
-          title: item.title,
-          label: item.categoryLabel,
-          when: relativeDay(item.date),
+          title: eventTitle(item, locale),
+          label: categoryLabel(item.category, item.categoryLabel, locale),
+          when: displayTimeAgo(item.date, locale),
           href: studyHref(item),
           active: isActive,
           ongoing: isActive && isOngoing(item),
@@ -253,11 +316,16 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
         },
       })),
     });
-  }, [ready, active, history, zones]);
+  }, [ready, active, history, zones, locale, t]);
 
   return (
     <div className="relative h-full w-full overflow-hidden">
-      <div ref={containerRef} className="h-full w-full" aria-label="Mapa de alertas cerca de usted" />
+      <div ref={containerRef} className="h-full w-full" aria-label={t("Mapa de alertas cerca de usted", "Map of alerts near you")} />
+      {degraded && !error ? (
+        <p role="status" className="absolute left-3 right-14 top-3 rounded-lg bg-white/95 p-2 text-[12px] text-tinta-suave">
+          {t("Algunas capas del mapa no pudieron cargarse.", "Some map layers could not be loaded.")}
+        </p>
+      ) : null}
 
       {ready && (legend.length > 0 || zones.length > 0) ? (
         <div
@@ -272,7 +340,7 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
                   style={{ backgroundColor: HAZARD_STYLE[hazard].color }}
                   aria-hidden
                 />
-                {HAZARD_STYLE[hazard].label}
+                {t(HAZARD_STYLE[hazard].label, HAZARD_EN[hazard])}
               </li>
             ))}
           </ul>
@@ -280,11 +348,11 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
             <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 border-t border-linea pt-2 text-[12px] text-tinta-suave">
               <li className="inline-flex items-center gap-1.5">
                 <span className="size-2.5 rounded-full border-2" style={{ borderColor: RED, backgroundColor: `${RED}33` }} aria-hidden />
-                Área roja: mayor peligro
+                 {t("Área roja estimada, no oficial", "Estimated red area, unofficial")}
               </li>
               <li className="inline-flex items-center gap-1.5">
                 <span className="size-2.5 rounded-full border-2" style={{ borderColor: YELLOW, backgroundColor: `${YELLOW}33` }} aria-hidden />
-                Área amarilla: precaución
+                 {t("Área amarilla estimada, no oficial", "Estimated yellow area, unofficial")}
               </li>
             </ul>
           ) : null}
@@ -292,13 +360,23 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
       ) : null}
 
       {!ready && !error ? (
-        <div className="absolute inset-0 grid place-items-center bg-hundida text-[14px] text-tinta-suave">
-          Cargando mapa…
+        <div role="status" className="absolute inset-0 grid place-items-center bg-hundida text-[14px] text-tinta-suave">
+          {t("Cargando mapa…", "Loading map…")}
         </div>
       ) : null}
       {error ? (
-        <div className="absolute inset-0 grid place-items-center bg-hundida p-6 text-center text-[14px] text-tinta-suave">
-          {error}
+        <div role="status" className="absolute inset-0 grid place-items-center bg-hundida p-6 text-center text-[14px] text-tinta-suave">
+          <div>
+            <p>{error === "webgl"
+              ? t("Su navegador no puede mostrar el mapa.", "Your browser cannot display the map.")
+              : t("No se pudo cargar el mapa. Las alertas siguen disponibles en la lista.", "The map could not load. Alerts are still available in the list.")}</p>
+            <button type="button" className="boton boton-chico boton-principal mt-3" onClick={() => {
+              setError(null);
+              setDegraded(false);
+              setReady(false);
+              setAttempt((value) => value + 1);
+            }}>{t("Reintentar mapa", "Retry map")}</button>
+          </div>
         </div>
       ) : null}
     </div>

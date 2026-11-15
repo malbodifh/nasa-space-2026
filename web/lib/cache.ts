@@ -7,6 +7,21 @@ type Entry<T> = {
 const MAX_ENTRIES = 200;
 const store = new Map<string, Entry<unknown>>();
 
+/** Presupuesto de una fuente: el agregador conserva las otras aunque esta se cuelgue. */
+export async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Fuente sin respuesta dentro del presupuesto")), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export async function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>): Promise<T> {
   const now = Date.now();
   const hit = store.get(key) as Entry<T> | undefined;

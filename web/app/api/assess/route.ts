@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { responseMeta } from "@/app/api/_lib/meta";
+import { latitude, longitude, queryValues, radius as radiusSchema } from "@/app/api/_lib/query";
+import { withTimeout } from "@/lib/cache";
 import { DEFAULT_MEMORY_DATE, todayISO } from "@/lib/demo";
 import { assessRisk, emptyFireStats } from "@/lib/risk";
 import { getFireStats } from "@/lib/sources/gibs";
@@ -7,25 +10,17 @@ import { getClimate } from "@/lib/sources/power";
 import type { AssessResponse, ClimateStats, FireStats } from "@/lib/types";
 
 
-const querySchema = z.object({
-  lat: z.coerce.number().min(-90).max(90),
-  lon: z.coerce.number().min(-180).max(180),
-  radius: z.coerce.number().min(5).max(100).default(50),
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
+const querySchema = z.strictObject({
+  lat: latitude,
+  lon: longitude,
+  radius: radiusSchema(100, "50"),
+  date: z.iso.date().optional(),
 });
 
 export async function GET(request: Request) {
   const started = Date.now();
   const url = new URL(request.url);
-  const parsed = querySchema.safeParse({
-    lat: url.searchParams.get("lat"),
-    lon: url.searchParams.get("lon"),
-    radius: url.searchParams.get("radius") ?? undefined,
-    date: url.searchParams.get("date") ?? undefined,
-  });
+  const parsed = querySchema.safeParse(queryValues(url.searchParams));
 
   if (!parsed.success) {
     return Response.json(
@@ -40,23 +35,12 @@ export async function GET(request: Request) {
   const memoryDate = date ?? DEFAULT_MEMORY_DATE;
 
   const [currentResult, memoryResult, climateResult] = await Promise.allSettled([
-    getFireStats(point, radius, today),
-    memoryDate === today
+    withTimeout(getFireStats(point, radius, today), 6_000),
+    withTimeout(memoryDate === today
       ? getFireStats(point, radius, today)
-      : getFireStats(point, radius, memoryDate),
-    getClimate(point),
+      : getFireStats(point, radius, memoryDate), 6_000),
+    withTimeout(getClimate(point), 6_000),
   ]);
-
-  if (
-    currentResult.status === "rejected" &&
-    memoryResult.status === "rejected" &&
-    climateResult.status === "rejected"
-  ) {
-    return Response.json(
-      { error: "No pudimos consultar las fuentes NASA. Reintentá en unos minutos." },
-      { status: 502 },
-    );
-  }
 
   const current: FireStats =
     currentResult.status === "fulfilled" ? currentResult.value : emptyFireStats(today);
@@ -73,10 +57,12 @@ export async function GET(request: Request) {
       risk: assessRisk(current, climate, radius),
     },
     meta: {
-      cached: false,
-      updatedAt: new Date().toISOString(),
-      fallback: current.fallback || memory.fallback || Boolean(climate?.fallback),
-      durationMs: Date.now() - started,
+      ...responseMeta(started, [
+        ...current.points.map((point) => point.date),
+        ...memory.points.map((point) => point.date),
+        climate?.lastDate,
+      ], !current.available || !memory.available || !climate ||
+        current.fallback || memory.fallback || climate.fallback),
     },
   };
 

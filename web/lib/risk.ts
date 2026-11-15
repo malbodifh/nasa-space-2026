@@ -30,7 +30,7 @@ export function assessRisk(
   radiusKm: number,
 ): RiskAssessment {
   const updatedAt = new Date().toISOString();
-  const hasData = current.available || climate !== null;
+  const hasData = current.available;
 
   const reasons: RiskReason[] = [];
 
@@ -69,13 +69,15 @@ export function assessRisk(
       reasons: [
         {
           label: "Sin datos suficientes",
-          value: "No pudimos consultar GIBS ni POWER para este punto.",
+          value: climate
+            ? "GIBS no está disponible para este punto. POWER solo aporta contexto climático; no se calcula un score sin la fuente principal."
+            : "No pudimos consultar GIBS ni POWER para este punto.",
           weight: 1,
         },
       ],
       confidence: "low",
       updatedAt,
-      sources: sourcesFor(false, false),
+      sources: sourcesFor(false, climate !== null),
       officialUrl: OFFICIAL_URL,
       disclaimer:
         "Información de contexto, no una alerta oficial. Si hay peligro, seguí las instrucciones de la CNE y SINAC.",
@@ -113,7 +115,7 @@ export function assessRisk(
     reasons: reasons.sort((a, b) => b.weight - a.weight).slice(0, 3),
     confidence,
     updatedAt,
-    sources: sourcesFor(true, climate !== null),
+    sources: sourcesFor(current.available, climate !== null),
     officialUrl: OFFICIAL_URL,
     disclaimer:
       "La app muestra observación y memoria para Costa Rica; el pronóstico y la evacuación los define la CNE.",

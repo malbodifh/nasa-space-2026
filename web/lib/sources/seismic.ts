@@ -1,6 +1,6 @@
 import "server-only";
 
-import { cached } from "@/lib/cache";
+import { cached, withTimeout } from "@/lib/cache";
 import { bboxForRadius } from "@/lib/geo";
 import { mergeSeismic, parseOvsicori, parseRsn, parseUsgs } from "@/lib/seismic-parse";
 import type { LatLon, SeismicEvent } from "@/lib/types";
@@ -46,35 +46,39 @@ export async function getSeismic(point: LatLon): Promise<SeismicResult> {
       `&minlongitude=${west.toFixed(3)}&maxlongitude=${east.toFixed(3)}`;
 
     const [usgs, ovsicori, rsn] = await Promise.allSettled([
-      fetch(usgsUrl, {
+      withTimeout(fetch(usgsUrl, {
         headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.2" },
-        signal: AbortSignal.timeout(12_000),
+        signal: AbortSignal.timeout(5_000),
         cache: "no-store",
       }).then((response) => {
         if (!response.ok) throw new Error(`USGS ${response.status}`);
         return response.json();
-      }),
-      fetch(OVSICORI_URL, {
+      }).then((payload) => parseUsgs(payload, point)), 5_500),
+      withTimeout(fetch(OVSICORI_URL, {
         headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.2" },
-        signal: AbortSignal.timeout(12_000),
+        signal: AbortSignal.timeout(5_000),
         cache: "no-store",
       }).then((response) => {
         if (!response.ok) throw new Error(`OVSICORI ${response.status}`);
         return response.json();
-      }),
-      fetch(RSN_URL, {
+      }).then((payload) => ({
+        events: parseOvsicori(payload, point),
+        generatedAt: typeof payload?.generatedAt === "string" && Number.isFinite(Date.parse(payload.generatedAt))
+          ? payload.generatedAt as string : null,
+      })), 5_500),
+      withTimeout(fetch(RSN_URL, {
         headers: { "User-Agent": "Mozilla/5.0 (AstralCodes-MemoriaDeFuego/0.3)" },
-        signal: AbortSignal.timeout(12_000),
+        signal: AbortSignal.timeout(5_000),
         cache: "no-store",
       }).then((response) => {
         if (!response.ok) throw new Error(`RSN ${response.status}`);
         return response.text();
-      }),
+      }).then((xml) => parseRsn(xml, point)), 5_500),
     ]);
 
-    const local = ovsicori.status === "fulfilled" ? parseOvsicori(ovsicori.value, point) : [];
-    const global = usgs.status === "fulfilled" ? parseUsgs(usgs.value, point) : [];
-    const felt = rsn.status === "fulfilled" ? parseRsn(rsn.value, point) : [];
+    const local = ovsicori.status === "fulfilled" ? ovsicori.value.events : [];
+    const global = usgs.status === "fulfilled" ? usgs.value : [];
+    const felt = rsn.status === "fulfilled" ? rsn.value : [];
     const failed = (
       [
         ["USGS", usgs],
@@ -96,7 +100,7 @@ export async function getSeismic(point: LatLon): Promise<SeismicResult> {
       latest: { USGS: newest(global), OVSICORI: newest(local), RSN: newest(felt) },
       ovsicoriGeneratedAt:
         ovsicori.status === "fulfilled"
-          ? ((ovsicori.value as { generatedAt?: string }).generatedAt ?? null)
+          ? ovsicori.value.generatedAt
           : null,
     };
   });

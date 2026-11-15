@@ -94,9 +94,11 @@ export function parseUsgs(payload: unknown, point: LatLon): SeismicEvent[] {
     if (!properties || !coordinates) continue;
     if (properties.type && properties.type !== "earthquake") continue;
     if (!Number.isFinite(properties.mag) || (properties.mag as number) < MIN_MAGNITUDE) continue;
-    if (properties.time < cutoff) continue;
+    if (!Number.isFinite(properties.time) || properties.time < cutoff ||
+      properties.time > Date.now() || !Number.isFinite(new Date(properties.time).getTime())) continue;
 
     const [lon, lat, depth] = coordinates;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) continue;
     const distance = distanceKm(point, { lat, lon });
     if (distance > MAX_KM) continue;
 
@@ -152,6 +154,12 @@ export function rsnTime(fecha: string, hora: string): string | null {
   if (!date || !time) return null;
   const month = MONTHS[date[2].toLowerCase()];
   if (month === undefined) return null;
+  const year = Number(date[3]);
+  const day = Number(date[1]);
+  const calendar = new Date(Date.UTC(year, month, day));
+  if (calendar.getUTCFullYear() !== year || calendar.getUTCMonth() !== month ||
+    calendar.getUTCDate() !== day || Number(time[1]) < 1 || Number(time[1]) > 12 ||
+    Number(time[2]) > 59) return null;
   let hours = Number(time[1]) % 12;
   if (time[3].toLowerCase() === "p") hours += 12;
   const ms = Date.UTC(Number(date[3]), month, Number(date[1]), hours + 6, Number(time[2]));
@@ -217,9 +225,11 @@ export function parseOvsicori(payload: unknown, point: LatLon, now = Date.now())
     if ((properties.magnitudeValue as number) < MIN_MAGNITUDE) continue;
 
     const time = properties.time * 1000;
-    if (!Number.isFinite(time) || time < cutoff) continue;
+    if (!Number.isFinite(time) || time < cutoff || time > now ||
+      !Number.isFinite(new Date(time).getTime())) continue;
 
     const [lon, lat] = coordinates;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) continue;
     const distance = distanceKm(point, { lat, lon });
     if (distance > MAX_KM) continue;
 
@@ -257,6 +267,8 @@ export function mergeSeismic(...lists: SeismicEvent[][]): SeismicEvent[] {
     for (const candidate of list) {
       const same = merged.find(
         (event) =>
+          event.source !== candidate.source &&
+          !event.alsoReportedBy?.includes(candidate.source) &&
           distanceKm(candidate, event) <= 40 &&
           Math.abs(Date.parse(candidate.time) - Date.parse(event.time)) <= 5 * 60 * 1000,
       );
@@ -277,4 +289,3 @@ export function mergeSeismic(...lists: SeismicEvent[][]): SeismicEvent[] {
 
   return merged.sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
 }
-

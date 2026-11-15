@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-import { shortDate } from "@/lib/demo";
+import { useLocale } from "@/components/LocaleProvider";
+import { displayDate, displayStory } from "@/lib/display-i18n";
 import type { SarAcquisition, SarZone } from "@/lib/sar";
 
 type Mode = "dates" | "optical";
@@ -28,6 +29,9 @@ export default function SarCompare({
   before: SarAcquisition;
   after: SarAcquisition;
 }) {
+  const { locale, t } = useLocale();
+  const shortDate = (date: string) => displayDate(date, locale);
+  const story = displayStory(zone, locale);
   const [mode, setMode] = useState<Mode>("dates");
   const [position, setPosition] = useState(50);
   const [opticalFailed, setOpticalFailed] = useState<string | null>(null);
@@ -35,19 +39,19 @@ export default function SarCompare({
   const optical = mode === "optical";
   const leftSrc = optical ? opticalUrl(zone, after.date) : before.image;
   const rightSrc = after.image;
-  const leftLabel = optical ? `Óptico MODIS · ${shortDate(after.date)}` : `Radar · ${shortDate(before.date)}`;
+  const leftLabel = optical ? `${t("Óptico MODIS", "MODIS optical")} · ${shortDate(after.date)}` : `Radar · ${shortDate(before.date)}`;
   const rightLabel = `Radar · ${shortDate(after.date)}`;
   const failed = optical && opticalFailed === after.date;
 
   return (
     <section aria-labelledby="sar-compare-title" className="border-t border-ink/80 pt-4">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="eyebrow">Comparar</p>
-        <div className="flex gap-3" role="group" aria-label="Tipo de comparación">
+        <p className="eyebrow">{t("Comparar", "Compare")}</p>
+        <div className="flex gap-3" role="group" aria-label={t("Tipo de comparación", "Comparison type")}>
           {(
             [
-              ["dates", "Antes / después"],
-              ["optical", "Óptico vs radar"],
+              ["dates", t("Antes / después", "Before / after")],
+              ["optical", t("Óptico vs radar", "Optical vs radar")],
             ] as const
           ).map(([value, label]) => (
             <button
@@ -69,7 +73,7 @@ export default function SarCompare({
       <h2 id="sar-compare-title" className="mt-1 font-display text-[20px] leading-tight">
         {optical ? (
           <>
-            Mismo día, <span className="italic">dos sensores</span>
+            {t("Mismo día,", "Same day,")} <span className="italic">{t("dos sensores", "two sensors")}</span>
           </>
         ) : (
           <>
@@ -85,7 +89,7 @@ export default function SarCompare({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={rightSrc}
-          alt={`Radar NISAR de ${zone.name}, ${after.date}`}
+          alt={t(`Radar NISAR de ${story.name}, ${shortDate(after.date)}`, `NISAR radar of ${story.name}, ${shortDate(after.date)}`)}
           className="absolute inset-0 h-full w-full object-cover"
         />
         {failed ? null : (
@@ -93,7 +97,7 @@ export default function SarCompare({
           <img
             key={leftSrc}
             src={leftSrc}
-            alt={optical ? `Imagen óptica MODIS de ${zone.name}, ${after.date}` : `Radar NISAR de ${zone.name}, ${before.date}`}
+            alt={optical ? t(`Imagen óptica MODIS de ${story.name}, ${shortDate(after.date)}`, `MODIS optical image of ${story.name}, ${shortDate(after.date)}`) : t(`Radar NISAR de ${story.name}, ${shortDate(before.date)}`, `NISAR radar of ${story.name}, ${shortDate(before.date)}`)}
             className="absolute inset-0 h-full w-full object-cover"
             style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
             onError={() => setOpticalFailed(after.date)}
@@ -112,7 +116,7 @@ export default function SarCompare({
       </div>
 
       <label className="mt-2 block">
-        <span className="sr-only">Mover el divisor de la comparación</span>
+        <span className="sr-only">{t("Mover el divisor de la comparación", "Move the comparison divider")}</span>
         <input
           type="range"
           min={0}
@@ -120,16 +124,16 @@ export default function SarCompare({
           value={position}
           onChange={(event) => setPosition(Number(event.target.value))}
           className="w-full"
-          aria-label="Mover el divisor de la comparación"
+          aria-label={t("Mover el divisor de la comparación", "Move the comparison divider")}
         />
       </label>
 
       <p className="mt-1 text-[10px] leading-relaxed text-ash">
         {optical
           ? failed
-            ? "NASA Worldview no devolvió la imagen óptica de ese día."
-            : "Izquierda: luz solar reflejada (MODIS Terra, NASA Worldview). Derecha: radar NISAR. En temporada de lluvias las nubes suelen tapar la imagen óptica; el radar las atraviesa."
-          : "Misma zona y misma órbita, con 12 días o más de diferencia. Arrastrá el divisor para ver qué cambió."}
+            ? t("NASA Worldview no devolvió la imagen óptica de ese día.", "NASA Worldview did not return the optical image for that day.")
+            : t("Izquierda: luz solar reflejada (MODIS Terra, NASA Worldview). Derecha: radar NISAR. En temporada de lluvias las nubes suelen tapar la imagen óptica; el radar las atraviesa.", "Left: reflected sunlight (MODIS Terra, NASA Worldview). Right: NISAR radar. Rainy-season clouds often obscure the optical image; radar passes through them.")
+          : t("Misma zona y misma órbita, con 12 días o más de diferencia. Arrastrá el divisor para ver qué cambió.", "Same area and orbit, at least 12 days apart. Drag the divider to see what changed.")}
       </p>
     </section>
   );

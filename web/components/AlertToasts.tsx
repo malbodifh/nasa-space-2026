@@ -3,12 +3,24 @@
 import { BellRing, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
+import { useLocale } from "@/components/LocaleProvider";
+import { displayDetail, eventTitle, intlLocale } from "@/lib/display-i18n";
+import { fromAlert } from "@/lib/events";
+import type { DisasterAlert } from "@/lib/types";
 
-export type Toast = { id: string; title: string; body: string; href: string | null };
+export type Toast = { id: string; title: string; body: string; href: string | null; alert?: DisasterAlert; simulatedTest?: boolean };
 
 const SHOW_MS = 9000;
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => void }) {
+  const { locale, t } = useLocale();
+  const title = toast.simulatedTest ? t("Aviso de prueba · demostración", "Test notification · simulated")
+    : toast.alert?.id.startsWith("demo-") ? `${t("[Demostración]", "[Simulated]")} ${eventTitle(fromAlert(toast.alert), locale)}` : toast.alert ? eventTitle(fromAlert(toast.alert), locale) : toast.title;
+  const body = toast.simulatedTest ? t("Así le llegará una alerta nueva para su ubicación. Este aviso es simulado.", "This is how a new alert for your location will appear. This notification is simulated.")
+    : toast.alert ? [
+      toast.alert.detail ? displayDetail(toast.alert.detail, locale) : null,
+      `${t("A", "At")} ${Math.round(toast.alert.distanceKm).toLocaleString(intlLocale(locale))} km · ${toast.alert.source === "Demostración" ? t("Demostración", "Simulation") : toast.alert.source}`,
+    ].filter(Boolean).join(" · ") : toast.body;
   useEffect(() => {
     const timer = window.setTimeout(() => onClose(toast.id), SHOW_MS);
     return () => window.clearTimeout(timer);
@@ -24,15 +36,15 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
         <BellRing className="size-4" aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[15px] leading-snug font-semibold text-tinta">{toast.title}</p>
-        {toast.body ? <p className="mt-0.5 text-[13px] leading-snug text-tinta-suave">{toast.body}</p> : null}
+        <p className="text-[15px] leading-snug font-semibold text-tinta">{title}</p>
+        {body ? <p className="mt-0.5 text-[13px] leading-snug text-tinta-suave">{body}</p> : null}
         {toast.href ? (
-          <Link href={toast.href} className="mt-1.5 inline-block text-[13px] font-semibold text-primario-fuerte underline underline-offset-4">
-            Ver cómo cambió la superficie
+          <Link href={toast.href} prefetch={false} aria-label={`${t("Ver cómo cambió la superficie", "See how the surface changed")}: ${title}`} className="mt-1.5 inline-block text-[13px] font-semibold text-primario-fuerte underline underline-offset-4">
+            {t("Ver cómo cambió la superficie", "See how the surface changed")}
           </Link>
         ) : null}
       </div>
-      <button type="button" onClick={() => onClose(toast.id)} aria-label="Cerrar aviso" className="h-fit text-tinta-suave hover:text-tinta">
+      <button type="button" onClick={() => onClose(toast.id)} aria-label={t("Cerrar aviso", "Dismiss notification")} className="h-fit text-tinta-suave hover:text-tinta">
         <X className="size-4" aria-hidden />
       </button>
     </li>

@@ -7,6 +7,10 @@ import { distanceKm } from "@/lib/geo";
 import type { AlertLevel, DisasterAlert, LatLon } from "@/lib/types";
 
 const round1 = (value: number) => Math.round(value * 10) / 10;
+const numberOrNaN = (value: unknown): number =>
+  value === null || value === undefined || (typeof value === "string" && !value.trim())
+    ? Number.NaN
+    : Number(value);
 
 /* ---------- PTWC / NTWC: boletines de tsunami (Atom) ---------- */
 
@@ -30,9 +34,9 @@ function tag(text: string, name: string): string | null {
 export function parsePtwc(xml: string, point: LatLon): DisasterAlert[] {
   const alerts: DisasterAlert[] = [];
   for (const entry of xml.split("<entry>").slice(1)) {
-    const lat = Number(tag(entry, "geo:lat"));
-    const lon = Number(tag(entry, "geo:long"));
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    const lat = numberOrNaN(tag(entry, "geo:lat"));
+    const lon = numberOrNaN(tag(entry, "geo:long"));
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) continue;
     const summary = (tag(entry, "summary") ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
     const categoryText = summary.match(/Category:\s*([A-Za-z ]+?)\s+Bulletin/i)?.[1] ?? "Information";
     const [, label, level] = TSUNAMI_CATEGORY.find(([pattern]) => pattern.test(categoryText)) ?? TSUNAMI_CATEGORY[4];
@@ -50,7 +54,7 @@ export function parsePtwc(xml: string, point: LatLon): DisasterAlert[] {
       categoryLabel: "Tsunami",
       title: `${label}: ${region.toLowerCase().replace(/^\w/, (c) => c.toUpperCase())}`,
       level,
-      date: tag(entry, "updated") ?? new Date().toISOString(),
+      date: tag(entry, "updated") ?? "",
       lat,
       lon,
       distanceKm: round1(distance),
@@ -117,7 +121,7 @@ export function parseNhc(payload: unknown, point: LatLon): DisasterAlert[] {
       categoryLabel: "Ciclón",
       title: `${label} ${storm.name}`,
       level,
-      date: storm.lastUpdate ?? new Date().toISOString(),
+      date: storm.lastUpdate ?? "",
       lat,
       lon,
       distanceKm: round1(distance),
@@ -188,8 +192,8 @@ export function filterFirms(
   for (const row of lines.slice(1)) {
     if (row.startsWith("latitude")) continue; // encabezados repetidos al unir satélites
     const values = row.split(",");
-    const lat = Number(values[col("latitude")]);
-    const lon = Number(values[col("longitude")]);
+    const lat = numberOrNaN(values[col("latitude")]);
+    const lon = numberOrNaN(values[col("longitude")]);
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
     if (distanceKm(point, { lat, lon }) > maxKm) continue;
     report.total += 1;
@@ -236,7 +240,8 @@ export function filterFirms(
       report.staticSource += 1;
       continue;
     }
-    if (Date.parse(d.stamp) < cutoff) continue;
+    const at = Date.parse(d.stamp);
+    if (!Number.isFinite(at) || at < cutoff || at > now) continue;
     const key = `${Math.round(d.lat / GROUP_DEG)}:${Math.round(d.lon / GROUP_DEG)}`;
     const group = groups.get(key) ?? { lat: 0, lon: 0, count: 0, frp: 0, last: d.stamp, passes: new Set() };
     group.lat += d.lat;
@@ -306,7 +311,7 @@ export function rainAlert(payload: unknown, point: LatLon, now = new Date()): Di
     lat: point.lat,
     lon: point.lon,
     distanceKm: 0,
-    url: "https://www.imn.ac.cr/",
+    url: "https://open-meteo.com/en/docs",
     detail: "Pronóstico de modelo, no es un aviso oficial del IMN.",
     quality: "pronóstico",
   };

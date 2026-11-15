@@ -7,29 +7,29 @@ import useSWR from "swr";
 
 import SarCompare from "@/components/SarCompare";
 import SarExplainer from "@/components/SarExplainer";
-import { shortDate } from "@/lib/demo";
+import { useLocale } from "@/components/LocaleProvider";
+import { categoryLabel, displayDate, displayPct, displayStory, intlLocale, studyTitle } from "@/lib/display-i18n";
 import {
   SAR_METHOD,
   SAR_SOURCE,
   SAR_ZONES,
-  formatPct,
   baselineIndex,
   nearestAcquisition,
   peakChange,
   sarZone,
-  zoneAreaKm2,
   type SarAcquisition,
 } from "@/lib/sar";
 import type { DisasterAlert, EventsResponse } from "@/lib/types";
 
 const SarMap = dynamic(() => import("@/components/SarMap"), {
   ssr: false,
-  loading: () => (
-    <div className="grid h-full place-items-center bg-paper font-mono text-[11px] text-ash">
-      Cargando mapa…
-    </div>
-  ),
+  loading: RadarLoading,
 });
+
+function RadarLoading() {
+  const { t } = useLocale();
+  return <div className="grid h-full place-items-center bg-paper font-mono text-[11px] text-ash">{t("Cargando mapa…", "Loading map…")}</div>;
+}
 
 export type RadarFocus = { zoneId: string; date: string; nonce: number; title: string };
 
@@ -50,14 +50,17 @@ function ChangeChart({
   index: number;
   onSelect: (index: number) => void;
 }) {
+  const { locale, t } = useLocale();
+  const shortDate = (date: string) => displayDate(date, locale);
+  const formatPct = (value: number) => displayPct(value, locale);
   // Escala mínima del 5 %: así un cambio chico se ve chico en todas las zonas.
   const max = Math.max(5, ...acquisitions.map((item) => item.darkerPct + item.brighterPct));
   return (
     <div className="mt-3">
       <p className="mb-1 text-right font-mono text-[9px] uppercase tracking-[0.08em] text-ash">
-        % de la zona que cambió · tope {formatPct(Math.ceil(max))}
+        {t("% de píxeles con cambio aparente · tope", "% of pixels with apparent change · maximum")} {formatPct(Math.ceil(max))}
       </p>
-      <div className="flex h-20 items-end gap-1 border-b border-rule" role="group" aria-label="Cambio por fecha">
+      <div className="flex h-20 items-end gap-1 border-b border-rule" role="group" aria-label={t("Cambio por fecha", "Change by date")}>
         {acquisitions.map((item, i) => {
           const total = item.darkerPct + item.brighterPct;
           return (
@@ -66,7 +69,7 @@ function ChangeChart({
               type="button"
               onClick={() => onSelect(i)}
               aria-pressed={i === index}
-              aria-label={`${shortDate(item.date)}: ${formatPct(item.brighterPct)} más brillante, ${formatPct(item.darkerPct)} más oscuro`}
+              aria-label={`${shortDate(item.date)}: ${formatPct(item.brighterPct)} ${t("más brillante", "brighter")}, ${formatPct(item.darkerPct)} ${t("más oscuro", "darker")}`}
               title={`${shortDate(item.date)} · +${formatPct(item.brighterPct)} / −${formatPct(item.darkerPct)}`}
               className={`flex h-full flex-1 flex-col justify-end ${i === index ? "bg-burnt/10" : "hover:bg-rule/30"}`}
             >
@@ -94,7 +97,11 @@ export default function RadarView({
   onZoneChange: (id: string) => void;
   focus: RadarFocus | null;
 }) {
+  const { locale, t } = useLocale();
+  const shortDate = (date: string) => displayDate(date, locale);
+  const formatPct = (value: number) => displayPct(value, locale);
   const zone = sarZone(zoneId) ?? SAR_ZONES[0];
+  const story = displayStory(zone, locale);
   const acquisitions = zone.acquisitions;
   const [picked, setPicked] = useState<Picked | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -150,15 +157,12 @@ export default function RadarView({
   );
   const alerts: DisasterAlert[] = useMemo(() => events?.data.alerts ?? [], [events]);
 
-  const areaKm2 = zoneAreaKm2(zone.bounds);
-  const km2 = (pct: number) => Math.round((pct / 100) * areaKm2).toLocaleString("es-CR");
-
   return (
     <main className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)]">
       <aside className="order-2 flex flex-col gap-5 bg-sheet/50 px-4 py-4 lg:order-1 lg:h-[calc(100dvh-74px)] lg:overflow-y-auto lg:border-r lg:border-rule lg:px-5">
         <section aria-labelledby="zone-title">
-          <p className="eyebrow">Zona de estudio · radar NISAR</p>
-          <div className="mt-2 grid grid-cols-2 gap-1.5" role="group" aria-label="Elegir zona">
+          <p className="eyebrow">{t("Zona de estudio · radar NISAR", "Study area · NISAR radar")}</p>
+          <div className="mt-2 grid grid-cols-2 gap-1.5" role="group" aria-label={t("Elegir zona", "Choose an area")}>
             {SAR_ZONES.map((item) => (
               <button
                 key={item.id}
@@ -174,37 +178,37 @@ export default function RadarView({
                     : "border-rule bg-sheet text-ink hover:border-ink"
                 }`}
               >
-                <span className="block truncate text-[11px] font-medium leading-tight">{item.name}</span>
+                <span className="block truncate text-[11px] font-medium leading-tight">{displayStory(item, locale).name}</span>
                 <span
                   className={`block font-mono text-[8px] uppercase tracking-[0.1em] ${
                     item.id === zone.id ? "text-sheet/70" : "text-ash"
                   }`}
                 >
-                  {item.region}
+                  {displayStory(item, locale).region}
                 </span>
               </button>
             ))}
           </div>
           <h2 id="zone-title" className="mt-3 font-display text-[26px] leading-tight">
-            {zone.name}
+            {story.name}
           </h2>
-          <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-burnt">{zone.kind}</p>
-          <p className="mt-2 text-[12px] leading-relaxed text-ink2">{zone.lead}</p>
+          <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-burnt">{story.kind}</p>
+          <p className="mt-2 text-[12px] leading-relaxed text-ink2">{story.lead}</p>
           {focusHere ? (
             <p className="mt-2 border-l-2 border-burnt bg-burnt/5 px-2.5 py-1.5 text-[11px] leading-relaxed text-burnt">
-              Llegaste desde la alerta «{focusHere.title}».{" "}
+              {t("Llegaste desde la alerta", "You arrived from the alert")} «{focusHere.title}».{" "}
               {focusBefore
-                ? `El evento está abierto desde el ${shortDate(focusHere.date.slice(0, 10))}, antes de los primeros datos de NISAR: mostramos la pasada más reciente.`
-                : "Mostramos la pasada de radar más cercana a la fecha del evento."}
+                ? t(`El evento está abierto desde el ${shortDate(focusHere.date.slice(0, 10))}, antes de los primeros datos de NISAR: mostramos la pasada más reciente.`, `The event has been open since ${shortDate(focusHere.date.slice(0, 10))}, before the first NISAR data: we show the latest pass.`)
+                : t("Mostramos la pasada de radar más cercana a la fecha del evento.", "We show the radar pass closest to the event date.")}
             </p>
           ) : null}
         </section>
 
         <section aria-labelledby="timeline-title" className="border-t border-ink/80 pt-4">
           <div className="flex items-baseline justify-between gap-3">
-            <p className="eyebrow">Línea de tiempo</p>
+            <p className="eyebrow">{t("Línea de tiempo", "Timeline")}</p>
             <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-ash">
-              {acquisitions.length} pasadas · cada 12 días
+              {acquisitions.length} {t("pasadas · ciclo de 12 días", "passes · 12-day cycle")}
             </span>
           </div>
           <div className="mt-1 flex items-center gap-3">
@@ -217,11 +221,11 @@ export default function RadarView({
               }`}
               title={
                 current.status === "validado"
-                  ? "Producto validado por el equipo de NISAR"
-                  : "Producto provisional: calibración todavía en revisión"
+                  ? t("Producto validado por el equipo de NISAR; la vista previa sigue sin ser una medición calibrada", "Product validated by the NISAR team; the preview is still not a calibrated measurement")
+                  : t("Producto provisional: calibración todavía en revisión", "Provisional product: calibration is still under review")
               }
             >
-              {current.status}
+              {current.status === "validado" ? t("Validado", "Validated") : t("Provisional", "Provisional")}
             </span>
             <button
               type="button"
@@ -230,12 +234,12 @@ export default function RadarView({
               aria-pressed={playing}
             >
               {playing ? <Pause className="size-3" /> : <Play className="size-3" />}
-              {playing ? "Pausar" : "Animar"}
+              {playing ? t("Pausar", "Pause") : t("Animar", "Animate")}
             </button>
           </div>
 
           <label className="mt-3 block">
-            <span className="sr-only">Elegir fecha de la pasada</span>
+            <span className="sr-only">{t("Elegir fecha de la pasada", "Choose pass date")}</span>
             <input
               type="range"
               min={0}
@@ -261,25 +265,23 @@ export default function RadarView({
 
           {index === baseIndex ? (
             <p className="mt-3 text-[11px] leading-relaxed text-ash">
-              Esta es la fecha base. Elegí otra pasada para ver qué cambió desde{" "}
+              {t("Esta es la fecha base. Elegí otra pasada para ver el cambio aparente desde", "This is the baseline. Choose another pass to see apparent change since")}{" "}
               {shortDate(baseline.date)}.
             </p>
           ) : (
             <dl className="mt-3 grid grid-cols-2 gap-3">
               <div className="border-l-2 border-[#ea580c] pl-2">
-                <dt className="font-mono text-[9px] uppercase tracking-[0.1em] text-ash">Más brillante</dt>
+                <dt className="font-mono text-[9px] uppercase tracking-[0.1em] text-ash">{t("Más brillante", "Brighter")}</dt>
                 <dd className="font-display text-[24px] leading-none">{formatPct(current.brighterPct)}</dd>
-                <dd className="mt-0.5 font-mono text-[9px] text-ash">≈ {km2(current.brighterPct)} km²</dd>
+                <dd className="mt-0.5 font-mono text-[9px] text-ash">{t("píxeles comparables (aprox.)", "comparable pixels (approx.)")}</dd>
               </div>
               <div className="border-l-2 border-[#2563eb] pl-2">
-                <dt className="font-mono text-[9px] uppercase tracking-[0.1em] text-ash">Más oscuro</dt>
+                <dt className="font-mono text-[9px] uppercase tracking-[0.1em] text-ash">{t("Más oscuro", "Darker")}</dt>
                 <dd className="font-display text-[24px] leading-none">{formatPct(current.darkerPct)}</dd>
-                <dd className="mt-0.5 font-mono text-[9px] text-ash">≈ {km2(current.darkerPct)} km²</dd>
+                <dd className="mt-0.5 font-mono text-[9px] text-ash">{t("píxeles comparables (aprox.)", "comparable pixels (approx.)")}</dd>
               </div>
               <p className="col-span-2 text-[10px] leading-relaxed text-ash">
-                Porcentaje de la zona que cambió respecto del {shortDate(baseline.date)}. Más brillante
-                suele ser vegetación inundada o que creció; más oscuro, agua abierta nueva o suelo
-                más liso. Valores aproximados.
+                {t(`Porcentaje aproximado de píxeles comparables con cambio aparente de brillo respecto del ${shortDate(baseline.date)}. Humedad, vegetación, agua o procesamiento son posibles hipótesis, no causas confirmadas. No mide superficie dañada.`, `Approximate percentage of comparable pixels with apparent brightness change since ${shortDate(baseline.date)}. Moisture, vegetation, water or processing are possible hypotheses, not confirmed causes. This does not measure damaged land.`)}
               </p>
             </dl>
           )}
@@ -291,10 +293,10 @@ export default function RadarView({
             </label>
             <label className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-ink">
               <input type="checkbox" checked={showChange} onChange={(e) => setShowChange(e.target.checked)} />
-              Cambio
+              {t("Cambio", "Change")}
             </label>
             <label className="ml-auto inline-flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-ash">
-              Opacidad
+              {t("Opacidad", "Opacity")}
               <input
                 type="range"
                 min={0.2}
@@ -303,10 +305,14 @@ export default function RadarView({
                 value={opacity}
                 onChange={(e) => setOpacity(Number(e.target.value))}
                 className="w-20"
-                aria-label="Opacidad del radar"
+                aria-label={t("Opacidad del radar", "Radar opacity")}
               />
             </label>
           </div>
+          <p className="mt-3 text-[10px] leading-relaxed text-ash">
+            {t("Vista previa de 8 bits no calibrada. La base y las primeras pasadas son provisionales; las últimas, validadas. La serie mezcla versiones de procesamiento/calibración y puede contener artefactos.", "Uncalibrated 8-bit preview. The baseline and early passes are provisional; the latest are validated. This series mixes processing/calibration versions and may contain artifacts.")}
+            {current.date === "2026-06-26" && zone.baseline !== current.date ? ` ${t("Esta pasada tiene un artefacto de brillo conocido y no se usa como base.", "This pass has a known brightness artifact and is not used as the baseline.")}` : ""}
+          </p>
         </section>
 
         <SarCompare
@@ -316,48 +322,47 @@ export default function RadarView({
         />
 
         <section aria-labelledby="story-title" className="border-t border-ink/80 pt-4">
-          <p className="eyebrow">Qué muestra el radar</p>
+          <p className="eyebrow">{t("Qué muestra el radar", "What radar shows")}</p>
           <h2 id="story-title" className="mt-1 font-display text-[20px] leading-tight">
-            Qué mirar en {zone.name}
+            {t("Qué mirar en", "What to look for in")} {story.name}
           </h2>
           <ul className="mt-2 space-y-1">
-            {zone.look.map((item) => (
+            {story.look.map((item) => (
               <li key={item} className="text-[11px] leading-relaxed text-ink2">
                 — {item}
               </li>
             ))}
           </ul>
-          <p className="eyebrow mt-4">Hipótesis físicas</p>
+          <p className="eyebrow mt-4">{t("Hipótesis físicas, no causas confirmadas", "Physical hypotheses, not confirmed causes")}</p>
           <ol className="mt-1 space-y-2">
-            {zone.hypotheses.map((item, i) => (
+            {story.hypotheses.map((item, i) => (
               <li key={item} className="flex gap-2 text-[11px] leading-relaxed text-ink2">
                 <span className="font-mono text-[10px] text-burnt">H{i + 1}</span>
                 <span>{item}</span>
               </li>
             ))}
           </ol>
-          <p className="eyebrow mt-4">Huella humana</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-ink2">{zone.human}</p>
+          <p className="eyebrow mt-4">{t("Huella humana", "Human footprint")}</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-ink2">{story.human}</p>
         </section>
 
         <section aria-labelledby="zone-alerts-title" className="border-t border-ink/80 pt-4">
           <div className="flex items-baseline justify-between gap-3">
-            <p className="eyebrow">Alertas cerca de la zona</p>
+            <p className="eyebrow">{t("Alertas cerca de la zona", "Alerts near the area")}</p>
             <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-ash">
-              EONET · GDACS · sismos · 150 km
+              EONET · GDACS · {t("sismos", "earthquakes")} · 150 km
             </span>
           </div>
           <h2 id="zone-alerts-title" className="sr-only">
-            Alertas cerca de {zone.name}
+            {t("Alertas cerca de", "Alerts near")} {story.name}
           </h2>
           {eventsLoading && !events ? (
             <div className="mt-2 h-14 animate-pulse bg-rule/30" />
           ) : eventsError ? (
-            <p className="mt-2 font-mono text-[10px] text-burnt">No pudimos consultar las alertas.</p>
+            <p className="mt-2 font-mono text-[10px] text-burnt">{t("No pudimos consultar las alertas.", "We couldn't retrieve alerts.")}</p>
           ) : alerts.length === 0 ? (
             <p className="mt-2 border-l-2 border-rule pl-2 text-[11px] leading-relaxed text-ash">
-              Sin eventos abiertos a menos de 150 km. Cuando haya uno, desde aquí vas a poder saltar a la
-              pasada de radar más cercana.
+              {t("Sin eventos abiertos a menos de 150 km. Cuando haya uno, desde aquí vas a poder saltar a la pasada de radar más cercana.", "No open events within 150 km. When one appears, you can jump from here to the closest radar pass.")}
             </p>
           ) : (
             <ul className="mt-2 border-y border-rule">
@@ -367,10 +372,10 @@ export default function RadarView({
                   <li key={alert.id} className="flex items-baseline gap-2 border-b border-rule/70 py-2 last:border-b-0">
                     <AlertTriangle className="mt-0.5 size-3 shrink-0 text-burnt" aria-hidden />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[12px] leading-snug text-ink">{alert.title}</p>
+                      <p className="truncate text-[12px] leading-snug text-ink">{studyTitle(alert.title, locale)}</p>
                       <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-ash">
-                        {alert.categoryLabel} · {alert.source} · {shortDate(alert.date.slice(0, 10))} ·{" "}
-                        {alert.distanceKm.toFixed(0)} km
+                        {categoryLabel(alert.category, alert.categoryLabel, locale)} · {alert.source} · {shortDate(alert.date.slice(0, 10))} ·{" "}
+                        {Math.round(alert.distanceKm).toLocaleString(intlLocale(locale))} km
                       </p>
                     </div>
                     <button
@@ -381,7 +386,7 @@ export default function RadarView({
                       }}
                       className="shrink-0 font-mono text-[9px] uppercase tracking-[0.1em] text-burnt underline underline-offset-4"
                     >
-                      Ver radar
+                      {t("Ver radar", "View radar")}
                     </button>
                   </li>
                 );
@@ -389,36 +394,35 @@ export default function RadarView({
             </ul>
           )}
           <p className="mt-2 font-display text-[12px] italic leading-snug text-ash">
-            La alerta dice qué está pasando; el radar muestra qué le hizo a la superficie.
+            {t("La alerta informa del evento; el radar permite explorar cambios aparentes de la superficie, no atribuir su causa.", "The alert reports the event; radar lets you explore apparent surface changes, not attribute their cause.")}
           </p>
         </section>
 
         <SarExplainer />
 
         <section aria-labelledby="sar-data-title" className="border-t border-ink/80 pt-4">
-          <p className="eyebrow">Datos y método</p>
+          <p className="eyebrow">{t("Datos y método", "Data and method")}</p>
           <h2 id="sar-data-title" className="mt-1 font-display text-[18px] leading-tight">
-            NISAR L2 GCOV · pasada {current.cycle}
+            NISAR L2 GCOV · {t("ciclo del producto", "product cycle")} {current.cycle}
           </h2>
           <p className="mt-1 break-all font-mono text-[9px] leading-relaxed text-ash">{current.granule}</p>
           <ul className="mt-2 space-y-1 text-[11px] leading-relaxed text-ink2">
             <li>
-              — Misión NASA-ISRO NISAR, radar de banda L. Producto {SAR_SOURCE.product}, cuadro{" "}
+              — {t("Misión NASA-ISRO NISAR, radar de banda L. Producto", "NASA-ISRO NISAR mission, L-band radar. Product")} {SAR_SOURCE.product}, {t("cuadro", "frame")}{" "}
               {zone.frame.replaceAll("_", " ")}.
             </li>
-            <li>— Imagen: vista previa pública de ASF DAAC. {SAR_METHOD.channels}.</li>
+            <li>— {t("Imagen: vista previa pública de ASF DAAC. Rojo y azul: HH; verde: HV.", "Image: public ASF DAAC preview. Red and blue: HH; green: HV.")}</li>
             <li>
-              — Cambio: diferencia de HH suavizada (5×5) frente a la fecha base; se marca si supera{" "}
-              {SAR_METHOD.changeThreshold} niveles de 256. Se ignora el agua oscura en las dos fechas
-              (mar y lagos).
+              — {t("Cambio aparente: diferencia de HH suavizada (5×5) frente a la fecha base; se marca si supera", "Apparent change: smoothed HH difference (5×5) against the baseline; flagged above")}{" "}
+              {SAR_METHOD.changeThreshold} {t("niveles en una escala 0–255. Se ignoran los píxeles oscuros en ambas fechas (mar y lagos). El umbral no está calibrado físicamente.", "levels on a 0–255 scale. Pixels dark on both dates (sea and lakes) are ignored. The threshold has no physical calibration.")}
             </li>
             <li>
-              — Fecha base: {shortDate(baseline.date)}.
+              — {t("Fecha base:", "Baseline date:")} {shortDate(baseline.date)}.
               {baseIndex > 0
-                ? " No usamos la primera pasada (26 jun) porque esa imagen provisional trae una franja de brillo al sur que no aparece en ninguna otra fecha: compararla inventaba cambios."
+                ? t(" No usamos la primera pasada (26 jun) como base: contiene una franja de brillo al sur considerada artefacto y se excluye de la comparación.", " We do not use the first pass (Jun 26) as the baseline: it has a southern brightness strip considered an artifact and is excluded from comparison.")
                 : ""}
             </li>
-            <li>— {SAR_METHOD.note}</li>
+            <li>— {t("Vista previa de 8 bits, no gamma0 calibrado del HDF5. Los porcentajes son aproximados y no indican daños ni causas confirmadas.", "8-bit preview, not calibrated HDF5 gamma0. Percentages are approximate and do not indicate confirmed damage or causes.")}</li>
           </ul>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
             {current.h5Url ? (
@@ -428,7 +432,7 @@ export default function RadarView({
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.12em] text-burnt underline underline-offset-4"
               >
-                HDF5 ({(current.sizeMB / 1024).toFixed(1)} GB · Earthdata)
+                HDF5 ({(current.sizeMB / 1024).toLocaleString(intlLocale(locale), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} GB · Earthdata)
                 <ExternalLink className="size-2.5" />
               </a>
             ) : null}
@@ -438,7 +442,7 @@ export default function RadarView({
               rel="noreferrer"
               className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.12em] text-burnt underline underline-offset-4"
             >
-              Documentación GCOV
+              {t("Documentación GCOV", "GCOV documentation")}
               <ExternalLink className="size-2.5" />
             </a>
             <a
@@ -458,8 +462,7 @@ export default function RadarView({
             Astral Codes · NASA Space Apps Challenge 2026
           </p>
           <p className="mt-1 text-[10px] leading-relaxed text-ash">
-            Radar: NASA-ISRO NISAR vía ASF DAAC. Óptico: NASA Worldview. Alertas: NASA EONET, GDACS,
-            USGS, OVSICORI. Mapa: © OpenStreetMap, © CARTO. NASA no respalda este proyecto.
+            {t("Radar: NASA-ISRO NISAR vía ASF DAAC. Óptico: NASA Worldview. Alertas: NASA EONET, GDACS, USGS, OVSICORI. Mapa: © OpenStreetMap, © CARTO. NASA no respalda este proyecto.", "Radar: NASA-ISRO NISAR via ASF DAAC. Optical: NASA Worldview. Alerts: NASA EONET, GDACS, USGS, OVSICORI. Map: © OpenStreetMap, © CARTO. NASA does not endorse this project.")}
           </p>
         </footer>
       </aside>

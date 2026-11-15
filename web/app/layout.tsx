@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 
+import LocaleProvider from "@/components/LocaleProvider";
+import SiteHeader from "@/components/SiteHeader";
+
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -19,7 +22,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className={`${jakarta.variable} h-full`}>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <LocaleProvider>
+          <SiteHeader />
+          {children}
+        </LocaleProvider>
+      </body>
     </html>
   );
 }

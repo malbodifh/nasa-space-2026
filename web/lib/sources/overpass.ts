@@ -290,7 +290,9 @@ out geom;`;
     try {
       const response = await fetch(`${endpoint}?data=${encodeURIComponent(query)}`, {
         headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.1 (hackathon)" },
-        signal: AbortSignal.timeout(15_000),
+        // Dos endpoints en serie: 7 s cada uno mantiene la ruta bajo el presupuesto
+        // de Vercel. Fuera de los snapshots, sin respuesta se devuelve capa vacía.
+        signal: AbortSignal.timeout(7_000),
         cache: "no-store",
       });
       if (!response.ok) throw new Error(`Overpass ${response.status}`);

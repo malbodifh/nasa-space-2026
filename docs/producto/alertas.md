@@ -108,6 +108,12 @@ riesgo, el mapa con áreas roja y amarilla, la lista y el aviso del navegador.
 - Viven solo en el navegador (no pasan por `/api/events`) y se quitan con «Salir del demo».
 - Código: `web/lib/demo-scenarios.ts`.
 
+La ruta de compatibilidad `/api/alerts?lat=…&lon=…&test=1&hazard=…` es independiente del demo
+de la portada. Solo admite `fire`, `earthquake`, `volcano`, `flood`, `storm` (por defecto `fire`);
+devuelve **únicamente** una plantilla `[DEMO]`, sin consultar fuentes, sin enviar notificaciones
+a terceros y con `Cache-Control:no-store`. `test=0` nunca incluye la simulación. Amenazas
+desconocidas, coordenadas ausentes/vacías, parámetros repetidos o desconocidos devuelven 400.
+
 ## 9. Avisos
 
 Cada alerta nueva que afecta a la persona se avisa de dos formas:

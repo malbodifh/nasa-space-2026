@@ -1,6 +1,7 @@
 import "server-only";
 
-import { feedIsStale, partitionCurrent } from "@/lib/alert-rules";
+import { feedIsStale, partitionCurrent, reportTime } from "@/lib/alert-rules";
+import { withTimeout } from "@/lib/cache";
 import { distanceKm } from "@/lib/geo";
 import { getEonetAlerts, getEonetHistory } from "@/lib/sources/eonet";
 import { getFires, getRainForecast, getStorms, getTsunamiBulletins } from "@/lib/sources/feeds";
@@ -23,21 +24,30 @@ import type {
 
 const EMPTY: GeoCollection<never> = { type: "FeatureCollection", features: [] };
 
-function dedupe(alerts: DisasterAlert[]): DisasterAlert[] {
-  const official = alerts.filter((alert) => alert.source === "GDACS");
-  return alerts
-    .filter((alert) => {
-      if (alert.source === "GDACS") return true;
-      return !official.some(
-        (candidate) =>
-          candidate.category === alert.category &&
-          distanceKm(
-            { lat: candidate.lat, lon: candidate.lon },
-            { lat: alert.lat, lon: alert.lon },
-          ) < 10,
-      );
-    })
-    .sort((a, b) => a.distanceKm - b.distanceKm);
+export function dedupe(alerts: DisasterAlert[]): DisasterAlert[] {
+  const aliases: Record<string, string> = {
+    EQ: "earthquakes", TC: "severeStorms", FL: "floods", VO: "volcanoes", WF: "wildfires",
+  };
+  const category = (alert: DisasterAlert) => aliases[alert.category] ?? alert.category;
+  const merged: DisasterAlert[] = [];
+  for (const alert of alerts) {
+    const same = merged.find((candidate) =>
+      candidate.source !== alert.source &&
+      !candidate.alsoReportedBy?.includes(alert.source) &&
+      category(candidate) === category(alert) &&
+      Math.abs(reportTime(candidate.date) - reportTime(alert.date)) <= 5 * 60 * 1000 &&
+      distanceKm(candidate, alert) <= (category(alert) === "earthquakes" ? 40 : 10),
+    );
+    if (!same) {
+      merged.push({ ...alert, alsoReportedBy: [...(alert.alsoReportedBy ?? [])] });
+      continue;
+    }
+    same.alsoReportedBy = [...new Set([
+      ...(same.alsoReportedBy ?? []), alert.source, ...(alert.alsoReportedBy ?? []),
+    ])].filter((source) => source !== same.source);
+    if (alert.quality === "revisado") same.quality = "revisado";
+  }
+  return merged.sort((a, b) => a.distanceKm - b.distanceKm);
 }
 
 /** Nivel del sismo: el PAGER de USGS (impacto estimado) manda; si no hay, la magnitud. */
@@ -104,14 +114,14 @@ export async function getEvents(point: LatLon): Promise<{
   sources: SourceStatus[];
 }> {
   const [seismicResult, closedResult, ...feeds] = await Promise.allSettled([
-    getSeismic(point),
-    getEonetHistory(point, 365),
-    getEonetAlerts(point),
-    getGdacsAlerts(point),
-    getTsunamiBulletins(point),
-    getStorms(point),
-    SHOW_FIRES ? getFires(point) : Promise.resolve([]),
-    getRainForecast(point),
+    withTimeout(getSeismic(point), 6_500),
+    withTimeout(getEonetHistory(point, 365), 6_000),
+    withTimeout(getEonetAlerts(point), 6_000),
+    withTimeout(getGdacsAlerts(point), 6_000),
+    withTimeout(getTsunamiBulletins(point), 6_000),
+    withTimeout(getStorms(point), 6_000),
+    SHOW_FIRES ? withTimeout(getFires(point), 6_000) : Promise.resolve([]),
+    withTimeout(getRainForecast(point), 6_000),
   ]);
   const outcomes: Outcome[] = [
     { id: "eonet", label: "NASA EONET", result: feeds[0] },
@@ -125,7 +135,10 @@ export async function getEvents(point: LatLon): Promise<{
   const seismic = seismicResult.status === "fulfilled" ? seismicResult.value : null;
   const failedSeismic = seismic ? seismic.failed : ["USGS", "OVSICORI", "RSN"];
   const newestOf = (alerts: DisasterAlert[]) =>
-    alerts.reduce<string | null>((max, alert) => (!max || alert.date > max ? alert.date : max), null);
+    alerts.reduce<string | null>((max, alert) => (
+      Number.isFinite(reportTime(alert.date)) && (!max || reportTime(alert.date) > reportTime(max))
+        ? alert.date : max
+    ), null);
   const sources: SourceStatus[] = [
     ...outcomes.map(({ id, label, result }) => ({
       id,
@@ -202,10 +215,10 @@ export async function getOverlays(
   radiusKm: number,
 ): Promise<{ data: Omit<OverlaysData, "sources"> & { sources: OverlaySource[] }; fallbackSources: string[] }> {
   const [osmResult, eonetResult, gdacsResult, seismicResult] = await Promise.allSettled([
-    getOsmOverlays(point, radiusKm),
-    getEonetAlerts(point),
-    getGdacsAlerts(point),
-    getSeismic(point),
+    withTimeout(getOsmOverlays(point, radiusKm), 6_000),
+    withTimeout(getEonetAlerts(point), 6_000),
+    withTimeout(getGdacsAlerts(point), 6_000),
+    withTimeout(getSeismic(point), 6_500),
   ]);
 
   const fallbackSources: string[] = [];
@@ -232,6 +245,7 @@ export async function getOverlays(
   const seismic: SeismicEvent[] =
     seismicResult.status === "fulfilled" ? seismicResult.value.events : [];
   if (seismicResult.status === "rejected") fallbackSources.push("seismic");
+  else fallbackSources.push(...seismicResult.value.failed.map((source) => source.toLowerCase()));
 
   const volcanoes = getVolcanoes(point, radiusKm);
   const borders = getBorders(point, radiusKm);
@@ -295,7 +309,7 @@ export async function getOverlays(
           ? "Catálogo FDSN de los últimos 30 días; revisado y automático."
           : "Sin sismos M≥2,5 en 600 km o USGS no respondió.",
       live: true,
-      fallback: seismicResult.status === "rejected",
+      fallback: seismicResult.status === "rejected" || seismicResult.value.failed.includes("USGS"),
     },
     {
       id: "ovsicori",
@@ -306,7 +320,7 @@ export async function getOverlays(
           ? "Red sísmica local de Costa Rica; datos preliminares."
           : "Sin sismos locales M≥2,5 o OVSICORI no respondió.",
       live: true,
-      fallback: seismicResult.status === "rejected",
+      fallback: seismicResult.status === "rejected" || seismicResult.value.failed.includes("OVSICORI"),
     },
   ];
 
@@ -316,7 +330,8 @@ export async function getOverlays(
       protectedAreas: osm.protectedAreas,
       volcanoes: volcanoes.collection as GeoCollection<VolcanoProps>,
       borders: borders as GeoCollection<Record<string, never>>,
-      alerts: dedupe([...eonet, ...gdacs, ...seismicAlerts(seismic)]),
+      alerts: partitionCurrent(dedupe([...eonet, ...gdacs, ...seismicAlerts(seismic)])).current
+        .filter((alert) => SHOW_FIRES || !isFire(alert.category)),
       seismic,
       sources,
     },
