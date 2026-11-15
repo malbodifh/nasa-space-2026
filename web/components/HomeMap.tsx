@@ -5,6 +5,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import {
   AttributionControl,
   Map as MapLibreMap,
+  Marker,
   NavigationControl,
   Popup,
   setWorkerUrl,
@@ -28,7 +29,13 @@ type Props = {
   radiusKm: number;
   active: EventItem[];
   history: EventItem[];
+  /** Seres queridos en riesgo, marcados con un pin en su zona aproximada. */
+  loved?: LovedPin[];
+  /** Punto al que acercar el mapa; `key` cambia en cada pedido. */
+  focus?: { lat: number; lon: number; key: number } | null;
 };
+
+export type LovedPin = { id: string; alias: string; lat: number; lon: number; tone: "peligro" | "aviso"; label: string };
 
 const EMPTY = { type: "FeatureCollection" as const, features: [] };
 const RED = "#DC2626";
@@ -66,7 +73,7 @@ const HAZARD_EN: Record<Hazard, string> = {
   incendio: "Wildfire", radar: "Visual radar difference", otro: "Other",
 };
 
-export default function HomeMap({ point, radiusKm, active, history }: Props) {
+export default function HomeMap({ point, radiusKm, active, history, loved = [], focus = null }: Props) {
   const { locale, t } = useLocale();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -356,6 +363,43 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
       })),
     });
   }, [ready, active, history, zones, locale, t, styleVersion]);
+
+  // Pines de seres queridos en riesgo. Son marcadores HTML: sobreviven al cambio de mapa base y
+  // no dependen de las fuentes tipográficas del estilo.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || loved.length === 0) return;
+    const markers = loved.map((person) => {
+      const element = document.createElement("button");
+      element.type = "button";
+      element.setAttribute("aria-label", `${person.alias}: ${person.label}`);
+      element.className = "group flex flex-col items-center";
+      element.innerHTML = `<span class="flex items-center gap-1 rounded-full ${
+        person.tone === "peligro" ? "bg-peligro" : "bg-aviso"
+      } px-2.5 py-1 text-[12px] font-bold whitespace-nowrap text-white shadow-md ring-2 ring-white"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.3 3.3 5 6.6 5c2 0 3.6 1.1 5.4 3 1.8-1.9 3.4-3 5.4-3 3.3 0 5.6 3.3 4.1 6.8C19.5 16.4 12 21 12 21z"/></svg>${escapeHtml(
+        person.alias,
+      )}</span><span class="-mt-0.5 size-2.5 rotate-45 ${person.tone === "peligro" ? "bg-peligro" : "bg-aviso"}" aria-hidden="true"></span>`;
+      element.addEventListener("click", (event) => {
+        event.stopPropagation();
+        popupRef.current
+          ?.setLngLat([person.lon, person.lat])
+          .setHTML(`<strong>${escapeHtml(person.alias)}</strong><br>${escapeHtml(person.label)}<br><small>${escapeHtml(
+            textRef.current("Zona aproximada de su ser querido.", "Approximate area of your loved one."),
+          )}</small>`)
+          .addTo(map);
+      });
+      return new Marker({ element, anchor: "bottom" }).setLngLat([person.lon, person.lat]).addTo(map);
+    });
+    return () => {
+      for (const marker of markers) marker.remove();
+    };
+  }, [ready, loved]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !focus) return;
+    map.flyTo({ center: [focus.lon, focus.lat], zoom: 10, duration: motionDuration(900) });
+  }, [ready, focus]);
 
   return (
     <div className="relative h-full w-full overflow-hidden">

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { authenticate, credentialsSchema } from "@/lib/links/auth";
+import { getLinksStore } from "@/lib/links/store";
 import { getPushStore } from "@/lib/push/store";
 import { pushConfigured } from "@/lib/push/send";
 
@@ -11,6 +13,8 @@ const subscribeSchema = z.object({
   lat: z.number().min(-90).max(90),
   lon: z.number().min(-180).max(180),
   lang: z.enum(["es", "en"]).default("es"),
+  /** Dispositivo con seres queridos: así el envío sabe a quién avisar por ellos. */
+  device: credentialsSchema.optional(),
 });
 
 
@@ -25,7 +29,9 @@ export async function POST(request: Request) {
     return Response.json({ error: "Falta la base de datos de suscripciones." }, { status: 503, headers: NO_STORE });
   }
 
-  const { subscription, lat, lon, lang } = parsed.data;
+  const { subscription, lat, lon, lang, device } = parsed.data;
+  // Una clave que no coincide no impide la suscripción: solo no se vincula al dispositivo.
+  const owner = device ? await authenticate(getLinksStore(), device).catch(() => null) : null;
   // Solo se guarda una ubicación aproximada (~1 km), nunca la exacta.
   await store.upsert({
     endpoint: subscription.endpoint,
@@ -34,6 +40,7 @@ export async function POST(request: Request) {
     lat: Math.round(lat * 100) / 100,
     lon: Math.round(lon * 100) / 100,
     lang,
+    deviceId: owner?.id ?? null,
   });
   return Response.json({ ok: true }, { headers: NO_STORE });
 }
