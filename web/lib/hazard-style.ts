@@ -98,7 +98,7 @@ function magnitudeOf(input: ZoneInput): number | null {
  *
  * - Sismo: aproximación magnitud–distancia para sismos superficiales; no es un mapa de sacudida.
  * - Volcán: 5 km alrededor del cráter y 15 km de referencia por ceniza y lahares.
- * - Tsunami: solo con vigilancia, aviso o advertencia del centro de alerta.
+ * - Tsunami: sin círculos; un epicentro no determina qué costas están amenazadas.
  * - Ciclón: 100/300 km si es huracán; 50/200 km si es tormenta o depresión.
  */
 export function alertZones(input: ZoneInput, now = Date.now()): Zones | null {
@@ -116,8 +116,6 @@ export function alertZones(input: ZoneInput, now = Date.now()): Zones | null {
     case "volcan":
       return { red: 5, yellow: 15 };
     case "tsunami":
-      if (input.level === "red") return { red: 300, yellow: 1000 };
-      if (input.level === "orange") return { red: 0, yellow: 500 };
       return null;
     case "ciclon":
       return /hurac/i.test(input.title) ? { red: 100, yellow: 300 } : { red: 50, yellow: 200 };

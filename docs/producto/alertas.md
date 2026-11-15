@@ -58,14 +58,13 @@ nota «Sin reportes nuevos desde esta fecha.».
 Cada tipo de desastre tiene su color (`HAZARD_STYLE`): sismo café, tsunami azul, volcán naranja,
 inundación turquesa, ciclón violeta, lluvia celeste, deslizamiento ocre, radar azul de marca.
 
-Si la amenaza está **en curso**, el mapa dibuja dos radios de proximidad; si no, ninguno:
+Para algunas amenazas **en curso**, el mapa dibuja radios de proximidad; si no, ninguno:
 
 | Amenaza | Roja | Amarilla |
 |---|---|---|
 | Sismo | 10^(0,45·M − 1,1) km (1–150) | 10^(0,45·M − 0,3) km (5–400) |
 | Volcán | 5 km | 15 km |
-| Tsunami rojo | 300 km | 1000 km |
-| Tsunami naranja | sin área | 500 km |
+| Tsunami | sin círculo | sin círculo |
 | Huracán | 100 km | 300 km |
 | Tormenta o depresión | 50 km | 200 km |
 | Inundación | 10 km | 30 km |
@@ -75,6 +74,9 @@ Si la amenaza está **en curso**, el mapa dibuja dos radios de proximidad; si no
 
 Los radios son **estimaciones simples de proximidad**, no zonas oficiales ni áreas de afectación,
 y así se dice en el popup y en la leyenda.
+Para tsunami se muestra el punto del reporte sin radio: no identifica qué costas están amenazadas.
+Consultar el boletín oficial para conocer las zonas bajo aviso. Eliminar el círculo no significa
+que no haya peligro y no cambia las reglas de alertas ni notificaciones.
 
 ## 5. Varias fuentes, un solo evento
 

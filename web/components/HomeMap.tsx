@@ -348,7 +348,9 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
           href: studyHref(item),
           active: isActive,
           ongoing: isActive && isOngoing(item),
-          zones: isActive ? (zoneText.get(item.id) ?? "") : "",
+          zones: isActive && hazardOf(item.category) === "tsunami"
+            ? t("El punto indica la ubicación del reporte, no las costas amenazadas. Consulte el boletín oficial.", "The point marks the report location, not threatened coastlines. Check the official bulletin.")
+            : isActive ? (zoneText.get(item.id) ?? "") : "",
           color: HAZARD_STYLE[hazardOf(item.category)].color,
         },
       })),
