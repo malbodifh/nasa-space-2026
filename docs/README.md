@@ -13,7 +13,7 @@ Cada carpeta tiene un ciclo de vida distinto. Eso decide dónde va un documento 
 | [`tecnico/`](tecnico/) | Fuentes de datos, arquitectura, herramientas y deploy | con el código |
 | [`decisiones/`](decisiones/) | Una decisión por archivo (ADR) | nunca se edita: se reemplaza |
 | [`equipo/`](equipo/) | Reglas del equipo y workflow de Git | rara vez |
-| [`investigacion/`](investigacion/) | Estudios fechados que fundamentaron las decisiones | no se toca |
+| [`investigacion/`](investigacion/) | Estudios fechados que fundamentaron las decisiones; [`base-conocimiento/`](investigacion/base-conocimiento/README.md) es referencia viva | los fechados no se tocan; la base se actualiza |
 | [`bitacora/`](bitacora/) | Un archivo por día | solo se agrega |
 | [`archivo/`](archivo/) | Planes cumplidos e ideas descartadas (SPHEREx) | no se toca |
 
@@ -24,7 +24,7 @@ Cada carpeta tiene un ciclo de vida distinto. Eso decide dónde va un documento 
 | Saber en qué estamos | [`estado.md`](estado.md) |
 | Entender qué hace la app | [`producto/vision.md`](producto/vision.md) |
 | Tocar las alertas | [`producto/alertas.md`](producto/alertas.md) y [`tecnico/fuentes.md`](tecnico/fuentes.md) |
-| Tocar el radar | [`producto/nisar.md`](producto/nisar.md) |
+| Tocar el radar | [`producto/nisar.md`](producto/nisar.md) y [`base-conocimiento/`](investigacion/base-conocimiento/README.md) |
 | Saber qué no debemos prometer | [`producto/limites.md`](producto/limites.md) |
 | Subir cambios o resolver un error de Git | [`equipo/workflow.md`](equipo/workflow.md) |
 | Correr o desplegar | [`tecnico/herramientas.md`](tecnico/herramientas.md) y [`../web/README.md`](../web/README.md) |
