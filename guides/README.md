@@ -8,7 +8,11 @@
 ```text
 guides/
 ├── src/        # fuentes Typst: no se leen, se compilan
+│   ├── 06-retos.typ
+│   ├── 07-documentacion.typ      # maestro del libro
+│   └── docs/                     # capítulos .typ + theme.typ
 ├── dist/       # PDFs versionados + PNGs (ignorados por git)
+│   └── docs/   # un PDF por documento (local, ignorado)
 └── README.md
 ```
 
@@ -27,25 +31,45 @@ guides/
 ## Compilar
 
 ```bash
-make guides
+make guides   # 06-retos + 07-documentacion
+make docs     # libro completo + un PDF por documento
 ```
 
 Salida en `guides/dist/`:
 
 ```text
-06-retos.pdf       Los 14 retos: comparación, fichas y votación
+06-retos.pdf              Los 14 retos: comparación, fichas y votación
+07-documentacion.pdf      Libro completo de documentación
+docs/*.pdf                Un PDF por documento (local, no versionado)
 ```
+
+## Documentación Typst
+
+- `src/07-documentacion.typ` es el **maestro**: portada, índice, partes e includes.
+- `src/docs/theme.typ` es el tema (tipografía, tablas, código, portada).
+- `src/docs/*.typ` son los capítulos generados desde los `.md` con pandoc.
+- **No edites los `.typ` generados a mano.** Editá el `.md`, después:
+
+```bash
+make docs-convert PANDOC=/ruta/a/pandoc   # requiere pandoc >= 3
+make docs
+```
+
+- `guides/build/` es scratch (wrappers y previews); está ignorado por git.
 
 ## Editar una guía
 
 | Archivo | Qué contiene |
 |---|---|
-| `src/theme.typ` | Colores, tipografía, tarjetas, barras, tablas |
+| `src/theme.typ` | Colores, tipografía, tarjetas, barras, tablas de las guías |
 | `src/06-retos.typ` | Los 14 retos: comparación, matriz, fichas y cómo votar |
+| `src/07-documentacion.typ` | Maestro del libro de documentación (generado) |
+| `src/docs/theme.typ` | Tema del libro: portada, headings, tablas, código |
+| `src/docs/*.typ` | Capítulos generados desde los `.md` |
 
 ## Agregar una guía nueva
 
-1. Crear `guides/src/07-<tema>.typ` con `#import "theme.typ": *` y `#title_block(...)`.
+1. Crear `guides/src/08-<tema>.typ` con `#import "theme.typ": *` y `#title_block(...)`.
 2. Agregar las dos líneas en `make guides` (PDF y PNG).
 3. Sumar la fila a la tabla de arriba y al índice de `documentacion.md`.
 4. `make guides` y revisar el PDF antes de commitear.
