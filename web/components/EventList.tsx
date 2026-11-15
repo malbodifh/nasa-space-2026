@@ -56,12 +56,12 @@ function EventRow({ item }: { item: EventItem }) {
         </Link>
         {item.detail ? <p className="mt-1 text-[14px] leading-snug text-tinta-suave">{displayDetail(item.detail, locale)}</p> : null}
         <p className="mt-1 text-[12px] text-tinta-suave">
-          {sources.length > 1 ? t(`Confirmado por ${sources.join(", ")}`, `Confirmed by ${sources.join(", ")}`) : t(`Fuente: ${item.source}`, `Source: ${item.source === "Demostración" ? "Simulation" : item.source}`)}
+          {sources.length > 1 ? t(`También reportado por ${sources.join(", ")}`, `Also reported by ${sources.join(", ")}`) : t(`Fuente: ${item.source}`, `Source: ${item.source === "Demostración" ? "Simulation" : item.source}`)}
         </p>
 
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-          <Link href={href} prefetch={false} aria-label={`${t("Ver cómo cambió la superficie de la Tierra", "See how Earth's surface changed")}: ${eventTitle(item, locale)}`} className="group inline-block text-[14px] font-semibold text-primario-fuerte">
-            <span className="group-hover:underline group-hover:underline-offset-4">{t("Ver cómo cambió la superficie de la Tierra", "See how Earth's surface changed")}</span>
+          <Link href={href} prefetch={false} aria-label={`${t("Ver la comparación de la superficie de la Tierra", "See the Earth surface comparison")}: ${eventTitle(item, locale)}`} className="group inline-block text-[14px] font-semibold text-primario-fuerte">
+            <span className="group-hover:underline group-hover:underline-offset-4">{t("Ver la comparación de la superficie", "See the surface comparison")}</span>
             <ArrowRight className="ml-1 inline size-4 align-[-3px] transition group-hover:translate-x-0.5" aria-hidden />
           </Link>
           {item.url ? (

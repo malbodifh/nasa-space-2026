@@ -39,8 +39,8 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
         <p className="text-[15px] leading-snug font-semibold text-tinta">{title}</p>
         {body ? <p className="mt-0.5 text-[13px] leading-snug text-tinta-suave">{body}</p> : null}
         {toast.href ? (
-          <Link href={toast.href} prefetch={false} aria-label={`${t("Ver cómo cambió la superficie", "See how the surface changed")}: ${title}`} className="mt-1.5 inline-block text-[13px] font-semibold text-primario-fuerte underline underline-offset-4">
-            {t("Ver cómo cambió la superficie", "See how the surface changed")}
+          <Link href={toast.href} prefetch={false} aria-label={`${t("Ver la comparación de la superficie", "See the surface comparison")}: ${title}`} className="mt-1.5 inline-block text-[13px] font-semibold text-primario-fuerte underline underline-offset-4">
+            {t("Ver la comparación de la superficie", "See the surface comparison")}
           </Link>
         ) : null}
       </div>

@@ -68,6 +68,8 @@ export async function GET(request: Request) {
       const collection = NISAR_COLLECTIONS[index];
       for (const entry of result.value) {
         const info = parseTitle(entry.title);
+        // DHDH (HH+HV) es la combinación que usa la vista previa RGB; este método no interpreta
+        // otras polarizaciones.
         if (!info || info.pol !== "DHDH") continue;
         const byDate = frames.get(info.frame) ?? new Map();
         const current = byDate.get(info.date);
@@ -83,8 +85,23 @@ export async function GET(request: Request) {
       }
     }
 
-    // El cuadro con más fechas da la mejor serie de tiempo.
-    const best = [...frames.entries()].sort((a, b) => b[1].size - a[1].size)[0];
+    // La cantidad de fechas no basta: preferimos un cuadro con pasadas validadas y, si es
+    // posible, con al menos dos fechas para comparar. La fecha más reciente desempata.
+    const ranked = [...frames.entries()].map(([frame, byDate]) => {
+      const passes = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+      return {
+        frame,
+        passes,
+        validated: passes.filter((pass) => pass.status === "validado").length,
+        latest: passes.at(-1)?.date ?? "",
+      };
+    });
+    const withSeries = ranked.filter((candidate) => candidate.passes.length >= 2);
+    const best = (withSeries.length > 0 ? withSeries : ranked).sort((a, b) =>
+      b.validated - a.validated ||
+      b.passes.length - a.passes.length ||
+      b.latest.localeCompare(a.latest),
+    )[0];
     if (!best) {
       return Response.json(
         { data: null, meta: {
@@ -94,7 +111,7 @@ export async function GET(request: Request) {
         { headers: { "Cache-Control": fallbackCollections.length ? "no-store" : "public, s-maxage=21600" } },
       );
     }
-    const passes = [...best[1].values()].sort((a, b) => a.date.localeCompare(b.date));
+    const passes = best.passes;
 
     let bounds: [number, number, number, number] | null = null;
     // Primero los validados más recientes: son los que traen el KML con las esquinas.
@@ -111,7 +128,7 @@ export async function GET(request: Request) {
     ) ?? null;
     if (!bounds) throw new Error("Sin esquinas para el cuadro");
 
-    const data: NisarSearch = { frame: best[0], bounds, passes };
+    const data: NisarSearch = { frame: best.frame, bounds, passes };
     return Response.json(
       { data, meta: { fallback: fallbackCollections.length > 0, fallbackCollections } },
       { headers: { "Cache-Control": fallbackCollections.length

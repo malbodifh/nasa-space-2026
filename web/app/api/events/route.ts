@@ -54,6 +54,6 @@ export async function GET(request: Request) {
   };
 
   return Response.json(body, {
-    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+    headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=30" },
   });
 }

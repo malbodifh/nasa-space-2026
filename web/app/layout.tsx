@@ -16,12 +16,12 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Memoria de Fuego · NASA Space Apps 2026",
   description:
-    "Alertas de desastres cerca de usted y cómo cambió la superficie de la Tierra, vista con el radar NASA-ISRO NISAR. No es una alerta oficial.",
+    "Alertas de desastres cerca de usted y una comparación visual de la superficie con radar NASA-ISRO NISAR. No es una alerta oficial.",
   applicationName: "Memoria de Fuego",
   openGraph: {
     title: "Memoria de Fuego · NASA Space Apps 2026",
     description:
-      "Desastres naturales en Costa Rica y cambios de superficie con radar NASA-ISRO NISAR. No es una alerta oficial.",
+      "Desastres naturales en Costa Rica y una comparación visual de la superficie con radar NASA-ISRO NISAR. No es una alerta oficial.",
     type: "website",
     locale: "es_CR",
   },
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Memoria de Fuego · NASA Space Apps 2026",
     description:
-      "Desastres naturales en Costa Rica y cambios de superficie con radar NASA-ISRO NISAR.",
+      "Desastres naturales en Costa Rica y una comparación visual de la superficie con radar NASA-ISRO NISAR.",
   },
 };
 

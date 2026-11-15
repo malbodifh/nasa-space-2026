@@ -93,9 +93,10 @@ describe("seismic", () => {
     expect(events[0].place).toContain("Liberia");
   });
 
-  it("parsea OVSICORI con nombre local y profundidad", () => {
+  it("parsea OVSICORI con nombre local y profundidad, incluidos los sismos pequeños", () => {
     const events = parseOvsicori(ovsicoriPayload, point);
-    expect(events).toHaveLength(1);
+    expect(events).toHaveLength(2);
+    expect(events.map((event) => event.magnitude)).toContain(2);
     expect(events[0]).toMatchObject({
       id: "ov2026abc",
       source: "OVSICORI",
@@ -110,8 +111,8 @@ describe("seismic", () => {
     const local = parseOvsicori(ovsicoriPayload, point);
     const global = parseUsgs(usgsPayload, point);
     const merged = mergeSeismic(local, global);
-    expect(merged).toHaveLength(1);
-    expect(merged[0].source).toBe("OVSICORI");
+    expect(merged).toHaveLength(2);
+    expect(merged.find((event) => event.magnitude === 4.1)?.source).toBe("OVSICORI");
   });
 
   it("mantiene los eventos globales que no duplican", () => {

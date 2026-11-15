@@ -133,7 +133,7 @@ export default function SurfaceStudy() {
       : dateInput.status === "invalid"
         ? "date"
         : radarPair.status === "invalid" ? "pair" : null;
-  const title = params.get("titulo") ?? t("Cambio de la superficie", "Surface change");
+  const title = params.get("titulo") ?? t("Diferencia aparente en la superficie", "Apparent surface difference");
   const kind = params.get("tipo") ?? "";
 
   const { data: remote, error: remoteError, mutate: retryCatalog, isValidating: retryingCatalog } = useSWR<{ data: NisarSearch | null; meta?: { fallback?: boolean } }>(
@@ -247,6 +247,7 @@ export default function SurfaceStudy() {
   const text = result ? resultText(result, locale) : null;
   const story = zone ? displayStory(zone, locale) : null;
   const provisional = before?.status === "provisional" || after?.status === "provisional";
+  const mixedStatus = Boolean(before && after && before.status !== after.status);
 
   return (
     <main id="contenido" className="mx-auto w-full max-w-[1180px] px-4 pb-20 sm:px-6">
@@ -257,7 +258,7 @@ export default function SurfaceStudy() {
 
       <p className="etiqueta mt-8">{[categoryLabel(kind, kind, locale), eventDate ? shortDate(eventDate) : null].filter(Boolean).join(" · ")}</p>
       <h1 className="mt-2 text-[32px] leading-[1.06] font-bold tracking-[-0.035em] sm:text-[48px]">
-        {t("Cómo cambió la", "How the")} <span className="text-primario">{t("superficie", "surface changed")}</span>
+        {t("Diferencia aparente en la", "Apparent")} <span className="text-primario">{t("superficie", "surface difference")}</span>
       </h1>
       <p className="mt-3 max-w-[720px] text-[18px] leading-snug text-tinta-suave">{studyTitle(title, locale)}</p>
       {/simulad|demo/i.test(title) ? (
@@ -383,7 +384,7 @@ export default function SurfaceStudy() {
                 <p className="rounded-[14px] bg-primario-suave px-5 py-4 text-[15px] leading-relaxed text-tinta">
                   {note === "antes-de-los-datos"
                     ? t("El evento empezó antes de que el radar tuviera imágenes de este lugar. Comparamos la primera y la última pasada.", "The event began before radar images were available here. We compare the first and last available passes.")
-                    : t(`El radar todavía no pasó después del evento; la próxima pasada sería cerca del ${shortDate(nextPass(source.passes[source.passes.length - 1].date))}. Mientras tanto, mostramos las dos últimas.`, `No post-event radar pass is available yet; the next is expected around ${shortDate(nextPass(source.passes[source.passes.length - 1].date))}. Meanwhile, we show the latest two.`)}
+                    : t(`El radar todavía no pasó después del evento; la próxima oportunidad orbital aproximada sería cerca del ${shortDate(nextPass(source.passes[source.passes.length - 1].date))}, no una adquisición confirmada. Mientras tanto, mostramos las dos últimas.`, `No post-event radar pass is available yet; the next approximate orbital opportunity is around ${shortDate(nextPass(source.passes[source.passes.length - 1].date))}, not a confirmed acquisition. Meanwhile, we show the latest two.`)}
                 </p>
               ) : null}
 
@@ -392,10 +393,17 @@ export default function SurfaceStudy() {
                   <>
                     <h2 className="text-[22px] leading-tight font-bold tracking-[-0.02em]">{text.title}</h2>
                     <p className="mt-2 text-[15px] leading-relaxed text-tinta-suave">{text.detail}</p>
+                    <p className="mt-3 text-[13px] font-semibold text-tinta">{t("Impacto, superficie afectada y cambio de topografía: no determinables con estas vistas previas.", "Impact, affected area and topographic change: cannot be determined from these previews.")}</p>
                     <div className="mt-5 grid grid-cols-2 gap-3">
                       {result.comparableCount > 0 ? <Stat value={`≈ ${displayPct(result.brighterPct + result.darkerPct, locale)}`} label={t("Píxeles con cambio aparente (aprox.)", "Apparent preview-pixel change (approx.)")} /> : null}
                       <Stat value={`${daysBetween(before.date, after.date).toLocaleString(intlLocale(locale))} ${t("días", "days")}`} label={t("Entre las dos imágenes", "Between the two images")} />
+                      {result.comparableCount > 0 ? <>
+                        <Stat value={`≈ ${displayPct(result.brighterPct, locale)}`} label={t("Más brillantes entre los comparables", "Brighter among comparable pixels")} />
+                        <Stat value={`≈ ${displayPct(result.darkerPct, locale)}`} label={t("Más oscuros entre los comparables", "Darker among comparable pixels")} />
+                        <Stat value={`≈ ${displayPct(100 * result.comparableCount / (result.width * result.height), locale)}`} label={t("Píxeles comparables del recorte", "Comparable pixels in crop")} />
+                      </> : null}
                     </div>
+                    {result.comparableCount > 0 ? <p className="mt-3 text-[13px] text-tinta-suave">{t("Los cambios claros y oscuros se calculan sobre los píxeles comparables; la cobertura usa todos los píxeles del recorte. No son porcentajes de área afectada.", "Brighter and darker changes use comparable pixels; coverage uses all pixels in the crop. These are not percentages of affected area.")}</p> : null}
                     {result.comparableCount > 0 ? <p className="mt-5 border-t border-linea pt-4 text-[15px] leading-relaxed text-tinta-suave">{hint}</p> : null}
                   </>
                 ) : (
@@ -441,7 +449,11 @@ export default function SurfaceStudy() {
               <section>
                 <p className="mb-4 rounded-[10px] bg-hundida p-4 text-[13px] leading-relaxed text-tinta-suave">
                   {t("Vista previa de 8 bits no calibrada: los porcentajes describen píxeles comparables con cambio aparente de brillo, no superficie dañada ni inundación confirmada. Un cambio no identifica su causa.", "Uncalibrated 8-bit preview: percentages describe comparable pixels with apparent brightness change, not damaged land or confirmed flooding. A change does not identify its cause.")}
-                  {provisional ? ` ${t("Esta comparación incluye al menos una pasada provisional; las diferencias de procesamiento o calibración pueden influir en el resultado.", "This comparison includes at least one provisional pass; processing or calibration differences may affect the result.")}` : ""}
+                  {mixedStatus
+                    ? ` ${t("Esta comparación mezcla una pasada provisional y una validada; las diferencias de procesamiento o calibración pueden influir en el resultado. «Validado» describe el producto, no nuestra interpretación.", "This comparison mixes a provisional and a validated pass; processing or calibration differences may affect the result. “Validated” describes the product, not our interpretation.")}`
+                    : provisional
+                      ? ` ${t("Esta comparación incluye al menos una pasada provisional; las diferencias de procesamiento o calibración pueden influir en el resultado.", "This comparison includes at least one provisional pass; processing or calibration differences may affect the result.")}`
+                      : ""}
                 </p>
                 <Details title={t("Cómo leer la imagen", "How to read the image")}>
                   <ul className="space-y-2">
@@ -481,7 +493,10 @@ export default function SurfaceStudy() {
                 ) : null}
                 <Details title={t("Datos", "Data")}>
                   <p>
-                    {t("NASA-ISRO NISAR, producto L2 GCOV, vista previa pública de ASF DAAC. Rojo y azul: HH; verde: HV. Se compara el brillo HH suavizado, no gamma0 calibrado; se ignoran los píxeles oscuros en ambas fechas. El umbral visual es 38/255, sin significado físico calibrado. Las cifras son aproximadas.", "NASA-ISRO NISAR L2 GCOV, public ASF DAAC preview. Red and blue: HH; green: HV. We compare smoothed HH brightness, not calibrated gamma0; pixels dark on both dates are ignored. The visual threshold is 38/255, without calibrated physical meaning. Figures are approximate.")}
+                    {t("NASA-ISRO NISAR, producto L2 GCOV (Geocoded Polarimetric Covariance), vista previa pública de ASF DAAC. Rojo y azul: HH (horizontal-horizontal); verde: HV (horizontal-vertical); HV es más sensible a la estructura de la vegetación. Se compara el brillo HH suavizado, no gamma0 (retrodispersión calibrada); se ignoran los píxeles oscuros en ambas fechas como filtro exploratorio, no como máscara validada de agua. El umbral visual es 38/255, sin significado físico calibrado. Las cifras son aproximadas.", "NASA-ISRO NISAR L2 GCOV (Geocoded Polarimetric Covariance), public ASF DAAC preview. Red and blue: HH (horizontal-horizontal); green: HV (horizontal-vertical); HV is more sensitive to vegetation structure. We compare smoothed HH brightness, not calibrated gamma0 (backscatter); pixels dark on both dates are ignored as an exploratory filter, not a validated water mask. The visual threshold is 38/255, without calibrated physical meaning. Figures are approximate.")}
+                  </p>
+                  <p className="mt-2">
+                    {t("Las zonas precargadas usan una compensación por media del cuadro; la comparación interactiva usa la mediana. Las esquinas del recorte provienen del KML de la vista previa: la georreferenciación es aproximada. No son una serie calibrada homogénea.", "Precomputed zones use frame-mean compensation; interactive comparison uses the median. Crop corners come from the preview KML: georeferencing is approximate. They are not a homogeneous calibrated series.")}
                   </p>
                   <p className="mt-2 text-[13px] break-all">
                     {before?.granule}

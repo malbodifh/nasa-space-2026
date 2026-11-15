@@ -4,6 +4,8 @@ import type { LatLon, SeismicEvent } from "@/lib/types";
 const WINDOW_DAYS = 30;
 const MAX_KM = 600;
 const MIN_MAGNITUDE = 2.5;
+/** OVSICORI es la red local: sus sismos pequeños también cuentan (la mitad del archivo es menor a M2,5). */
+const MIN_MAGNITUDE_LOCAL = 0;
 
 type UsgsFeature = {
   id: string;
@@ -222,7 +224,7 @@ export function parseOvsicori(payload: unknown, point: LatLon, now = Date.now())
     const coordinates = feature.geometry?.coordinates;
     if (!properties || !coordinates) continue;
     if (!Number.isFinite(properties.magnitudeValue)) continue;
-    if ((properties.magnitudeValue as number) < MIN_MAGNITUDE) continue;
+    if ((properties.magnitudeValue as number) < MIN_MAGNITUDE_LOCAL) continue;
 
     const time = properties.time * 1000;
     if (!Number.isFinite(time) || time < cutoff || time > now ||

@@ -62,7 +62,7 @@ function fit(map: MapLibreMap, point: LatLon, radiusKm: number, duration: number
 const HAZARD_EN: Record<Hazard, string> = {
   sismo: "Earthquake", tsunami: "Tsunami", volcan: "Volcano", inundacion: "Flood",
   ciclon: "Cyclone or storm", lluvia: "Heavy rain", deslizamiento: "Landslide",
-  incendio: "Wildfire", radar: "Detected by radar", otro: "Other",
+  incendio: "Wildfire", radar: "Visual radar difference", otro: "Other",
 };
 
 export default function HomeMap({ point, radiusKm, active, history }: Props) {
@@ -172,10 +172,11 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
       map.addSource("me", { type: "geojson", data: EMPTY });
       map.addSource("events", { type: "geojson", data: EMPTY });
 
-      // Primero el área amarilla y encima la roja, que es más pequeña.
+      // Primero el radio amarillo y encima el rojo, que es más pequeño. El trazo discontinuo
+      // recuerda que son radios de proximidad, no perímetros oficiales.
       for (const [ring, color, opacity] of [
-        ["yellow", YELLOW, 0.16],
-        ["red", RED, 0.2],
+        ["yellow", YELLOW, 0.08],
+        ["red", RED, 0.1],
       ] as const) {
         map.addLayer({
           id: `zone-${ring}-fill`,
@@ -189,7 +190,7 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
           type: "line",
           source: "zones",
           filter: ["==", ["get", "ring"], ring],
-          paint: { "line-color": color, "line-opacity": 0.9, "line-width": 1.5 },
+          paint: { "line-color": color, "line-opacity": 0.9, "line-width": 1.5, "line-dasharray": [2, 2] },
         });
       }
 
@@ -232,7 +233,7 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
             `<p style="font-weight:600">${escapeHtml(p.title)}</p>` +
               `<p style="color:#5A5F6E">${escapeHtml(p.label)} · ${escapeHtml(p.when)}${p.ongoing ? escapeHtml(textRef.current(" · en curso", " · ongoing")) : ""}</p>` +
               (p.zones ? `<p style="color:#5A5F6E;margin-top:4px">${escapeHtml(p.zones)}</p>` : "") +
-              `<a href="${escapeHtml(p.href)}" style="display:inline-block;margin-top:6px;color:#3F51D6;font-weight:600">${escapeHtml(textRef.current("Ver cómo cambió la superficie", "See how the surface changed"))} →</a>`,
+              `<a href="${escapeHtml(p.href)}" style="display:inline-block;margin-top:6px;color:#3F51D6;font-weight:600">${escapeHtml(textRef.current("Ver la comparación de la superficie", "See the surface comparison"))} →</a>`,
           )
           .addTo(map);
       });
@@ -292,12 +293,12 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
         item.id,
         zone.red > 0
           ? t(
-              `Área roja ${zone.red.toLocaleString(intlLocale(locale))} km · amarilla ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimadas, no oficiales)`,
-              `Red area ${zone.red.toLocaleString(intlLocale(locale))} km · yellow ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimated, unofficial)`,
+              `Radio rojo de proximidad ${zone.red.toLocaleString(intlLocale(locale))} km · amarillo ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimados; no son zona de afectación)`,
+              `Red proximity radius ${zone.red.toLocaleString(intlLocale(locale))} km · yellow ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimated; not an impact area)`,
             )
           : t(
-              `Área amarilla ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimada, no oficial)`,
-              `Yellow area ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimated, unofficial)`,
+              `Radio amarillo de proximidad ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimado; no es zona de afectación)`,
+              `Yellow proximity radius ${zone.yellow.toLocaleString(intlLocale(locale))} km (estimated; not an impact area)`,
             ),
       ]),
     );
@@ -353,12 +354,15 @@ export default function HomeMap({ point, radiusKm, active, history }: Props) {
           {zones.length > 0 ? (
             <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 border-t border-linea pt-2 text-[12px] text-tinta-suave">
               <li className="inline-flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full border-2" style={{ borderColor: RED, backgroundColor: `${RED}33` }} aria-hidden />
-                 {t("Área roja estimada, no oficial", "Estimated red area, unofficial")}
+                <span className="size-2.5 rounded-full border-2 border-dashed" style={{ borderColor: RED, backgroundColor: `${RED}22` }} aria-hidden />
+                 {t("Radio rojo de proximidad (estimado)", "Red proximity radius (estimated)")}
               </li>
               <li className="inline-flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full border-2" style={{ borderColor: YELLOW, backgroundColor: `${YELLOW}33` }} aria-hidden />
-                 {t("Área amarilla estimada, no oficial", "Estimated yellow area, unofficial")}
+                <span className="size-2.5 rounded-full border-2 border-dashed" style={{ borderColor: YELLOW, backgroundColor: `${YELLOW}22` }} aria-hidden />
+                 {t("Radio amarillo de proximidad (estimado)", "Yellow proximity radius (estimated)")}
+              </li>
+              <li className="w-full text-[11px] leading-snug text-tinta-suave">
+                {t("Los radios indican cercanía, no el área afectada.", "Radii indicate proximity, not the affected area.")}
               </li>
             </ul>
           ) : null}

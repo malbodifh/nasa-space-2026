@@ -67,7 +67,7 @@ function seismicLevel(event: SeismicEvent): DisasterAlert["level"] {
 }
 
 /** Solo los sismos recientes y perceptibles (o reportados como sentidos) entran a las alertas. */
-function seismicAlerts(events: SeismicEvent[], days = 7, minMagnitude = 3.5): DisasterAlert[] {
+function seismicAlerts(events: SeismicEvent[], days = 3, minMagnitude = 2): DisasterAlert[] {
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
   return events
     .filter((event) => (event.magnitude >= minMagnitude || event.felt) && Date.parse(event.time) >= cutoff)
@@ -199,7 +199,7 @@ export async function getEvents(point: LatLon): Promise<{
   const history = [
     ...stale,
     ...(closedResult.status === "fulfilled" ? closedResult.value : []),
-    ...seismicAlerts(events, 30, 4),
+    ...seismicAlerts(events, 30, 3),
   ].filter((alert) => {
     if (active.has(alert.id) || listed.has(alert.id)) return false;
     listed.add(alert.id);

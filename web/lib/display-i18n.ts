@@ -75,7 +75,8 @@ const CATEGORIES: Record<string, string> = {
   hielo: "Ice", agua: "Water", antrópico: "Human-caused event", "temperatura extrema": "Temperature extreme",
   "ciclón o tormenta": "Cyclone or storm",
   EQ: "Earthquake", TC: "Tropical cyclone", FL: "Flood", VO: "Volcano", DR: "Drought", WF: "Wildfire",
-  radar: "Detected by radar", "detectado por radar": "Detected by radar", todos: "All",
+  radar: "Visual radar difference", "detectado por radar": "Detected by radar",
+  "diferencia visual de radar": "Visual radar difference", todos: "All",
 };
 
 export function categoryLabel(category: string, fallback: string, locale: DisplayLocale): string {
@@ -115,7 +116,7 @@ export function eventTitle(item: Pick<EventItem, "title" | "kind" | "id">, local
   if (item.kind !== "radar") return generatedTitle(item.title);
   const id = item.id.split(":")[1];
   const story = EN_STORIES[id];
-  return story ? `Surface change in ${story.name}` : item.title;
+  return story ? `Preview difference in ${story.name}` : item.title;
 }
 
 /** Only known app-authored headings; original third-party report titles are not translated. */
@@ -124,7 +125,12 @@ export function studyTitle(title: string, locale: DisplayLocale): string {
   const demo = Object.values(DEMO_EN).find((item) => item.titleEs === title);
   if (demo) return demo.title;
   for (const [id, story] of Object.entries(EN_STORIES)) {
-    if (title === `Cambio de la superficie en ${ES_ZONE_NAMES[id]}`) return `Surface change in ${story.name}`;
+    if (
+      title === `Cambio de la superficie en ${ES_ZONE_NAMES[id]}` ||
+      title === `Diferencia aparente en la vista previa de ${ES_ZONE_NAMES[id]}`
+    ) {
+      return `Apparent preview difference in ${story.name}`;
+    }
   }
   return generatedTitle(title);
 }

@@ -140,6 +140,31 @@ describe("GET /api/nisar/search", () => {
     const { data } = await (await search(searchRequest())).json();
     expect(data.passes[0]).toMatchObject({ status: "validado", collection: "NISAR_L2_GCOV_V1" });
   });
+  it("prefiere un cuadro con pasadas validadas antes que uno con más fechas provisionales", async () => {
+    const validatedFrame = "004_A_007_4005";
+    const provisionalFrame = "170_D_083_4005";
+    const granuleFor = (frame: string, date: string) =>
+      `NISAR_L2_PR_GCOV_025_${frame}_DHDH_A_${date}T000909_${date}T000944_P05023_N_F_J_001`;
+    upstream.mockImplementation(async (url: string) => {
+      if (url.includes("cmr.earthdata")) {
+        return url.includes("PROVISIONAL")
+          ? Response.json({ feed: { entry: [
+            { title: granuleFor(provisionalFrame, "20260720") },
+            { title: granuleFor(provisionalFrame, "20260813") },
+            { title: granuleFor(provisionalFrame, "20260930") },
+          ] } })
+          : Response.json({ feed: { entry: [
+            { title: granuleFor(validatedFrame, "20261024") },
+            { title: granuleFor(validatedFrame, "20261105") },
+          ] } });
+      }
+      return new Response("<coordinates>-85,9 -83,9 -83,11 -85,11</coordinates>");
+    });
+    const { data } = await (await search(searchRequest())).json();
+    expect(data.frame).toBe(validatedFrame);
+    expect(data.passes.map((pass: { status: string }) => pass.status)).toEqual(["validado", "validado"]);
+  });
+
   it("no convierte esquinas inválidas o fuera del punto en bounds válidos", async () => {
     upstream.mockImplementation(async (url: string) => url.includes("cmr.earthdata")
       ? Response.json({ feed: { entry: [{ title: GRANULE }] } })

@@ -107,7 +107,10 @@ export type ChangeResult = {
   brighterPct: number;
 };
 
-/** Píxeles que superaron el umbral; excluye los oscuros en ambas fechas, no una máscara de agua. */
+/**
+ * Píxeles que se oscurecieron o aclararon más que el umbral. Los valores oscuros en ambas
+ * fechas se excluyen como filtro exploratorio; no es una máscara validada de agua.
+ */
 export function changeMask(
   before: Float32Array,
   after: Float32Array,
@@ -168,7 +171,7 @@ export function pickPair<T extends Pass>(
   return { before: firstAfter - 1, after: firstAfter, note: null };
 }
 
-/** Fecha aproximada de la próxima pasada (ciclo de 12 días). */
+/** Oportunidad orbital aproximada (ciclo de 12 días); no confirma adquisición ni publicación. */
 export function nextPass(lastDate: string): string {
   const date = new Date(`${lastDate}T12:00:00Z`);
   date.setUTCDate(date.getUTCDate() + 12);

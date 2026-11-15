@@ -1,6 +1,6 @@
 /**
- * Color de cada tipo de desastre y áreas de alerta (roja y amarilla) de las amenazas activas.
- * Las áreas son estimaciones simples por amenaza, no zonas oficiales.
+ * Color de cada tipo de desastre y radios de proximidad (rojo y amarillo) de las amenazas activas.
+ * Los radios son estimaciones simples de cercanía, no zonas oficiales ni áreas de afectación.
  */
 import { isOngoing } from "@/lib/alert-rules";
 import type { AlertLevel } from "@/lib/types";
@@ -26,7 +26,7 @@ export const HAZARD_STYLE: Record<Hazard, { label: string; color: string }> = {
   lluvia: { label: "Lluvia fuerte", color: "#38BDF8" },
   deslizamiento: { label: "Deslizamiento", color: "#CA8A04" },
   incendio: { label: "Incendio", color: "#F97316" },
-  radar: { label: "Detectado por radar", color: "#5266EB" },
+  radar: { label: "Diferencia visual de radar", color: "#5266EB" },
   otro: { label: "Otro", color: "#8A8F9E" },
 };
 
@@ -91,13 +91,13 @@ function magnitudeOf(input: ZoneInput): number | null {
 }
 
 /**
- * Radios en km del área roja (mayor peligro) y amarilla (precaución) de una amenaza en curso.
- * Devuelve null si el evento no está ocurriendo en este momento o si no tiene área (detecciones de radar, avisos
- * informativos). Un radio de 0 significa que no hay área roja.
+ * Radios de proximidad en km (rojo = más cerca, amarillo = menos cerca) de una amenaza en curso.
+ * No representan el área real de afectación: son una ayuda visual para ordenar la cercanía.
+ * Devuelve null si el evento no está ocurriendo en este momento o si no tiene radio (detecciones
+ * de radar, avisos informativos). Un radio de 0 significa que no hay radio rojo.
  *
- * - Sismo: roja donde se espera sacudida fuerte (intensidad VI o más) y amarilla donde se siente
- *   (intensidad IV), con una relación aproximada magnitud–distancia para sismos superficiales.
- * - Volcán: 5 km alrededor del cráter y 15 km por ceniza y lahares.
+ * - Sismo: aproximación magnitud–distancia para sismos superficiales; no es un mapa de sacudida.
+ * - Volcán: 5 km alrededor del cráter y 15 km de referencia por ceniza y lahares.
  * - Tsunami: solo con vigilancia, aviso o advertencia del centro de alerta.
  * - Ciclón: 100/300 km si es huracán; 50/200 km si es tormenta o depresión.
  */
