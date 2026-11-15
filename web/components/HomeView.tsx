@@ -247,6 +247,8 @@ export default function HomeView() {
                         ? status.title
                         : !status.nearest
                           ? "No alerts for your location"
+                          : status.nearest.category === "tsunami"
+                            ? "Regional tsunami bulletin: local scope unknown"
                           : status.tone === "peligro"
                             ? "Alert for your location"
                             : `${relevant?.length ?? 0} ${(relevant?.length ?? 0) === 1 ? "notice" : "notices"} for your location`}
