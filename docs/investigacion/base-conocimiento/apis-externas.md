@@ -65,7 +65,7 @@
 |---|---|
 | Tipo | Agencia oficial (EE.UU./internacional). |
 | URL | <https://www.tsunami.gov/> |
-| Endpoints usados | `https://www.tsunami.gov/events/xml/PHEBAtom.xml` (Pacífico) y `.../PAAQAtom.xml` (Atlántico/Caribe). |
+| Endpoints usados | `https://www.tsunami.gov/events/xml/PHEBAtom.xml` (PTWC) y `.../PAAQAtom.xml` (NTWC). El centro y la cuenca no son equivalentes. |
 | Variables | Nivel (vigilancia, aviso, advertencia), título, fecha, enlace. |
 | Cobertura | Pacífico y Caribe/Atlántico. |
 | Latencia | Minutos. |
@@ -73,7 +73,7 @@
 | Auth | Ninguna. |
 | Estado | **Implementada** en [`feeds.ts`](../../../web/lib/sources/feeds.ts). |
 | Límites | Caché 2 min, timeout 12 s; un boletín informativo no dibuja área. |
-| Limitación | No es el aviso oficial de Costa Rica; es una referencia regional. |
+| Limitación | No es el aviso oficial de Costa Rica; la distancia al epicentro no identifica las costas amenazadas. Ver [`../boletines-tsunami.md`](../boletines-tsunami.md). |
 
 ### SINAMOT (Costa Rica)
 
@@ -82,8 +82,9 @@
 | Tipo | Sistema nacional de monitoreo de tsunamis (UNA). |
 | URL | <https://www.sinamot.una.ac.cr/> |
 | Estado | **No integrada**; solo referencia. |
-| Verificación | URL proporcionada en el encargo; no se probó en esta sesión. |
-| Limitación | No se debe presentar como fuente consultada si no hay integración. |
+| Consulta humana | [Reportes recientes](https://unacostasegura.una.ac.cr/webServices/) y [mapas oficiales](https://www.sinamot.una.ac.cr/index.php/mapas-de-evacuacion). |
+| Verificación | Consultados el 15/11/2026: historial HTML y un boletín individual. No se verificó una API pública documentada. |
+| Limitación | No se debe presentar como fuente consultada por la app si no hay integración. El sitio solicita créditos al reproducir reportes. |
 
 ## 3. Ciclones
 

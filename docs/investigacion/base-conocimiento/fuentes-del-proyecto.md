@@ -171,11 +171,13 @@ No se modificaron esos documentos en este trabajo para no pisar cambios locales.
 
 ## 7. Lo que no está configurado
 
-- No hay base de datos, auth, cola de trabajos ni cron.
+- No hay cuentas de usuario. El push puede usar Supabase y un cron externo; requiere
+  configuración y no debe suponerse operativo solo porque el código exista.
 - No hay descarga de HDF5 en runtime.
 - No hay procesamiento Python de NISAR en el repositorio.
 - No hay score de inundación, deslizamiento, sismo, volcán ni tsunami.
-- No hay alertas push del servidor; solo avisos del navegador con la página abierta.
+- La PWA incluye código de avisos push con la página cerrada, sujeto a instalación, permisos,
+  variables y cron; los avisos dentro de la página requieren tenerla abierta.
 
 ## Referencias internas
 

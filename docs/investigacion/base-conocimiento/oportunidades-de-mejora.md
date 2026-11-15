@@ -57,7 +57,8 @@ Antes de implementar:
 2. **¿Se puede explicar en una frase?** Si no, no está listo para la UI.
 3. **¿Tiene una prueba?** Al menos un test de contrato o un caso de ejemplo.
 4. **¿Tiene una limitación escrita?** Toda cifra nueva necesita su “qué no demuestra”.
-5. **¿Respeta la arquitectura?** BFF, sin claves en cliente, sin base de datos.
+5. **¿Respeta la arquitectura?** BFF y sin claves en cliente; cualquier almacenamiento
+   adicional necesita una decisión explícita (el push ya contempla Supabase).
 6. **¿Se puede apagar?** Una bandera o feature flag para no romper el demo.
 
 ## 4. Lo que no se recomienda

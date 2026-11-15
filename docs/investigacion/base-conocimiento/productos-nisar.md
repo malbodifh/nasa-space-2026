@@ -29,7 +29,7 @@ interferometría.
 | **RUNW** | L1 | Interferograma diferencial desenvuelto + coherencia + ionósfera. | HDF5 | No | 80 m | Desplazamiento del suelo en coordenadas radar. | No es mapa; requiere geocodificación y correcciones. | Alta | ASF, Earthdata Login | [RUNW](https://nisar-docs.asf.alaska.edu/runw) |
 | **ROFF** | L1 | Offsets de píxel (along-track y slant-range) + varianzas/SNR. | HDF5 | No | 90 m | Criósfera, flujos rápidos, desplazamientos grandes. | Offsets sin filtro; outliers; no es una serie de deformación. | Alta | ASF, Earthdata Login | [ROFF](https://nisar-docs.asf.alaska.edu/roff) |
 | **GSLC** | L2 | Señal compleja geocodificada por polarización. | HDF5 | Sí | 5–40 m según banda | Retrodispersión, polarimetría, interferometría geocodificada. | Archivos grandes; necesita LUTs para β0/σ0/γ0. | Alta | ASF, Earthdata Login | [GSLC](https://nisar-docs.asf.alaska.edu/gslc) |
-| **GCOV** | L2 | Términos de covarianza polarimétrica; γ0 con RTC. | HDF5 | Sí | 10, 20 u 80 m | Biomasa, humedad del suelo, disturbios, inundación, cultivos. | Solo potencia (no fase); mezcla de madureces; requiere máscara y looks. | Media | ASF, Earthdata Login | [GCOV](https://nisar-docs.asf.alaska.edu/gcov) |
+| **GCOV** | L2 | Términos de covarianza polarimétrica; γ0 con RTC. | HDF5 | Sí | 10, 20 u 80 m | Biomasa, humedad del suelo, disturbios, inundación, cultivos. | No contiene fase interferométrica entre fechas; mezcla de madureces; requiere máscara y looks. | Media | ASF, Earthdata Login | [GCOV](https://nisar-docs.asf.alaska.edu/gcov) |
 | **GUNW** | L2 | Fase desenvuelta, coherencia, componentes conexas, ionósfera, offsets. | HDF5 | Sí | 80 m (desenvuelto); 20 m (envuelto/coherencia) | Desplazamiento LOS, sismos, volcanes, subsidencia, deslizamientos. | Solo co-pol HH/VV, pares de 12 días, no da vertical; atmósfera no removida. | Alta | ASF, Earthdata Login | [GUNW](https://nisar-docs.asf.alaska.edu/gunw) |
 | **GOFF** | L2 | Offsets geocodificados (along-track y range) + SNR. | HDF5 | Sí | 80 m | Criósfera, movimiento rápido, complemento de GUNW. | Offsets sin post-proceso; outliers; no es desplazamiento vertical. | Alta | ASF, Earthdata Login | [GOFF](https://nisar-docs.asf.alaska.edu/goff) |
 | **SME2** | L3 | Humedad del suelo (DSG, PMI, TSR) + incertidumbre. | HDF5 | Sí | 200 m (500 m en el Sahara) | Sequía, riego, agricultura, pronóstico de rendimiento. | Validación aún en curso; en 11/2026 no había colección validada. | Media | ASF, Earthdata Login | [SME2](https://nisar-docs.asf.alaska.edu/sme2) |
@@ -77,7 +77,9 @@ Cronología y matices: [`nasa-nisar.md`](nasa-nisar.md) §3–§4.
 
 1. **Espaciado no es resolución.** Un GCOV de 10 m tiene píxeles cada 10 m, pero la resolución
    efectiva depende del multilook y del terreno.
-2. **GCOV no tiene fase.** Para desplazamiento hace falta GUNW u otro interferograma.
+2. **GCOV no tiene fase interferométrica entre fechas.** Algunos términos polarimétricos
+   cruzados son complejos y contienen fase relativa entre polarizaciones; no sirven por sí
+   solos como interferograma temporal. Para desplazamiento hace falta GUNW u otro interferograma.
 3. **GUNW no da desplazamiento vertical.** Da línea de vista (LOS); la vertical requiere
    supuestos o combinar órbitas.
 4. **Un producto validado no valida nuestro análisis.** Valida el procesamiento de la misión.

@@ -6,7 +6,8 @@
 ## 1. Principios vigentes
 
 1. **Monolito BFF:** las Route Handlers de Next son el backend. No hay servicio aparte.
-2. **Sin base de datos ni auth:** el estado vive en archivos, caché en memoria y CDN.
+2. **Sin cuentas de usuario:** el estado de eventos vive en archivos, caché en memoria y CDN.
+   Las suscripciones push pueden almacenarse en Supabase; requieren configuración de servidor.
 3. **Claves solo en el servidor:** el cliente nunca llama una API externa con credenciales.
 4. **El dominio no ve JSON crudo:** `lib/sources/*` normaliza; `lib/risk`, `lib/stats` y
    `lib/events` reciben tipos propios.
@@ -33,7 +34,7 @@ ASF DAAC (browse PNG) ──► /api/nisar/browse ──► canvas del navegador
                                       recorte + suavizado + umbral
                                                 |
                                                 v
-                                         mapa de cambio WebP
+                                          máscara PNG (data URL)
 ```
 
 Y en paralelo, para las cuatro zonas precalculadas:
@@ -175,7 +176,7 @@ tiempo de procesamiento. No está implementada y no debe presentarse como existe
 
 ## 9. Lo que no cambia
 
-- No se agrega base de datos ni autenticación.
+- El procesamiento NISAR propuesto no añade por sí mismo base de datos ni cuentas de usuario.
 - No se llama ASF desde el navegador con credenciales.
 - No se reemplaza la vista previa por HDF5 sin un cambio de alcance y pruebas.
 - No se inventa un score para amenazas que no lo tienen.

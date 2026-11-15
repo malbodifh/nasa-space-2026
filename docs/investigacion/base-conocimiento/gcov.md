@@ -6,8 +6,9 @@
 
 ## 1. Definición corta
 
-GCOV es una “foto” de potencia radar por píxel, ya corregida para que el relieve no invente
-brillos, y ya colocada en un mapa. No contiene la fase interferométrica entre dos adquisiciones;
+GCOV es una “foto” de potencia radar por píxel, con corrección radiométrica para mitigar
+distorsiones del relieve y ya colocada en un mapa. La corrección no elimina todos los efectos
+del terreno. No contiene la fase interferométrica entre dos adquisiciones;
 para eso está GUNW.
 
 Es el producto más cercano a lo que un analista GIS espera: un ráster con valores físicos que se

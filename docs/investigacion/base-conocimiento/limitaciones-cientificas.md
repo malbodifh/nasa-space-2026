@@ -61,7 +61,7 @@
 
 | Producto | Lo que no se puede concluir |
 |---|---|
-| **GCOV** | No hay fase; no sirve para desplazamiento. No distingue causa de cambio. |
+| **GCOV** | No contiene fase interferométrica entre fechas; los términos polarimétricos cruzados pueden contener fase relativa entre polarizaciones. No distingue causa de cambio. |
 | **GUNW** | No da vertical; no corrige atmósfera por defecto; solo co-pol y pares de 12 días. |
 | **GOFF** | Offsets con outliers; no es una serie de deformación validada. |
 | **SME2** | Validación en curso; no es una medición de campo. |

@@ -14,8 +14,10 @@ I = z₂ · conj(z₁)
 Δφ = arg(I) = φ₂ − φ₁
 ```
 
-`I` es el interferograma. Su **módulo** mide cuánto se parecen las dos señales (coherencia); su
-**fase** mide la diferencia de camino recorrido.
+`I` es el interferograma: su **fase** contiene la diferencia de fase entre las observaciones,
+afectada también por atmósfera, relieve y otros errores. Su módulo sin normalizar es el producto
+de las amplitudes; **no es coherencia**. La coherencia se estima con un promedio y una
+normalización, como se muestra en [`formulas-y-calculos.md`](formulas-y-calculos.md) §10.
 
 ## 2. Fase envuelta y desenvuelta
 

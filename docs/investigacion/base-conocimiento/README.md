@@ -33,6 +33,7 @@ geofísica. Cada concepto trae una explicación simple, una técnica y un ejempl
 | Saber qué no se puede concluir | [`limitaciones-cientificas.md`](limitaciones-cientificas.md) |
 | Buscar ideas para después | [`oportunidades-de-mejora.md`](oportunidades-de-mejora.md) |
 | Ver todas las fuentes citadas | [`referencias.md`](referencias.md) |
+| Consultar reportes oficiales de tsunami | [`../boletines-tsunami.md`](../boletines-tsunami.md) |
 
 ## Regla de evidencia
 
