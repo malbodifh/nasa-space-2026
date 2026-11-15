@@ -396,7 +396,13 @@ export default function SurfaceStudy() {
                     <div className="mt-5 grid grid-cols-2 gap-3">
                       {result.comparableCount > 0 ? <Stat value={`≈ ${displayPct(result.brighterPct + result.darkerPct, locale)}`} label={t("Píxeles con cambio aparente (aprox.)", "Apparent preview-pixel change (approx.)")} /> : null}
                       <Stat value={`${daysBetween(before.date, after.date).toLocaleString(intlLocale(locale))} ${t("días", "days")}`} label={t("Entre las dos imágenes", "Between the two images")} />
+                      {result.comparableCount > 0 ? <>
+                        <Stat value={`≈ ${displayPct(result.brighterPct, locale)}`} label={t("Más brillantes entre los comparables", "Brighter among comparable pixels")} />
+                        <Stat value={`≈ ${displayPct(result.darkerPct, locale)}`} label={t("Más oscuros entre los comparables", "Darker among comparable pixels")} />
+                        <Stat value={`≈ ${displayPct(100 * result.comparableCount / (result.width * result.height), locale)}`} label={t("Píxeles comparables del recorte", "Comparable pixels in crop")} />
+                      </> : null}
                     </div>
+                    {result.comparableCount > 0 ? <p className="mt-3 text-[13px] text-tinta-suave">{t("Los cambios claros y oscuros se calculan sobre los píxeles comparables; la cobertura usa todos los píxeles del recorte. No son porcentajes de área afectada.", "Brighter and darker changes use comparable pixels; coverage uses all pixels in the crop. These are not percentages of affected area.")}</p> : null}
                     {result.comparableCount > 0 ? <p className="mt-5 border-t border-linea pt-4 text-[15px] leading-relaxed text-tinta-suave">{hint}</p> : null}
                   </>
                 ) : (

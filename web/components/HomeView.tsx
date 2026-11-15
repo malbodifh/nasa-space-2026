@@ -2,7 +2,7 @@
 
 import { Bell, BellRing, FlaskConical, LocateFixed, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 
 import AlertToasts from "@/components/AlertToasts";
@@ -94,6 +94,7 @@ export default function HomeView() {
   // Modo demo: alertas simuladas para probar la app. `at` es el momento en que se activó.
   const [demo, setDemo] = useState<{ id: string; at: number } | null>(null);
   const [demoOpen, setDemoOpen] = useState(false);
+  const adviceDialog = useRef<HTMLDialogElement>(null);
   const mapReady = useAfterFirstPaint();
 
   const locate = useCallback(() => {
@@ -211,7 +212,7 @@ export default function HomeView() {
         ) : null}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
           <section
-            className="h-[46vh] min-h-[300px] overflow-hidden rounded-[14px] bg-hundida lg:h-auto lg:min-h-[540px]"
+            className="h-[60vh] min-h-[380px] overflow-hidden rounded-[14px] bg-hundida lg:h-auto lg:min-h-[700px]"
             style={{ boxShadow: "var(--sombra-tarjeta)" }}
             aria-label={t("Mapa", "Map")}
           >
@@ -375,9 +376,19 @@ export default function HomeView() {
               </div>
             </section>
 
-            <Suspense fallback={<div className="tarjeta">{t("Cargando orientación…", "Loading guidance…")}</div>}>
-              <SafetyAdvice alerts={active} exampleLocation={location.status !== "gps"} incomplete={incomplete || Boolean(eventsError)} />
-            </Suspense>
+            <button type="button" onClick={() => adviceDialog.current?.showModal()} className="boton boton-principal w-full">
+              {t("Ver orientación de emergencia", "View emergency guidance")}
+            </button>
+            <dialog ref={adviceDialog} aria-labelledby="orientacion" className="m-auto max-h-[90dvh] w-[min(94vw,540px)] overflow-y-auto rounded-[14px] bg-elevada p-0 text-tinta shadow-xl backdrop:bg-black/60">
+              <div className="p-4">
+                <form method="dialog" className="flex justify-end">
+                  <button className="boton boton-cristal">{t("Cerrar", "Close")}</button>
+                </form>
+                <Suspense fallback={<div className="tarjeta">{t("Cargando orientación…", "Loading guidance…")}</div>}>
+                  <SafetyAdvice alerts={active} exampleLocation={location.status !== "gps"} incomplete={incomplete || Boolean(eventsError)} />
+                </Suspense>
+              </div>
+            </dialog>
 
             <div className="grid grid-cols-2 gap-4">
               <Stat value={events || demo ? active.length.toLocaleString(intlLocale(locale)) : eventsError ? "—" : null} label={t("Eventos recientes en su región", "Recent events in your region")} />
