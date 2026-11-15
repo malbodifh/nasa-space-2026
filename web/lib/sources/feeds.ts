@@ -4,6 +4,7 @@ import { cached } from "@/lib/cache";
 import volcanoesFile from "@/data/volcanoes.json";
 import { filterFirms, parseNhc, parsePtwc, rainAlert } from "@/lib/feeds-parse";
 import { bboxForRadius } from "@/lib/geo";
+import { capUrl, parseTsunamiCap } from "@/lib/tsunami-cap";
 import type { DisasterAlert, LatLon } from "@/lib/types";
 
 const USER_AGENT = "AstralCodes-MemoriaDeFuego/0.3 (prototipo NASA Space Apps)";
@@ -26,9 +27,45 @@ export async function getTsunamiBulletins(point: LatLon): Promise<DisasterAlert[
     const feeds = await Promise.all(
       ["PHEB", "PAAQ"].map((code) => get(`https://www.tsunami.gov/events/xml/${code}Atom.xml`, "text")),
     );
+    const entries = feeds.flatMap((xml, index) =>
+      (xml as string).split("<entry>").slice(1).map((entry) => ({
+        entry: `<entry>${entry.split("</entry>")[0]}</entry>`,
+        source: index === 0 ? "PTWC" as const : "NTWC" as const,
+      })),
+    );
+    const parsed = await Promise.all(entries.map(async ({ entry, source }) => {
+      const alert = parsePtwc(entry, point, source)[0];
+      if (!alert) return null;
+      const url = capUrl(entry, source);
+      let tsunamiCap: NonNullable<DisasterAlert["tsunamiCap"]> = { state: "unknown" };
+      if (url) {
+        try {
+          const response = await fetch(url, {
+            headers: { "User-Agent": USER_AGENT },
+            // Best-effort dentro del presupuesto de 6 s del agregador: verificar la vigencia no
+            // puede retrasar la lista de boletines.
+            signal: AbortSignal.timeout(1_500),
+            redirect: "error",
+            cache: "no-store",
+          });
+          if (response.ok && Number(response.headers.get("content-length") ?? 0) <= 256_000) {
+            tsunamiCap = parseTsunamiCap(await response.text(), alert.date);
+          }
+        } catch {
+          // Se conserva el boletín: no poder verificar CAP no demuestra que haya cesado la amenaza.
+        }
+      }
+      const capNote =
+        tsunamiCap.state === "unknown"
+          ? "Vigencia CAP no verificada."
+          : tsunamiCap.state === "cancelled"
+            ? "El CAP oficial cancela este boletín."
+            : `CAP vigente hasta ${tsunamiCap.expires}.`;
+      return { ...alert, tsunamiCap, detail: `${alert.detail} ${capNote}` };
+    }));
     const seen = new Set<string>();
-    return feeds
-      .flatMap((xml, index) => parsePtwc(xml as string, point, index === 0 ? "PTWC" : "NTWC"))
+    return parsed
+      .filter((alert): alert is NonNullable<typeof alert> => alert !== null)
       .filter((alert) => {
         const id = alert.id.slice(alert.id.indexOf(":") + 1);
         return seen.has(id) ? false : (seen.add(id), true);

@@ -166,6 +166,8 @@ export type DisasterAlert = {
   alsoReportedBy?: string[];
   /** Detalle corto y propio de la fuente (categoría del boletín, intensidad, mm de lluvia…). */
   detail?: string | null;
+  /** Estado del CAP enlazado por NOAA; desconocido no significa que no haya amenaza. */
+  tsunamiCap?: { state: "actual" | "cancelled" | "unknown"; expires?: string };
   /** Calidad del dato: revisado por un analista, preliminar (automático), pronóstico o satélite. */
   quality?: "revisado" | "preliminar" | "pronóstico" | "detección satelital" | null;
 };

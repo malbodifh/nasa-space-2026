@@ -14,12 +14,18 @@ y una fuente caída responde con el último dato o se marca «sin respuesta»; n
 | USGS FDSN | sismos regionales, con PAGER/MMI | no | 2 min |
 | OVSICORI-UNA (`latest.geojson`) | sismos locales; `manual` = revisado, `automatic` = preliminar | no | 2 min |
 | RSN UCR-ICE (RSS) | sismos sentidos, con «sentido en» (hora de Costa Rica, UTC−6) | no | 2 min |
-| NOAA PTWC/NTWC (Atom) | boletines de tsunami de ambos centros; el alcance territorial no se determina | no | 2 min |
+| NOAA PTWC/NTWC (Atom y CAP enlazado) | boletines de ambos centros; el alcance territorial no se determina | no | 2 min |
 | NOAA NHC (`CurrentStorms.json`) | ciclones activos | no | 10 min |
 | Open-Meteo | lluvia pronosticada en 24 h (modelo, no aviso del IMN) | no | 30 min |
 | GDACS | alertas oficiales con nivel | no | — |
 | NASA EONET v3 | eventos naturales abiertos y cerrados (historial) | no | — |
 | NASA FIRMS (VIIRS ×3) | focos de calor; **oculto** ([`0006`](../decisiones/0006-ocultar-incendios.md)) | `FIRMS_MAP_KEY` | 5 min |
+
+El CAP solo se acepta del enlace oficial de la entrada Atom y si la fecha de emisión coincide.
+Una cancelación o vencimiento explícitos pasan el boletín al historial. Si CAP falta o no se
+puede verificar, se conserva el boletín con vigencia desconocida y se usa el límite temporal de
+la app; esto no confirma que siga vigente ni que haya cesado la amenaza. No se reconstruye la
+cadena de referencias entre boletines ni se interpreta su cobertura territorial.
 
 ## Radar y mapas
 
