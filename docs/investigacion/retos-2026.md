@@ -426,4 +426,4 @@ Completar cuando el equipo vote.
 Históricamente NASA ofrece una categoría “Create Your Own Challenge”, pero **no es elegible
 para Global Judging** ni para Global Awards. En 2026 la lista oficial tiene 14 retos y no
 aparece. Si el equipo quiere hacer algo distinto, la estrategia es **encajarlo dentro de un
-reto oficial**. Ver [09-custom-challenge.md](09-custom-challenge.md).
+reto oficial** de la lista de este documento.

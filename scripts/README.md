@@ -2,12 +2,12 @@
 
 | Script | Qué hace | Estado |
 |---|---|---|
-| `setup_branches.sh` | Crea `main`, `develop`, `staging` y las 5 ramas personales | ✅ |
+| `setup_branches.sh` | Crea `develop` y las ramas personales faltantes; requiere `main` existente | ✅ |
 
 ## Uso
 
 ```bash
-make branches          # equivale a bash scripts/setup_branches.sh
+make branches          # solo con autorización explícita para crear las ramas
 ```
 
 ## Scripts archivados

@@ -56,7 +56,7 @@ export default function AlertToasts({ toasts, onClose }: { toasts: Toast[]; onCl
   if (toasts.length === 0) return null;
   return (
     <ul className="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[380px]">
-      {toasts.map((toast) => (
+      {toasts.slice(0, 3).map((toast) => (
         <ToastItem key={toast.id} toast={toast} onClose={onClose} />
       ))}
     </ul>

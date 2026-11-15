@@ -1,6 +1,28 @@
 import { describe, expect, it } from "vitest";
 
-import { parseStudyDate, parseStudyInput, parseStudyPoint, scopedStudyPair } from "@/lib/study-input";
+import { parseRadarPair, parseStudyDate, parseStudyInput, parseStudyPoint, scopedStudyPair } from "@/lib/study-input";
+import { sarZone } from "@/lib/sar";
+
+describe("radar event pair validation", () => {
+  const zone = sarZone("palo-verde")!;
+  it("leaves ordinary alert and zone links unchanged", () => {
+    expect(parseRadarPair(new URLSearchParams("zona=palo-verde"), zone)).toEqual({ status: "missing" });
+  });
+  it.each([
+    "zona=palo-verde&base=bad&fecha=2026-09-30",
+    "zona=palo-verde&base=2026-09-18&fecha=2026-09-30",
+    "zona=palo-verde&base=2026-07-20&fecha=2026-09-29",
+    "zona=palo-verde&base=2026-07-20&fecha=2026-07-20",
+    "zona=palo-verde&base=2026-07-20",
+    "zona=cano-negro&base=2026-07-20&fecha=2026-09-30",
+    "base=2026-07-20&fecha=2026-09-30",
+  ])("rejects manipulated or unavailable radar pairs: %s", (query) => {
+    expect(parseRadarPair(new URLSearchParams(query), zone)).toEqual({ status: "invalid" });
+  });
+  it("rejects a radar pair without a known zone", () => {
+    expect(parseRadarPair(new URLSearchParams("zona=unknown&base=2026-07-20&fecha=2026-09-30"), null)).toEqual({ status: "invalid" });
+  });
+});
 
 describe("parseStudyPoint", () => {
   it.each(["", "lat=10", "lon=-85", "fecha=2026-11-15"])("marks missing coordinates: %s", (query) => {

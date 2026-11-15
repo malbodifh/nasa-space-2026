@@ -136,7 +136,7 @@ export async function getFireStats(
   radiusKm: number,
   date: string,
 ): Promise<FireStats> {
-  const key = `gibs:${date}:${point.lat.toFixed(2)}:${point.lon.toFixed(2)}:${radiusKm}`;
+  const key = `gibs:${date}:${point.lat}:${point.lon}:${radiusKm}`;
   const ttl = date === todayISO() ? 5 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
 
   return cached(key, ttl, async () => {

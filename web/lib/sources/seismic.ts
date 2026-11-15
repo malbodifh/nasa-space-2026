@@ -30,7 +30,7 @@ const newest = (events: SeismicEvent[]) =>
   events.reduce<string | null>((max, event) => (!max || event.time > max ? event.time : max), null);
 
 export async function getSeismic(point: LatLon): Promise<SeismicResult> {
-  const key = `seismic:${point.lat.toFixed(1)}:${point.lon.toFixed(1)}`;
+  const key = `seismic:${point.lat}:${point.lon}`;
 
   // Los sismos cambian por minuto: caché corta.
   return cached(key, 2 * 60 * 1000, async () => {

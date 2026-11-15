@@ -17,7 +17,7 @@
 | Producto | **Memoria de Fuego**: alertas de desastres para Costa Rica y, por cada evento, cómo cambió la superficie vista con radar NISAR |
 | Región | Costa Rica |
 | Repo | [malbodifh/nasa-space-2026](https://github.com/malbodifh/nasa-space-2026) |
-| Deploy | [Producción](https://nasa-space-2026.vercel.app/) · las mejoras locales de `develop` requieren revisión y publicación por separado |
+| Deploy | [Producción](https://nasa-space-2026.vercel.app/) · `main` recibió `develop` mediante PR #21; las correcciones de auditoría siguen en revisión por separado |
 | Entrega | Domingo 15/11/2026, **23:59** hora local del evento |
 
 ## 2. Qué existe hoy
@@ -34,6 +34,9 @@
   auditoría independiente, correcciones de APIs/modo demo, límites del estudio SAR y
   rendimiento. Guía de uso en [`producto/guia-app.md`](producto/guia-app.md) y pruebas en
   [`qa/pruebas.md`](qa/pruebas.md). Resumen y pendientes en [`qa/README.md`](qa/README.md).
+- **Cierre de auditoría en revisión:** correcciones y pruebas de regresión preparadas en
+  `fix/cierre-qa-entrega`; ver [`qa/cierre-auditoria.md`](qa/cierre-auditoria.md).
+  Estas correcciones aún no están en `main`; el trabajo previo de `develop` se integró en el PR #21.
 
 ## 3. Pendientes
 
@@ -44,6 +47,9 @@
 4. Video de 30 s y submission en inglés; [`borrador EN`](entrega/submission-en.md).
 5. Confirmar logo definitivo si reemplaza al existente y licencia del código. No se asignó una
    licencia en nombre del equipo.
+6. Idea guardada: línea de tiempo SAR con imagen grande, barra deslizante por fecha y botones
+   anterior/siguiente accesibles. Usar solo capturas reales disponibles, conservar el comparador
+   antes/después y no interpretar cambios de brillo como daños confirmados. Implementación pendiente.
 
 ## 4. Decisiones
 

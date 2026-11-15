@@ -44,12 +44,3 @@ export const OFFICIAL_URL = "https://www.cne.go.cr/";
 export function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
-
-export function shortDate(date: string): string {
-  return new Intl.DateTimeFormat("es-CR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(`${date}T12:00:00Z`));
-}

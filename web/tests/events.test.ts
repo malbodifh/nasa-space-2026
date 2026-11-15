@@ -9,6 +9,8 @@ import {
   studyHref,
 } from "@/lib/events";
 import type { DisasterAlert } from "@/lib/types";
+import { sarZone } from "@/lib/sar";
+import { parseRadarPair } from "@/lib/study-input";
 
 function alert(partial: Partial<DisasterAlert>): DisasterAlert {
   return {
@@ -66,6 +68,19 @@ describe("events", () => {
     expect(href.startsWith("/superficie?")).toBe(true);
     expect(params.get("fecha")).toBe("2026-04-27");
     expect(params.get("titulo")).toBe("Volcán Rincón");
+  });
+
+  it("conserva base y zona del evento radar al abrir su par inicial", () => {
+    const event = radarDetections({ lat: 10.635, lon: -85.438 }).find((item) => item.radarZoneId === "palo-verde")!;
+    const params = new URLSearchParams(studyHref(event).split("?")[1]);
+    const zone = sarZone("palo-verde")!;
+    const pair = parseRadarPair(params, zone);
+    expect(params.get("base")).toBe("2026-07-20");
+    expect(params.get("fecha")).toBe("2026-09-30");
+    expect(pair.status).toBe("valid");
+    if (pair.status !== "valid") throw new Error("Par inválido");
+    expect(zone.acquisitions[pair.before].date).toBe("2026-07-20");
+    expect(zone.acquisitions[pair.after].date).toBe("2026-09-30");
   });
 
   it("nombra el lugar por la ciudad más cercana", () => {

@@ -13,7 +13,7 @@ import { browseProxy, type NisarSearch } from "@/lib/nisar-remote";
 import { sarZone, zoneForPoint, type SarZone } from "@/lib/sar";
 import { BRIGHTER_RGB, DARKER_RGB, nextPass, pickPair, type Bounds, type PairNote } from "@/lib/sar-change";
 import { comparePair, CoverageError, type PairResult } from "@/lib/sar-image";
-import { parseStudyDate, parseStudyPoint, scopedStudyPair, type StudySelection } from "@/lib/study-input";
+import { parseRadarPair, parseStudyDate, parseStudyPoint, scopedStudyPair, type StudySelection } from "@/lib/study-input";
 
 type View = "comparar" | "cambios" | "optico";
 
@@ -58,6 +58,12 @@ function opticalUrl([west, south, east, north]: Bounds, date: string, aspect: nu
 
 function resultText(result: PairResult, locale: DisplayLocale): { title: string; detail: string } {
   const t = (es: string, en: string) => locale === "es" ? es : en;
+  if (result.comparableCount === 0) {
+    return {
+      title: t("Sin píxeles comparables", "No comparable pixels"),
+      detail: t("No se puede concluir cuánto cambió: no hay píxeles válidos en común tras excluir los oscuros en ambas fechas. Pruebe otras fechas.", "We cannot conclude how much changed: no common valid pixels remain after excluding pixels dark on both dates. Try other dates."),
+    };
+  }
   const total = result.brighterPct + result.darkerPct;
   if (total < 2) {
     return { title: t("Poco cambio aparente en la vista previa", "Little apparent change in the preview"), detail: t("Menos del 2 % de los píxeles comparables superó el umbral de cambio de brillo.", "Less than 2 % of comparable pixels exceeded the brightness-change threshold.") };
@@ -119,13 +125,14 @@ export default function SurfaceStudy() {
   }, [byId, hasPoint, lat, lon]);
   // Una zona pedida por id que no existe merece un mensaje propio, no "faltan coordenadas".
   const unknownZone = Boolean(byId) && !zone && !hasPoint;
-  const invalidField: "coordinates" | "date" | "zone" | null = unknownZone
+  const radarPair = parseRadarPair(params, zone);
+  const invalidField: "coordinates" | "date" | "zone" | "pair" | null = unknownZone
     ? "zone"
     : !hasPoint && !zone
       ? "coordinates"
       : dateInput.status === "invalid"
         ? "date"
-        : null;
+        : radarPair.status === "invalid" ? "pair" : null;
   const title = params.get("titulo") ?? t("Cambio de la superficie", "Surface change");
   const kind = params.get("tipo") ?? "";
 
@@ -167,8 +174,8 @@ export default function SurfaceStudy() {
     };
   }, [hasPoint, zone, remote, lat, lon]);
 
-  const defaultPair = useMemo(() => (source ? pickPair(source.passes, eventDate) : null), [source, eventDate]);
-  const sourceKey = source ? JSON.stringify([lat, lon, eventDate, zone?.id, source.frame, source.region, source.passes.map((pass) => pass.url)]) : "";
+  const defaultPair = radarPair.status === "valid" ? radarPair : source ? pickPair(source.passes, eventDate) : null;
+  const sourceKey = source ? JSON.stringify([lat, lon, eventDate, params.get("base"), zone?.id, source.frame, source.region, source.passes.map((pass) => pass.url)]) : "";
   const [chosen, setChosen] = useState<StudySelection | null>(null);
   // Cambiar de zona o de punto debe volver al par por defecto: se descarta la elección previa
   // durante el render (patrón admitido por React) en vez de con un efecto de cascada.
@@ -261,7 +268,9 @@ export default function SurfaceStudy() {
         <p role="alert" className="tarjeta mt-8 text-[16px] text-tinta-suave">
           {invalidField === "zone"
             ? t("La zona solicitada no existe. Abra el estudio desde un evento o indique coordenadas.", "The requested area does not exist. Open the study from an event or provide coordinates.")
-            : pointInput.status === "missing"
+            : invalidField === "pair"
+              ? t("El par de radar no es válido para esta zona. Abra de nuevo el estudio desde el evento.", "The radar pair is invalid for this area. Reopen the study from the event.")
+            : invalidField === "coordinates" && pointInput.status === "missing"
             ? t("Falta el lugar del evento: indique latitud y longitud.", "The event location is missing: provide both latitude and longitude.")
             : invalidField === "date"
               ? t("La fecha no es válida. Use una fecha real en formato AAAA-MM-DD.", "The date is invalid. Use a real calendar date in YYYY-MM-DD format.")
@@ -384,10 +393,10 @@ export default function SurfaceStudy() {
                     <h2 className="text-[22px] leading-tight font-bold tracking-[-0.02em]">{text.title}</h2>
                     <p className="mt-2 text-[15px] leading-relaxed text-tinta-suave">{text.detail}</p>
                     <div className="mt-5 grid grid-cols-2 gap-3">
-                      <Stat value={`≈ ${displayPct(result.brighterPct + result.darkerPct, locale)}`} label={t("Píxeles con cambio aparente (aprox.)", "Apparent preview-pixel change (approx.)")} />
+                      {result.comparableCount > 0 ? <Stat value={`≈ ${displayPct(result.brighterPct + result.darkerPct, locale)}`} label={t("Píxeles con cambio aparente (aprox.)", "Apparent preview-pixel change (approx.)")} /> : null}
                       <Stat value={`${daysBetween(before.date, after.date).toLocaleString(intlLocale(locale))} ${t("días", "days")}`} label={t("Entre las dos imágenes", "Between the two images")} />
                     </div>
-                    <p className="mt-5 border-t border-linea pt-4 text-[15px] leading-relaxed text-tinta-suave">{hint}</p>
+                    {result.comparableCount > 0 ? <p className="mt-5 border-t border-linea pt-4 text-[15px] leading-relaxed text-tinta-suave">{hint}</p> : null}
                   </>
                 ) : (
                   <div className="space-y-3">

@@ -37,17 +37,24 @@ guides: ## Compilar las guías Typst a PDF y PNG
 	$(TYPST) compile --format png --ppi 200 guides/src/06-retos.typ "guides/dist/06-retos-{p}.png"
 	@echo "Guías en guides/dist/"
 
-branches: ## Crear las ramas del equipo si faltan (main, develop, staging, persona)
+branches: ## Crear las ramas del equipo si faltan (main, develop, persona)
 	@bash scripts/setup_branches.sh
 
-sync: ## Actualizar main/develop/staging desde origin (sin tocar tu rama)
+sync: ## Actualizar ramas base solo si avanzan sin perder commits locales
 	git fetch origin --prune
-	@for b in main develop staging; do \
+	@set -e; for b in main develop; do \
 	  if git show-ref --verify --quiet refs/remotes/origin/$$b; then \
 	    if [ "$$(git rev-parse --abbrev-ref HEAD)" = "$$b" ]; then \
 	      echo "saltando $$b (es tu rama activa)"; \
 	    else \
-	      git branch -f $$b refs/remotes/origin/$$b && echo "actualizada: $$b"; \
+	      if git show-ref --verify --quiet refs/heads/$$b; then \
+	        git merge-base --is-ancestor refs/heads/$$b refs/remotes/origin/$$b || \
+	          { echo "ERROR: $$b tiene commits locales; no se modifica."; exit 1; }; \
+	        old=$$(git rev-parse refs/heads/$$b); \
+	      else \
+	        echo "ERROR: falta la rama local $$b; creala con autorización."; exit 1; \
+	      fi; \
+	      git update-ref refs/heads/$$b refs/remotes/origin/$$b $$old && echo "actualizada: $$b"; \
 	    fi; \
 	  else \
 	    echo "sin origin/$$b (falta push)"; \

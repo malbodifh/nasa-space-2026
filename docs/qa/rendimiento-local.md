@@ -2,8 +2,8 @@
 
 > **Método A (Lighthouse 12.8.2, móvil simulado).** Mismo equipo, mismo Chromium
 > (Playwright 1254), CPU y red simuladas a 4× / 1,6 Mbps como en PageSpeed, arranque en frío
-> de `/`. Es la medición **comparable** entre las dos versiones: la herramienta es la misma
-> que usa PageSpeed Insights, aunque corre acá contra loopback.
+> de `/`. Usa Lighthouse, como PageSpeed Insights, pero compara producción remota con
+> loopback local: no aísla el efecto del código ni reproduce la infraestructura de Google.
 
 ## Lighthouse móvil (mismo equipo, misma herramienta)
 
@@ -35,13 +35,12 @@ LCP, CLS, tareas largas y TBT aproximado (tareas >50 ms menos 50 ms).
 
 - **Ninguna de las dos es PageSpeed Insights.** PageSpeed corre en la infraestructura de Google
   y agrega datos de campo; el número oficial de producción (57 móvil, TBT 2.280 ms) no se
-  reproduce acá. Lo válido es la **dirección y el tamaño del cambio** entre versiones medidas
-  con el mismo método.
-- **El TBT sigue alto en ambas** porque este equipo no tiene GPU: WebGL se renderiza por
-  software y MapLibre bloquea el hilo principal. Un celular real con GPU reparte ese trabajo.
-  Las advertencias `GPU stall due to ReadPixels` aparecen incluso en el código anterior.
+  reproduce acá. Las diferencias son observaciones de esas corridas, no una mejora garantizada.
+- **El TBT sigue alto en ambas.** Se usó `--disable-gpu` y aparecieron advertencias
+  `GPU stall due to ReadPixels`; el entorno puede influir. No se aisló cuánto tiempo corresponde
+  a WebGL, hidratación u otro trabajo, ni se midió en un celular real.
 - **La red no es comparable en el método B.** Producción viaja por internet y local por
-  loopback. En el método A Lighthouse simula la red, por eso es el número a citar.
+  loopback. La simulación del método A tampoco elimina todas las diferencias de servidor y red.
 - **Una sola corrida no es una distribución.** Sirve como indicio, no como certificado.
 
 ## Qué explica la diferencia
