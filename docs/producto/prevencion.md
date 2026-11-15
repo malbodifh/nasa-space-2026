@@ -5,7 +5,8 @@
 
 ## Qué ve la persona
 
-La portada muestra «Qué puede hacer» para un reporte vigente priorizado por las reglas existentes.
+En la portada, «Ver orientación de emergencia» abre «Qué puede hacer» para un reporte vigente
+priorizado por las reglas existentes. Se puede cerrar con el botón o Escape.
 Si no hay uno prioritario, elige uno relevante o el más cercano vigente; si no hay reportes, ofrece preparación.
 No resume todas las amenazas ni evalúa la seguridad de una vivienda.
 
@@ -65,8 +66,8 @@ El requisito de entrenamiento y evaluación del detector está en
 [`../investigacion/validacion-cambio-satelital.md`](../investigacion/validacion-cambio-satelital.md).
 Las detecciones radar del historial no se pasan a esta tarjeta como alertas.
 
-Los avisos existentes siguen funcionando **solo con la página abierta**. No se agregó envío
-push con la app cerrada ni monitoreo permanente. Una app instalada no cambia esa limitación.
+Los avisos de la página requieren que esté abierta. La PWA incorpora push por separado, sujeto
+a instalación, permisos y configuración del servidor; ver [`alertas.md`](alertas.md).
 
 ## Pruebas y límites
 

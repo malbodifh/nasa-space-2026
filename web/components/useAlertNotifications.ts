@@ -6,7 +6,8 @@ import { displayDetail, eventTitle, intlLocale } from "@/lib/display-i18n";
 
 import type { Toast } from "@/components/AlertToasts";
 import { fromAlert, studyHref } from "@/lib/events";
-import type { DisasterAlert } from "@/lib/types";
+import { isInstalledApp, refreshPush, subscribePush, type PushResult } from "@/lib/push-client";
+import type { DisasterAlert, LatLon } from "@/lib/types";
 
 type Permission = NotificationPermission | "unsupported";
 
@@ -68,12 +69,16 @@ async function show(title: string, body: string, href: string | null, tag: strin
  * Avisos del navegador para alertas nuevas que afectan su ubicación, mientras la página está
  * abierta. Las alertas que ya estaban al abrir la página no se notifican.
  */
-export function useAlertNotifications(relevant: DisasterAlert[] | null) {
+export function useAlertNotifications(relevant: DisasterAlert[] | null, point: LatLon | null = null) {
   const { locale, t } = useLocale();
   const browser = useSyncExternalStore<Permission>(subscribe, snapshot, () => "default");
   const [requested, setRequested] = useState<Permission | null>(null);
   const [notice, setNotice] = useState<{ es: string; en: string } | null>(null);
+  const lat = point?.lat;
+  const lon = point?.lon;
   const [toasts, setToasts] = useState<Toast[]>([]);
+  // Va después de los avisos: tests/notifications.test.ts lee los estados por posición.
+  const [pushOn, setPushOn] = useState(false);
   const permission = requested ?? browser;
   const seenRef = useRef<Set<string> | null>(null);
 
@@ -110,6 +115,38 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null) {
     return () => window.clearTimeout(timer);
   }, [relevant, permission, locale, t]);
 
+  // Si ya hay suscripción push, se mantiene al día con la ubicación actual.
+  useEffect(() => {
+    if (lat === undefined || lon === undefined || permission !== "granted") return;
+    let cancelled = false;
+    void refreshPush({ lat, lon }, locale).then((active) => {
+      if (!cancelled) setPushOn(active);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [lat, lon, permission, locale]);
+
+  // Quien tiene la PWA instalada queda suscrito sin hacer nada. Algunos sistemas (iOS) exigen un
+  // toque para mostrar el permiso: si no se pudo al abrir, se reintenta con el primer toque.
+  useEffect(() => {
+    if (lat === undefined || lon === undefined || !isInstalledApp()) return;
+    if (!("Notification" in window) || Notification.permission === "denied") return;
+    let cancelled = false;
+    const attempt = async () => {
+      const pushed: PushResult = await subscribePush({ lat, lon }, locale);
+      if (cancelled) return;
+      setRequested(Notification.permission);
+      setPushOn(pushed === "ok");
+      if (Notification.permission === "default") window.addEventListener("pointerdown", attempt, { once: true });
+    };
+    void attempt();
+    return () => {
+      cancelled = true;
+      window.removeEventListener("pointerdown", attempt);
+    };
+  }, [lat, lon, locale]);
+
   const enable = useCallback(async (): Promise<Permission> => {
     if (!("Notification" in window)) {
       setRequested("unsupported");
@@ -118,12 +155,16 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null) {
     try {
       const result = await Notification.requestPermission();
       setRequested(result);
+      if (result === "granted" && lat !== undefined && lon !== undefined) {
+        const pushed: PushResult = await subscribePush({ lat, lon }, locale);
+        setPushOn(pushed === "ok");
+      }
       return result;
     } catch {
       setRequested("denied");
       return "denied";
     }
-  }, []);
+  }, [lat, lon, locale]);
 
   /** Pide permiso si falta y envía un aviso de prueba; `notice` cuenta qué pasó. */
   const test = useCallback(async () => {
@@ -156,5 +197,5 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null) {
 
   const dismiss = useCallback((id: string) => setToasts((current) => current.filter((toast) => toast.id !== id)), []);
 
-  return { permission, enable, test, notice: notice ? t(notice.es, notice.en) : null, toasts, dismiss };
+  return { permission, enable, test, pushOn, notice: notice ? t(notice.es, notice.en) : null, toasts, dismiss };
 }

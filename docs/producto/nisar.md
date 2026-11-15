@@ -45,6 +45,8 @@ Descarga unos 70 MB a `.cache/` (ignorado por git).
 - El estudio también desglosa los píxeles más claros y más oscuros entre los comparables;
   la proporción comparable usa todos los píxeles del recorte como denominador. Ninguno identifica
   una causa ni demuestra un cambio físico o de topografía.
+- Las esquinas del recorte provienen del **KML de la vista previa**; la georreferenciación es
+  aproximada y puede diferir del producto científico.
 - Varias pasadas son **provisionales** (calibración en revisión); la app lo indica.
 - Las bases son provisionales y algunas pasadas posteriores pertenecen a la colección
   validada. Mezclar versiones de procesamiento puede producir diferencias aparentes: una

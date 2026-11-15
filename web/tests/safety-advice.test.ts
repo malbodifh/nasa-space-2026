@@ -12,6 +12,7 @@ vi.mock("@/components/LocaleProvider", () => ({
   }),
 }));
 import SafetyAdvice from "@/components/SafetyAdvice";
+import SafetyDialog from "@/components/SafetyDialog";
 
 const now = Date.parse("2026-11-15T12:00:00Z");
 const report: DisasterAlert = {
@@ -28,6 +29,13 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("orientación por amenaza", () => {
+  it("ofrece la guía en un diálogo cerrado con botón para abrirlo", () => {
+    const html = renderToStaticMarkup(createElement(SafetyDialog, { alerts: [], exampleLocation: true, incomplete: false }));
+    expect(html).toContain("Ver orientación de emergencia");
+    expect(html).toContain("<dialog");
+    expect(html).toContain("Cerrar");
+    expect(html).not.toContain("open=\"\"");
+  });
   it("usa magnitud y cercanía sin inferir intensidad ni daños", () => {
     expect(safetyAdvice(report, now)).toMatchObject({ mode: "priority", relevant: true });
     expect(safetyAdvice({ ...report, distanceKm: 151 }, now)).toMatchObject({ mode: "followup", relevant: false });

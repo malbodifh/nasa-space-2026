@@ -53,12 +53,12 @@ nota «Sin reportes nuevos desde esta fecha.».
 | Inundación, ciclón | 48 h |
 | Ciclón del NHC, lluvia pronosticada | mientras estén publicados |
 
-## 4. Color y áreas
+## 4. Color y radios de proximidad
 
 Cada tipo de desastre tiene su color (`HAZARD_STYLE`): sismo café, tsunami azul, volcán naranja,
 inundación turquesa, ciclón violeta, lluvia celeste, deslizamiento ocre, radar azul de marca.
 
-Si la amenaza está **en curso**, el mapa dibuja dos radios; si no, ninguno:
+Si la amenaza está **en curso**, el mapa dibuja dos radios de proximidad; si no, ninguno:
 
 | Amenaza | Roja | Amarilla |
 |---|---|---|
@@ -73,7 +73,8 @@ Si la amenaza está **en curso**, el mapa dibuja dos radios; si no, ninguno:
 | Lluvia fuerte | 10 km si es naranja | 25 km |
 | Radar, avisos informativos | sin área | sin área |
 
-Las áreas son **estimaciones simples**, no zonas oficiales, y así se dice en el popup.
+Los radios son **estimaciones simples de proximidad**, no zonas oficiales ni áreas de afectación,
+y así se dice en el popup y en la leyenda.
 
 ## 5. Varias fuentes, un solo evento
 
@@ -133,3 +134,14 @@ desplegables del reporte. Usa las reglas existentes de cercanía y vigencia para
 lectura, sin calcular intensidad local, daños ni órdenes de evacuación.
 Ver [`prevencion.md`](prevencion.md): no hay modelo entrenado ni generación libre de consejos;
 las máscaras SAR no se usan para decidir esas recomendaciones.
+## 11. PWA y avisos push
+
+La app es instalable (`web/app/manifest.ts`, íconos en `web/public/icons/`) y envía avisos push aunque la página esté cerrada.
+
+- **Quién recibe avisos:** quien tiene la PWA instalada queda suscrito automáticamente al abrirla (sin botón; en iOS el permiso se pide con el primer toque). Quien usa la web en una pestaña recibe avisos dentro de la página mientras esté abierta, y del sistema si activó el permiso.
+- **Suscripción:** al activarse, el navegador crea una suscripción Web Push (claves VAPID) y la registra en `POST /api/push/subscribe` con la ubicación redondeada a ~1 km. No existe ninguna opción para darse de baja: las alertas siempre se envían (la suscripción solo se elimina si el navegador la invalida).
+- **Almacenamiento:** Supabase (`web/supabase/push.sql`, variables `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`). Sin ellas solo hay almacén en memoria y, en producción, el endpoint responde 503.
+- **Envío:** `GET /api/push/cron` (con `Authorization: Bearer $CRON_SECRET`) agrupa las suscripciones por celda de ~1 km, consulta `getEvents`, aplica `affecting` (las mismas reglas de la página) y envía solo lo de las últimas 6 h que esa suscripción no recibió. Máximo 3 avisos por suscripción y ciclo. Las suscripciones caducadas (404/410) se eliminan.
+- **Disparador:** `.github/workflows/push-cron.yml` cada 5 min (Vercel Hobby solo admite crons diarios). Necesita los secretos `PUSH_CRON_URL` y `CRON_SECRET` en GitHub.
+- **Variables:** ver `web/.env.example`. Las claves VAPID se generan con `web-push`; la privada nunca va al repositorio.
+- **iOS:** el push solo funciona con la app instalada en la pantalla de inicio (iOS 16.4+).

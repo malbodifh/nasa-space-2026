@@ -14,7 +14,7 @@
 | Evento | NASA Space Apps Challenge 2026 |
 | Integrantes | Andy, David, Samuel, Jorge, Leo |
 | Reto de trabajo | **Dancing with the SARs** (NISAR). La votación formal sigue sin registrarse: confirmar con el equipo y anotarlo en [`decisiones/`](decisiones/) |
-| Producto | **Memoria de Fuego**: alertas de desastres para Costa Rica y, por cada evento, cómo cambió la superficie vista con radar NISAR |
+| Producto | **Memoria de Fuego**: alertas de desastres para Costa Rica y, por cada evento, una comparación visual de la superficie antes y después con radar NISAR |
 | Región | Costa Rica |
 | Repo | [malbodifh/nasa-space-2026](https://github.com/malbodifh/nasa-space-2026) |
 | Deploy | [Producción](https://nasa-space-2026.vercel.app/) · `main` recibió `develop` mediante PR #21; las correcciones de auditoría siguen en revisión por separado |

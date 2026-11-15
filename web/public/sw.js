@@ -1,6 +1,28 @@
-// Service worker mínimo: permite mostrar avisos también en celulares y abrir la app al tocarlos.
+// Service worker: recibe avisos push aunque la página esté cerrada y abre la app al tocarlos.
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { title: "Memoria de Fuego", body: event.data ? event.data.text() : "" };
+  }
+  const title = data.title || "Memoria de Fuego";
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || "",
+      tag: data.tag || undefined,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      lang: data.lang || "es",
+      renotify: Boolean(data.tag),
+      data: { href: data.href || "/" },
+    }),
+  );
+});
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const href = (event.notification.data && event.notification.data.href) || "/";

@@ -64,8 +64,8 @@ const ZONES = [
 
 const MIN_COVERAGE = 0.85;
 const CHANGE_THRESHOLD = 38; // diferencia en niveles de 8 bits (0–255) del canal HH suavizado
-// Si el píxel es oscuro en las dos fechas es agua abierta (mar, lago): el viento cambia su
-// brillo, pero no es un cambio de la superficie terrestre, así que no se marca.
+// Los valores oscuros en ambas fechas se excluyen como filtro exploratorio (posible agua
+// abierta o señal baja). No es una máscara validada de agua ni una clasificación superficial.
 const DARK_BOTH = 70;
 
 async function getJson(url) {

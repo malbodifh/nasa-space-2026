@@ -1,0 +1,23 @@
+name: Avisos push
+
+# Vercel Hobby solo permite crons diarios; GitHub Actions llama al endpoint cada 5 minutos.
+# Requiere los secretos PUSH_CRON_URL (https://<dominio>/api/push/cron) y CRON_SECRET.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Revisar alertas y enviar avisos
+        env:
+          URL: ${{ secrets.PUSH_CRON_URL }}
+          SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$SECRET" ]; then echo "Faltan secretos; nada que hacer."; exit 0; fi
+          curl --fail --silent --show-error --max-time 120 -H "Authorization: Bearer $SECRET" "$URL"
