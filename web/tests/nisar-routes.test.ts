@@ -31,10 +31,27 @@ describe("descargas acotadas NISAR", () => {
     })));
     await expect(fetchLimited("https://example.test/file", 10)).rejects.toThrow("demasiado grande");
   });
-  it("no sigue una redirección hacia otro origen", async () => {
+  it("no sigue una redirección hacia un origen desconocido", async () => {
     upstream.mockResolvedValue(new Response(null, { status: 302, headers: { Location: "https://evil.test/x" } }));
-    await expect(fetchLimited("https://example.test/file", 10)).rejects.toThrow("origen permitido");
+    await expect(fetchLimited("https://example.test/file", 10)).rejects.toThrow("orígenes permitidos");
     expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
+  it("sí sigue el salto de ASF a CloudFront firmado, que es el caso real", async () => {
+    upstream
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 303,
+          headers: {
+            Location:
+              "https://d1mv8zhcvry6x4.cloudfront.net/head-abc/sds-n-cumulus-prod.s3.us-west-2.amazonaws.com/x.kml?Signature=y",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(new Response("kml", { status: 200 }));
+    const result = await fetchLimited("https://nisar.asf.earthdatacloud.nasa.gov/BROWSE/x.kml", 1024);
+    expect(result.status).toBe(200);
+    expect(upstream).toHaveBeenCalledTimes(2);
   });
   it("acota las redirecciones al mismo origen y usa señal de timeout", async () => {
     upstream.mockResolvedValue(new Response(null, { status: 302, headers: { Location: "/next" } }));

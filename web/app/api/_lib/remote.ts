@@ -1,3 +1,17 @@
+/**
+ * ASF sirve las vistas previas con un 303 a CloudFront firmado. Sin permitir ese salto,
+ * la búsqueda de pasadas falla con 502 aunque CMR responda bien.
+ */
+const REDIRECT_HOSTS = ["nisar.asf.earthdatacloud.nasa.gov", "cloudfront.net", "amazonaws.com"];
+
+function allowedRedirect(next: URL, origin: string): boolean {
+  if (next.username || next.password) return false;
+  if (next.origin === origin) return true;
+  if (next.protocol !== "https:") return false;
+  const host = next.hostname.toLowerCase();
+  return REDIRECT_HOSTS.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
+}
+
 /** Descarga acotada: el límite también se aplica a respuestas chunked sin Content-Length. */
 export async function fetchLimited(url: string, maxBytes: number, timeoutMs = 8_000): Promise<{
   status: number;
@@ -18,8 +32,8 @@ export async function fetchLimited(url: string, maxBytes: number, timeoutMs = 8_
       await response.body?.cancel();
       if (!location || redirects === 2) throw new Error("Redirección no disponible");
       const next = new URL(location, target);
-      if (next.origin !== origin || next.username || next.password) {
-        throw new Error("Redirección fuera del origen permitido");
+      if (!allowedRedirect(next, origin)) {
+        throw new Error("Redirección fuera de los orígenes permitidos");
       }
       target = next.href;
       continue;
