@@ -16,6 +16,7 @@ const LAYERS: { id: LayerId; label: string; source: string; swatch: string }[] =
   { id: "volcanoes", label: "Volcanes", source: "GVP", swatch: "bg-ink" },
   { id: "borders", label: "Fronteras", source: "NE", swatch: "bg-ash/60" },
   { id: "alerts", label: "Alertas", source: "EONET", swatch: "bg-burnt" },
+  { id: "quakes", label: "Sismos M3+", source: "USGS", swatch: "bg-ash" },
 ];
 
 export default function OverlayPanel({

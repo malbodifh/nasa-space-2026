@@ -64,6 +64,27 @@ const SOURCES: SourceStatus[] = [
     note: "Niveles verde/naranja/rojo. Complemento no NASA.",
   },
   {
+    id: "usgs",
+    label: "USGS · sismos",
+    endpoint: "https://earthquake.usgs.gov/fdsnws/event/1/query",
+    method: "GET GeoJSON",
+    auth: "sin clave",
+    mode: "live",
+    usedBy: ["/api/overlays", "/api/alerts"],
+    note: "Catálogo FDSN de 30 días, M≥2,5, en 600 km.",
+  },
+  {
+    id: "ovsicori",
+    label: "OVSICORI-UNA · sismos locales",
+    endpoint:
+      "https://www.ovsicori.una.ac.cr/sistemas/sismolive-staging/data/latest.geojson",
+    method: "GET GeoJSON",
+    auth: "sin clave",
+    mode: "live",
+    usedBy: ["/api/overlays", "/api/alerts"],
+    note: "Red sísmica de Costa Rica; sin CORS, solo desde el servidor.",
+  },
+  {
     id: "overpass",
     label: "OpenStreetMap · Overpass API",
     endpoint: "https://overpass-api.de/api/interpreter",

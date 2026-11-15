@@ -128,6 +128,7 @@ export default function MapCanvas({
       map.addSource("fires", { type: "geojson", data: EMPTY });
       map.addSource("volcanoes", { type: "geojson", data: EMPTY });
       map.addSource("alerts", { type: "geojson", data: EMPTY });
+      map.addSource("quakes", { type: "geojson", data: EMPTY });
       map.addSource("user-point", { type: "geojson", data: EMPTY });
 
       map.addLayer({
@@ -147,7 +148,7 @@ export default function MapCanvas({
         id: "protected-line",
         type: "line",
         source: "protected",
-        paint: { "line-color": "#33523f", "line-opacity": 0.4, "line-width": 0.9, "line-dasharray": [3, 2] },
+        paint: { "line-color": "#33523f", "line-opacity": 0.28, "line-width": 0.8, "line-dasharray": [3, 2] },
       });
       map.addLayer({
         id: "roads-line",
@@ -277,6 +278,27 @@ export default function MapCanvas({
         },
       });
       map.addLayer({
+        id: "quakes-halo",
+        type: "circle",
+        source: "quakes",
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["get", "magnitude"], 2, 7, 5, 18, 7, 30],
+          "circle-color": "#6e675c",
+          "circle-opacity": 0.14,
+        },
+      });
+      map.addLayer({
+        id: "quakes-circle",
+        type: "circle",
+        source: "quakes",
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["get", "magnitude"], 2, 2.5, 5, 6, 7, 10],
+          "circle-color": "#6e675c",
+          "circle-stroke-width": 1.2,
+          "circle-stroke-color": "#faf7ef",
+        },
+      });
+      map.addLayer({
         id: "user-halo",
         type: "circle",
         source: "user-point",
@@ -336,6 +358,21 @@ export default function MapCanvas({
           .addTo(map);
       });
 
+      map.on("click", "quakes-circle", (event) => {
+        const feature = event.features?.[0];
+        if (!feature || !popupRef.current) return;
+        const p = feature.properties as Record<string, unknown>;
+        popupRef.current
+          .setLngLat(event.lngLat)
+          .setHTML(
+            `<strong>M ${escapeHtml(p.magnitude)}</strong> · ${escapeHtml(p.place)}<br/>` +
+              `<span style="color:#6e675c">${escapeHtml(p.source)} · ${escapeHtml(p.distanceKm)} km · ${escapeHtml(p.time).slice(0, 16).replace("T", " ")}</span>` +
+              (p.depthKm !== null && p.depthKm !== undefined ? `<br/>Profundidad ${escapeHtml(p.depthKm)} km` : "") +
+              link(p.url, "Ver evento"),
+          )
+          .addTo(map);
+      });
+
       map.on("click", "alerts-circle", (event) => {
         const feature = event.features?.[0];
         if (!feature || !popupRef.current) return;
@@ -351,7 +388,13 @@ export default function MapCanvas({
           .addTo(map);
       });
 
-      for (const layer of ["fires-circle", "volcanoes-circle", "protected-fill", "alerts-circle"]) {
+      for (const layer of [
+        "fires-circle",
+        "volcanoes-circle",
+        "protected-fill",
+        "alerts-circle",
+        "quakes-circle",
+      ]) {
         map.on("mouseenter", layer, () => {
           map.getCanvas().style.cursor = "pointer";
         });
@@ -364,7 +407,13 @@ export default function MapCanvas({
 
       map.on("click", (event) => {
         const hits = map.queryRenderedFeatures(event.point, {
-          layers: ["fires-circle", "volcanoes-circle", "protected-fill", "alerts-circle"],
+          layers: [
+            "fires-circle",
+            "volcanoes-circle",
+            "protected-fill",
+            "alerts-circle",
+            "quakes-circle",
+          ],
         });
         if (hits.length > 0) return;
         onPickRef.current(event.lngLat.lat, event.lngLat.lng);
@@ -429,6 +478,7 @@ export default function MapCanvas({
     if (!map || !ready) return;
 
     const alertFeatures = (overlays?.alerts ?? [])
+      .filter((alert) => alert.category !== "earthquakes")
       .filter((alert) => !hiddenHazards.includes(hazardFor(alert.category).id))
       .map((alert) => ({
       type: "Feature" as const,
@@ -445,12 +495,32 @@ export default function MapCanvas({
       },
     }));
 
+    const quakeFeatures = hiddenHazards.includes("earthquakes")
+      ? []
+      : (overlays?.seismic ?? [])
+          .filter((event) => event.magnitude >= 3)
+          .map((event) => ({
+          type: "Feature" as const,
+          geometry: { type: "Point" as const, coordinates: [event.lon, event.lat] },
+          properties: {
+            id: event.id,
+            magnitude: event.magnitude,
+            depthKm: event.depthKm,
+            time: event.time,
+            place: event.place,
+            source: event.source,
+            distanceKm: event.distanceKm,
+            url: event.url,
+          },
+        }));
+
     const collections: [string, unknown][] = [
       ["roads", overlays?.roads ?? EMPTY],
       ["protected", overlays?.protectedAreas ?? EMPTY],
       ["volcanoes", overlays?.volcanoes ?? EMPTY],
       ["borders", overlays?.borders ?? EMPTY],
       ["alerts", { type: "FeatureCollection", features: alertFeatures }],
+      ["quakes", { type: "FeatureCollection", features: quakeFeatures }],
     ];
 
     for (const [id, data] of collections) {
@@ -471,6 +541,8 @@ export default function MapCanvas({
       "borders-line": "borders",
       "alerts-halo": "alerts",
       "alerts-circle": "alerts",
+      "quakes-halo": "quakes",
+      "quakes-circle": "quakes",
     };
 
     for (const [layerId, key] of Object.entries(visibility)) {
@@ -528,7 +600,7 @@ export default function MapCanvas({
         {overlays && overlays.alerts.length > 0 ? (
           <div className="mt-1 flex items-center gap-2">
             <span className="inline-block size-2 rounded-full bg-burnt" />
-            {overlays.alerts.length} alertas cerca
+            {overlays.alerts.length} eventos
           </div>
         ) : null}
       </div>
