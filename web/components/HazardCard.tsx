@@ -1,24 +1,37 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, MapPin } from "lucide-react";
 
-import { groupAlerts } from "@/lib/hazards";
+import { actionsFor } from "@/lib/hazard-actions";
+import { groupAlerts, hazardFor } from "@/lib/hazards";
 import type { DisasterAlert } from "@/lib/types";
+
+const LEVEL_PRIORITY: Record<DisasterAlert["level"], number> = {
+  red: 0,
+  orange: 1,
+  green: 2,
+  info: 3,
+};
 
 export default function HazardCard({
   alerts,
   radiusKm,
   hidden,
   onToggle,
+  onFocus,
 }: {
   alerts: DisasterAlert[];
   radiusKm: number;
   hidden: string[];
   onToggle: (category: string) => void;
+  onFocus: (alert: DisasterAlert) => void;
 }) {
   const groups = groupAlerts(alerts);
   const inRadius = alerts.filter((alert) => alert.distanceKm <= radiusKm);
   const nearest = [...alerts].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 3);
+  const focusEvent = [...alerts].sort(
+    (a, b) => LEVEL_PRIORITY[a.level] - LEVEL_PRIORITY[b.level] || a.distanceKm - b.distanceKm,
+  )[0];
 
   return (
     <section aria-labelledby="hazards-title" className="border-t border-ink/80 pt-4">
@@ -79,28 +92,53 @@ export default function HazardCard({
       ) : (
         <ul className="mt-3 border-y border-rule">
           {nearest.map((alert) => (
-            <li
-              key={alert.id}
-              className="flex items-baseline gap-2 border-b border-rule/70 py-2 last:border-b-0"
-            >
-              <AlertTriangle
-                className="mt-0.5 size-3 shrink-0"
-                style={{ color: "var(--color-burnt)" }}
-                aria-hidden
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[12px] leading-snug text-ink">{alert.title}</p>
-                <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-ash">
-                  {alert.categoryLabel} · {alert.source} · {alert.distanceKm.toFixed(1)} km
-                </p>
-              </div>
-              <span className="shrink-0 font-mono text-[9px] uppercase text-ash">
-                {alert.level === "info" ? "info" : alert.level}
-              </span>
+            <li key={alert.id} className="border-b border-rule/70 last:border-b-0">
+              <button
+                type="button"
+                onClick={() => onFocus(alert)}
+                title="Centrar en el mapa"
+                className="group flex w-full items-baseline gap-2 py-2 text-left"
+              >
+                <AlertTriangle
+                  className="mt-0.5 size-3 shrink-0"
+                  style={{ color: "var(--color-burnt)" }}
+                  aria-hidden
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[12px] leading-snug text-ink group-hover:underline group-hover:decoration-burnt group-hover:underline-offset-2">
+                    {alert.title}
+                  </p>
+                  <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-ash">
+                    {alert.categoryLabel} · {alert.source} · {alert.distanceKm.toFixed(1)} km
+                  </p>
+                </div>
+                <MapPin className="size-3 shrink-0 text-ash group-hover:text-burnt" aria-hidden />
+              </button>
             </li>
           ))}
         </ul>
       )}
+
+      {focusEvent ? (
+        <div className="mt-3 border-l-2 border-ink pl-2.5">
+          <p className="eyebrow">Qué hacer · {hazardFor(focusEvent.category).label}</p>
+          <ul className="mt-1 space-y-0.5">
+            {actionsFor(focusEvent.category).map((action) => (
+              <li key={action} className="text-[11px] leading-relaxed text-ink2">
+                — {action}
+              </li>
+            ))}
+          </ul>
+          <a
+            href="https://www.cne.go.cr/"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 inline-block font-mono text-[9px] uppercase tracking-[0.12em] text-burnt underline underline-offset-4"
+          >
+            Boletines oficiales · CNE
+          </a>
+        </div>
+      ) : null}
 
       <p className="mt-2 font-display text-[12px] italic leading-snug text-ash">
         Reporte observacional de eventos abiertos. No es una alerta oficial ni un pronóstico.
