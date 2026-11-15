@@ -21,3 +21,7 @@ create index if not exists push_sent_sent_at on push_sent (sent_at);
 
 alter table push_subscriptions enable row level security;
 alter table push_sent enable row level security;
+
+-- Defensa extra: ni anon ni authenticated tienen permisos sobre estas tablas.
+revoke all on push_subscriptions from anon, authenticated;
+revoke all on push_sent from anon, authenticated;
