@@ -2,7 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # develop recibe trabajo directo durante el hackathon: sin esto, una regresión
+    # podía llegar a main sin haber pasado por CI.
+    branches: [main, develop]
   pull_request:
 
 permissions:
