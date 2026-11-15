@@ -125,3 +125,11 @@ Cada alerta nueva que afecta a la persona se avisa de dos formas:
 
 Solo funcionan con la página abierta. Al abrir la página por primera vez no se avisa de lo que ya
 estaba, salvo las simulaciones del modo demo. «Probar aviso» envía los dos tipos y dice qué pasó.
+
+## 10. Orientación para civiles
+
+La tarjeta «Qué puede hacer» presenta dos acciones por amenaza, fuentes oficiales y datos
+desplegables del reporte. Usa las reglas existentes de cercanía y vigencia para priorizar su
+lectura, sin calcular intensidad local, daños ni órdenes de evacuación.
+Ver [`prevencion.md`](prevencion.md): no hay modelo entrenado ni generación libre de consejos;
+las máscaras SAR no se usan para decidir esas recomendaciones.

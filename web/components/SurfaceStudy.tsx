@@ -392,6 +392,7 @@ export default function SurfaceStudy() {
                   <>
                     <h2 className="text-[22px] leading-tight font-bold tracking-[-0.02em]">{text.title}</h2>
                     <p className="mt-2 text-[15px] leading-relaxed text-tinta-suave">{text.detail}</p>
+                    <p className="mt-3 text-[13px] font-semibold text-tinta">{t("Impacto, superficie afectada y cambio de topografía: no determinables con estas vistas previas.", "Impact, affected area and topographic change: cannot be determined from these previews.")}</p>
                     <div className="mt-5 grid grid-cols-2 gap-3">
                       {result.comparableCount > 0 ? <Stat value={`≈ ${displayPct(result.brighterPct + result.darkerPct, locale)}`} label={t("Píxeles con cambio aparente (aprox.)", "Apparent preview-pixel change (approx.)")} /> : null}
                       <Stat value={`${daysBetween(before.date, after.date).toLocaleString(intlLocale(locale))} ${t("días", "days")}`} label={t("Entre las dos imágenes", "Between the two images")} />

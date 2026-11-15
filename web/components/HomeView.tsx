@@ -2,11 +2,12 @@
 
 import { Bell, BellRing, FlaskConical, LocateFixed, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 import AlertToasts from "@/components/AlertToasts";
 import EventList from "@/components/EventList";
+import SafetyAdvice from "@/components/SafetyAdvice";
 import { useLocale } from "@/components/LocaleProvider";
 import { useAlertNotifications } from "@/components/useAlertNotifications";
 import { DEMO_POINT } from "@/lib/demo";
@@ -373,6 +374,10 @@ export default function HomeView() {
                 ) : null}
               </div>
             </section>
+
+            <Suspense fallback={<div className="tarjeta">{t("Cargando orientación…", "Loading guidance…")}</div>}>
+              <SafetyAdvice alerts={active} exampleLocation={location.status !== "gps"} incomplete={incomplete || Boolean(eventsError)} />
+            </Suspense>
 
             <div className="grid grid-cols-2 gap-4">
               <Stat value={events || demo ? active.length.toLocaleString(intlLocale(locale)) : eventsError ? "—" : null} label={t("Eventos recientes en su región", "Recent events in your region")} />
