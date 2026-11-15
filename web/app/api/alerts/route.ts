@@ -72,7 +72,7 @@ export async function GET(request: Request) {
   }
   const today = todayISO();
 
-  const { value: results, cached } = await withCacheTracking(() => Promise.allSettled([
+  const { value: results, cached, stale } = await withCacheTracking(() => Promise.allSettled([
     withBudget(getFireStats(point, radius, today), 6_000, {
       date: today,
       count: 0,
@@ -142,7 +142,7 @@ export async function GET(request: Request) {
         ...current.points.map((point) => point.date),
         climate?.lastDate,
         ...(overlays?.alerts.map((alert) => alert.date) ?? []),
-      ], fallbackSources.length > 0, cached),
+      ], fallbackSources.length > 0 || stale, cached),
       fallbackSources,
     },
   };

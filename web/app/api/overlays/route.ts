@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   const { lat, lon, radius } = parsed.data;
 
   try {
-    const { value: overlays, cached } = await withCacheTracking(() => getOverlays({ lat, lon }, radius));
+    const { value: overlays, cached, stale } = await withCacheTracking(() => getOverlays({ lat, lon }, radius));
     const { data, fallbackSources } = overlays;
 
     const body: OverlaysResponse = {
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
         ...responseMeta(started, [
           ...data.alerts.map((alert) => alert.date),
           ...data.seismic.map((event) => event.time),
-        ], fallbackSources.length > 0, cached),
+        ], fallbackSources.length > 0 || stale, cached),
         fallbackSources,
       },
     };

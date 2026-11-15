@@ -34,7 +34,7 @@ export async function GET(request: Request) {
   const today = todayISO();
   const memoryDate = date ?? DEFAULT_MEMORY_DATE;
 
-  const { value: results, cached } = await withCacheTracking(() => Promise.allSettled([
+  const { value: results, cached, stale } = await withCacheTracking(() => Promise.allSettled([
     withTimeout(getFireStats(point, radius, today), 6_000),
     withTimeout(memoryDate === today
       ? getFireStats(point, radius, today)
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
         ...memory.points.map((point) => point.date),
         climate?.lastDate,
       ], !current.available || !memory.available || !climate ||
-        current.fallback || memory.fallback || climate.fallback, cached),
+        current.fallback || memory.fallback || climate.fallback || stale, cached),
     },
   };
 
