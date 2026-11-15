@@ -42,6 +42,20 @@ AREAS = [
         "radiusKm": 45,
         "bbox": [-85.05, 10.2, -84.05, 10.75],
     },
+    {
+        "id": "pacifico-central",
+        "label": "Pacífico Central · Puntarenas",
+        "center": {"lat": 9.976, "lon": -84.838},
+        "radiusKm": 55,
+        "bbox": [-85.15, 9.25, -84.05, 10.15],
+    },
+    {
+        "id": "caribe",
+        "label": "Caribe · Limón",
+        "center": {"lat": 9.991, "lon": -83.036},
+        "radiusKm": 55,
+        "bbox": [-83.6, 9.45, -82.55, 10.35],
+    },
 ]
 
 

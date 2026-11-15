@@ -112,6 +112,7 @@ export default function AppShell() {
   const [testAlerts, setTestAlerts] = useState<AppAlert[]>([]);
   const [alertsError, setAlertsError] = useState<string | null>(null);
   const [hiddenHazards, setHiddenHazards] = useState<string[]>([]);
+  const [focusPoint, setFocusPoint] = useState<{ lat: number; lon: number; id: string } | null>(null);
   const seenRef = useRef<Set<string> | null>(null);
   const firstLoadRef = useRef(true);
 
@@ -352,7 +353,7 @@ export default function AppShell() {
         <div className="mx-auto flex w-full max-w-[1600px] items-center gap-3 px-4 py-3 lg:px-6">
           <BrandMark className="size-9 shrink-0" />
           <div className="min-w-0">
-            <p className="eyebrow truncate">Astral Codes · NASA Space Apps 2026</p>
+            <p className="eyebrow truncate">Observatorio de desastres naturales</p>
             <h1 className="font-display text-[26px] leading-none tracking-tight">Memoria de Fuego</h1>
           </div>
 
@@ -439,6 +440,18 @@ export default function AppShell() {
               </p>
             ) : null}
           </section>
+
+          <div className="mt-5">
+            <HazardCard
+              alerts={overlays?.alerts ?? []}
+              radiusKm={radiusKm}
+              hidden={hiddenHazards}
+              onToggle={onToggleHazard}
+              onFocus={(alert) =>
+                setFocusPoint({ lat: alert.lat, lon: alert.lon, id: alert.id })
+              }
+            />
+          </div>
 
           <div className="mt-5">
             <AlertInbox
@@ -538,15 +551,7 @@ export default function AppShell() {
             </section>
           ) : payload ? (
             <div className="mt-5">
-              <HazardCard
-                alerts={overlays?.alerts ?? []}
-                radiusKm={radiusKm}
-                hidden={hiddenHazards}
-                onToggle={onToggleHazard}
-              />
-              <div className="mt-5">
-                <RiskCard risk={payload.risk} meta={data?.meta} />
-              </div>
+              <RiskCard risk={payload.risk} meta={data?.meta} />
               <MemoryCard memory={payload.memory} selectedDate={selectedDate} onSelect={setSelectedDate} />
               <CorrelationCard
                 correlations={correlations}
@@ -561,7 +566,7 @@ export default function AppShell() {
 
           <footer className="mt-6 border-t border-rule pt-3 pb-2">
             <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-ash">
-              Prototipo · NASA Space Apps Challenge 2026
+              Astral Codes · Prototipo · Astral Codes · NASA Space Apps Challenge 2026
             </p>
             <p className="mt-1 text-[10px] leading-relaxed text-ash">
               No reemplaza a la CNE, SINAC ni a los servicios de emergencia. Datos: NASA GIBS,
@@ -585,6 +590,7 @@ export default function AppShell() {
             overlaysLoading={overlaysLoading}
             overlaysFailed={Boolean(overlaysError)}
             hiddenHazards={hiddenHazards}
+            focusPoint={focusPoint}
           />
         </section>
       </main>
