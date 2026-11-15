@@ -101,6 +101,7 @@ export default function AppShell() {
     volcanoes: true,
     borders: true,
     alerts: true,
+    quakes: true,
   });
   const [requestedPermission, setRequestedPermission] = useState<
     NotificationPermission | "unsupported" | null
@@ -231,6 +232,7 @@ export default function AppShell() {
       volcanoes: { type: "FeatureCollection" as const, features: [] },
       borders: { type: "FeatureCollection" as const, features: [] },
       alerts: [],
+      seismic: [],
       sources: [],
     };
     return correlate({

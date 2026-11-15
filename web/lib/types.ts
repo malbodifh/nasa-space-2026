@@ -124,7 +124,7 @@ export type AlertLevel = "green" | "orange" | "red" | "info";
 
 export type DisasterAlert = {
   id: string;
-  source: "NASA EONET" | "GDACS";
+  source: "NASA EONET" | "GDACS" | "USGS" | "OVSICORI";
   category: string;
   categoryLabel: string;
   title: string;
@@ -138,7 +138,7 @@ export type DisasterAlert = {
 };
 
 export type OverlaySource = {
-  id: "osm" | "gvp" | "natural-earth" | "eonet" | "gdacs";
+  id: "osm" | "gvp" | "natural-earth" | "eonet" | "gdacs" | "usgs" | "ovsicori";
   label: string;
   url: string;
   note: string;
@@ -152,6 +152,7 @@ export type OverlaysData = {
   volcanoes: GeoCollection<VolcanoProps>;
   borders: GeoCollection<Record<string, never>>;
   alerts: DisasterAlert[];
+  seismic: SeismicEvent[];
   sources: OverlaySource[];
 };
 
@@ -160,7 +161,21 @@ export type OverlaysResponse = {
   meta: ApiMeta & { fallbackSources: string[] };
 };
 
-export type LayerId = "roads" | "protected" | "volcanoes" | "borders" | "alerts";
+export type SeismicEvent = {
+  id: string;
+  source: "USGS" | "OVSICORI";
+  magnitude: number;
+  depthKm: number | null;
+  time: string;
+  lat: number;
+  lon: number;
+  place: string;
+  distanceKm: number;
+  url: string | null;
+  reviewed: boolean;
+};
+
+export type LayerId = "roads" | "protected" | "volcanoes" | "borders" | "alerts" | "quakes";
 
 export type LayerState = Record<LayerId, boolean>;
 

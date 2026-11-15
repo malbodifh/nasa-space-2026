@@ -72,6 +72,7 @@ export async function GET(request: Request) {
         volcanoes: { type: "FeatureCollection" as const, features: [] },
         borders: { type: "FeatureCollection" as const, features: [] },
         alerts: [],
+        seismic: [],
         sources: [],
       },
       fallbackSources: ["osm", "eonet"],
