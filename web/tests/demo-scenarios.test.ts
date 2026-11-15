@@ -8,11 +8,12 @@ const point = { lat: 10.635, lon: -85.4377 };
 const NOW = Date.parse("2026-11-15T06:00:00Z");
 
 describe("modo demo", () => {
-  it("cada escenario afecta a la persona y está en curso, con áreas roja y amarilla", () => {
+  it("cada escenario cumple la regla de aviso; tsunami no dibuja un área ficticia", () => {
     for (const scenario of DEMO_SCENARIOS) {
       const [alert] = buildDemoAlerts(scenario.id, point, NOW);
       expect(affects(alert), scenario.id).toBe(true);
-      expect(alertZones(alert, NOW), scenario.id).not.toBeNull();
+      if (scenario.id === "tsunami") expect(alertZones(alert, NOW)).toBeNull();
+      else expect(alertZones(alert, NOW), scenario.id).not.toBeNull();
     }
   });
 

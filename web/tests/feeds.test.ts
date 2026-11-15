@@ -95,6 +95,17 @@ describe("PTWC", () => {
     expect(bulletin.distanceKm).toBeGreaterThan(2000);
     expect(affects(bulletin)).toBe(true);
   });
+
+  it("conserva el centro emisor y advierte que no se conoce el alcance territorial", () => {
+    const xml = `<entry><id>ejemplo</id><title>Zona</title><geo:lat>10</geo:lat><geo:long>-84</geo:long>
+      <summary>Category: Warning Bulletin Issue Time: x</summary></entry>`;
+    expect(parsePtwc(xml, SAN_JOSE, "NTWC")[0]).toMatchObject({
+      id: "ntwc:ejemplo",
+      source: "NTWC",
+      detail: expect.stringContaining("Alcance territorial no determinado"),
+    });
+    expect(parsePtwc(xml, SAN_JOSE)[0].source).toBe("PTWC");
+  });
 });
 
 describe("NHC", () => {

@@ -113,7 +113,11 @@ export function partitionCurrent(
     else if (alert.source !== "NASA FIRMS") {
       stale.push({
         ...alert,
-        detail: Number.isFinite(reportTime(alert.date))
+        detail: alert.tsunamiCap?.state === "cancelled"
+          ? "El CAP enlazado indica que este boletín fue cancelado; consulte las autoridades para información actual."
+          : alert.tsunamiCap?.state === "actual" && alert.tsunamiCap.expires && reportTime(alert.tsunamiCap.expires) <= now
+            ? "El CAP enlazado ha vencido; consulte las autoridades para información actual."
+          : Number.isFinite(reportTime(alert.date))
           ? alert.detail ?? "Sin reportes nuevos desde esta fecha."
           : "Fecha del reporte desconocida; no se considera una alerta vigente.",
       });
@@ -141,11 +145,13 @@ export const ONGOING_HOURS: Record<string, number> = {
 };
 
 export function isOngoing(
-  alert: { category: string; source: string; date: string; level?: string },
+  alert: { category: string; source: string; date: string; level?: string; tsunamiCap?: DisasterAlert["tsunamiCap"] },
   now = Date.now(),
 ): boolean {
   const reported = reportTime(alert.date);
   if (!Number.isFinite(reported) || reported > now) return false;
+  if (alert.tsunamiCap?.state === "cancelled"
+    || (alert.tsunamiCap?.state === "actual" && alert.tsunamiCap.expires && reportTime(alert.tsunamiCap.expires) <= now)) return false;
   if (alert.source === "NHC" || alert.source === "Open-Meteo") return true;
   const category = ALIASES[alert.category] ?? alert.category;
   // Un boletín de tsunami solo informativo no es una amenaza en curso.
@@ -161,9 +167,11 @@ export function feedIsStale(generatedAt: string | null, maxHours: number, now = 
 }
 
 /** ¿El último reporte es lo bastante reciente para seguir contando como alerta activa? */
-export function isCurrent(alert: { category: string; source: string; date: string }, now = Date.now()): boolean {
+export function isCurrent(alert: { category: string; source: string; date: string; tsunamiCap?: DisasterAlert["tsunamiCap"] }, now = Date.now()): boolean {
   const reported = reportTime(alert.date);
   if (!Number.isFinite(reported) || reported > now) return false;
+  if (alert.tsunamiCap?.state === "cancelled"
+    || (alert.tsunamiCap?.state === "actual" && alert.tsunamiCap.expires && reportTime(alert.tsunamiCap.expires) <= now)) return false;
   return now - reported <= maxAgeHours(alert) * 3_600_000;
 }
 
