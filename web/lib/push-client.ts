@@ -7,6 +7,12 @@ export function pushSupported(): boolean {
   return typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && Boolean(PUBLIC_KEY);
 }
 
+/** ¿La app corre instalada como PWA (ventana propia) y no en una pestaña del navegador? */
+export function isInstalledApp(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+}
+
 function keyBytes(base64: string): Uint8Array<ArrayBuffer> {
   const padded = (base64 + "=".repeat((4 - (base64.length % 4)) % 4)).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(padded);

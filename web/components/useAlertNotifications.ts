@@ -6,7 +6,7 @@ import { displayDetail, eventTitle, intlLocale } from "@/lib/display-i18n";
 
 import type { Toast } from "@/components/AlertToasts";
 import { fromAlert, studyHref } from "@/lib/events";
-import { refreshPush, subscribePush, type PushResult } from "@/lib/push-client";
+import { isInstalledApp, refreshPush, subscribePush, type PushResult } from "@/lib/push-client";
 import type { DisasterAlert, LatLon } from "@/lib/types";
 
 type Permission = NotificationPermission | "unsupported";
@@ -125,6 +125,26 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null, point: L
       cancelled = true;
     };
   }, [lat, lon, permission, locale]);
+
+  // Quien tiene la PWA instalada queda suscrito sin hacer nada. Algunos sistemas (iOS) exigen un
+  // toque para mostrar el permiso: si no se pudo al abrir, se reintenta con el primer toque.
+  useEffect(() => {
+    if (lat === undefined || lon === undefined || !isInstalledApp()) return;
+    if (!("Notification" in window) || Notification.permission === "denied") return;
+    let cancelled = false;
+    const attempt = async () => {
+      const pushed: PushResult = await subscribePush({ lat, lon }, locale);
+      if (cancelled) return;
+      setRequested(Notification.permission);
+      setPushOn(pushed === "ok");
+      if (Notification.permission === "default") window.addEventListener("pointerdown", attempt, { once: true });
+    };
+    void attempt();
+    return () => {
+      cancelled = true;
+      window.removeEventListener("pointerdown", attempt);
+    };
+  }, [lat, lon, locale]);
 
   const enable = useCallback(async (): Promise<Permission> => {
     if (!("Notification" in window)) {

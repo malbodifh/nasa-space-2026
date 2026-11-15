@@ -130,7 +130,8 @@ estaba, salvo las simulaciones del modo demo. «Probar aviso» envía los dos ti
 
 La app es instalable (`web/app/manifest.ts`, íconos en `web/public/icons/`) y envía avisos push aunque la página esté cerrada.
 
-- **Suscripción:** al activar los avisos, el navegador crea una suscripción Web Push (claves VAPID) y la registra en `POST /api/push/subscribe` con la ubicación redondeada a ~1 km. No existe ninguna opción para darse de baja: las alertas siempre se envían (la suscripción solo se elimina si el navegador la invalida).
+- **Quién recibe avisos:** quien tiene la PWA instalada queda suscrito automáticamente al abrirla (sin botón; en iOS el permiso se pide con el primer toque). Quien usa la web en una pestaña recibe avisos dentro de la página mientras esté abierta, y del sistema si activó el permiso.
+- **Suscripción:** al activarse, el navegador crea una suscripción Web Push (claves VAPID) y la registra en `POST /api/push/subscribe` con la ubicación redondeada a ~1 km. No existe ninguna opción para darse de baja: las alertas siempre se envían (la suscripción solo se elimina si el navegador la invalida).
 - **Almacenamiento:** Supabase (`web/supabase/push.sql`, variables `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`). Sin ellas solo hay almacén en memoria y, en producción, el endpoint responde 503.
 - **Envío:** `GET /api/push/cron` (con `Authorization: Bearer $CRON_SECRET`) agrupa las suscripciones por celda de ~1 km, consulta `getEvents`, aplica `affecting` (las mismas reglas de la página) y envía solo lo de las últimas 6 h que esa suscripción no recibió. Máximo 3 avisos por suscripción y ciclo. Las suscripciones caducadas (404/410) se eliminan.
 - **Disparador:** `.github/workflows/push-cron.yml` cada 5 min (Vercel Hobby solo admite crons diarios). Necesita los secretos `PUSH_CRON_URL` y `CRON_SECRET` en GitHub.
