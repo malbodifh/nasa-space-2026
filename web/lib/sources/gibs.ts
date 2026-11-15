@@ -86,7 +86,7 @@ async function fetchTile(date: string, x: number, y: number): Promise<FirePoint[
 
   const response = await fetch(url, {
     signal: AbortSignal.timeout(8_000),
-    headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.1" },
+    headers: { "User-Agent": "AstralCodes-GammaAlert/0.1" },
     cache: "no-store",
   });
 

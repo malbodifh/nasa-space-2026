@@ -40,7 +40,7 @@ for (let x = x0 - 1; x <= x0 + 1; x += 1) {
   for (let y = y0 - 1; y <= y0 + 1; y += 1) {
     if (x < 0 || y < 0 || x >= N_LON || y >= N_LAT) continue;
     const url = `${BASE}/${DATE}/1km/${ZOOM}/${y}/${x}.mvt`;
-    const response = await fetch(url, { headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.2" } });
+    const response = await fetch(url, { headers: { "User-Agent": "AstralCodes-GammaAlert/0.2" } });
     console.log(url.split("/default/")[1], response.status);
     if (!response.ok) continue;
     const raw = new Uint8Array(await response.arrayBuffer());

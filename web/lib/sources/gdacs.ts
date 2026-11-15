@@ -56,7 +56,7 @@ export async function getGdacsAlerts(point: LatLon): Promise<DisasterAlert[]> {
       `&fromDate=${date(from)}&toDate=${date(today)}`;
 
     const response = await fetch(url, {
-      headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.1 (hackathon)" },
+      headers: { "User-Agent": "AstralCodes-GammaAlert/0.1 (hackathon)" },
       signal: AbortSignal.timeout(12_000),
       cache: "no-store",
     });

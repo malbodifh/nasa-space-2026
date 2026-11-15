@@ -179,7 +179,7 @@ const SOURCES: SourceStatus[] = [
 export async function GET() {
   return Response.json({
     status: "ok",
-    app: "memoria-de-fuego",
+    app: "gamma-alert",
     version: "0.2.0",
     time: new Date().toISOString(),
     routes: [

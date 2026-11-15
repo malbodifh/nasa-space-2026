@@ -55,7 +55,7 @@ export async function getClimate(point: LatLon): Promise<ClimateStats> {
     try {
       const response = await fetch(url, {
         signal: AbortSignal.timeout(12_000),
-        headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.1" },
+        headers: { "User-Agent": "AstralCodes-GammaAlert/0.1" },
         cache: "no-store",
       });
       if (!response.ok) throw new Error(`POWER ${response.status}`);

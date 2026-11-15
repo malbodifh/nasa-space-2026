@@ -6,7 +6,7 @@ import { filterFirms, parseNhc, parsePtwc, rainAlert } from "@/lib/feeds-parse";
 import { bboxForRadius } from "@/lib/geo";
 import type { DisasterAlert, LatLon } from "@/lib/types";
 
-const USER_AGENT = "AstralCodes-MemoriaDeFuego/0.3 (prototipo NASA Space Apps)";
+const USER_AGENT = "AstralCodes-GammaAlert/0.3 (prototipo NASA Space Apps)";
 
 async function get(url: string, as: "text" | "json"): Promise<unknown> {
   const response = await fetch(url, {

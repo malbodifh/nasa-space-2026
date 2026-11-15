@@ -8,7 +8,7 @@
  */
 import { mkdir, writeFile } from "node:fs/promises";
 
-const UA = "AstralCodes-MemoriaDeFuego/0.2 (hackathon)";
+const UA = "AstralCodes-GammaAlert/0.2 (hackathon)";
 const GVP =
   "https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows?service=WFS&version=1.0.0" +
   "&request=GetFeature&typeName=GVP-VOTW:Smithsonian_VOTW_Holocene_Volcanoes" +

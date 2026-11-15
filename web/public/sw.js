@@ -7,9 +7,9 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: "Memoria de Fuego", body: event.data ? event.data.text() : "" };
+    data = { title: "Gamma Alert", body: event.data ? event.data.text() : "" };
   }
-  const title = data.title || "Memoria de Fuego";
+  const title = data.title || "Gamma Alert";
   event.waitUntil(
     self.registration.showNotification(title, {
       body: data.body || "",

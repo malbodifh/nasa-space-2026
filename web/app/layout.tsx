@@ -14,12 +14,12 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Memoria de Fuego · NASA Space Apps 2026",
+  title: "Gamma Alert · NASA Space Apps 2026",
   description:
     "Alertas de desastres cerca de usted y una comparación visual de la superficie con radar NASA-ISRO NISAR. No es una alerta oficial.",
-  applicationName: "Memoria de Fuego",
+  applicationName: "Gamma Alert",
   openGraph: {
-    title: "Memoria de Fuego · NASA Space Apps 2026",
+    title: "Gamma Alert · NASA Space Apps 2026",
     description:
       "Desastres naturales en Costa Rica y una comparación visual de la superficie con radar NASA-ISRO NISAR. No es una alerta oficial.",
     type: "website",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Memoria de Fuego · NASA Space Apps 2026",
+    title: "Gamma Alert · NASA Space Apps 2026",
     description:
       "Desastres naturales en Costa Rica y una comparación visual de la superficie con radar NASA-ISRO NISAR.",
   },

@@ -47,7 +47,7 @@ export async function getSeismic(point: LatLon): Promise<SeismicResult> {
 
     const [usgs, ovsicori, rsn] = await Promise.allSettled([
       withTimeout(fetch(usgsUrl, {
-        headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.2" },
+        headers: { "User-Agent": "AstralCodes-GammaAlert/0.2" },
         signal: AbortSignal.timeout(5_000),
         cache: "no-store",
       }).then((response) => {
@@ -55,7 +55,7 @@ export async function getSeismic(point: LatLon): Promise<SeismicResult> {
         return response.json();
       }).then((payload) => parseUsgs(payload, point)), 5_500),
       withTimeout(fetch(OVSICORI_URL, {
-        headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.2" },
+        headers: { "User-Agent": "AstralCodes-GammaAlert/0.2" },
         signal: AbortSignal.timeout(5_000),
         cache: "no-store",
       }).then((response) => {
@@ -67,7 +67,7 @@ export async function getSeismic(point: LatLon): Promise<SeismicResult> {
           ? payload.generatedAt as string : null,
       })), 5_500),
       withTimeout(fetch(RSN_URL, {
-        headers: { "User-Agent": "Mozilla/5.0 (AstralCodes-MemoriaDeFuego/0.3)" },
+        headers: { "User-Agent": "Mozilla/5.0 (AstralCodes-GammaAlert/0.3)" },
         signal: AbortSignal.timeout(5_000),
         cache: "no-store",
       }).then((response) => {

@@ -26,7 +26,7 @@ const url =
   `&community=AG&longitude=${LON}&latitude=${LAT}&start=19810101&end=${end}&format=JSON`;
 
 const response = await fetch(url, {
-  headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.2" },
+  headers: { "User-Agent": "AstralCodes-GammaAlert/0.2" },
   signal: AbortSignal.timeout(60_000),
 });
 console.log("power", response.status);

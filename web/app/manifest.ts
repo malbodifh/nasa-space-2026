@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Memoria de Fuego",
-    short_name: "Memoria de Fuego",
+    name: "Gamma Alert",
+    short_name: "Gamma Alert",
     description: "Alertas de desastres cerca de usted y cómo cambió la superficie de la Tierra. No es una alerta oficial.",
     lang: "es",
     start_url: "/",

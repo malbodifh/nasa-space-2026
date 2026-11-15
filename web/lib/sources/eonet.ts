@@ -100,7 +100,7 @@ async function fetchEonet(
       `&bbox=${west.toFixed(2)},${north.toFixed(2)},${east.toFixed(2)},${south.toFixed(2)}`;
 
     const response = await fetch(url, {
-      headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.1 (hackathon)" },
+      headers: { "User-Agent": "AstralCodes-GammaAlert/0.1 (hackathon)" },
       signal: AbortSignal.timeout(12_000),
       cache: "no-store",
     });

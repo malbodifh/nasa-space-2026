@@ -289,7 +289,7 @@ out geom;`;
   for (const endpoint of ENDPOINTS) {
     try {
       const response = await fetch(`${endpoint}?data=${encodeURIComponent(query)}`, {
-        headers: { "User-Agent": "AstralCodes-MemoriaDeFuego/0.1 (hackathon)" },
+        headers: { "User-Agent": "AstralCodes-GammaAlert/0.1 (hackathon)" },
         // Dos endpoints en serie: 7 s cada uno mantiene la ruta bajo el presupuesto
         // de Vercel. Fuera de los snapshots, sin respuesta se devuelve capa vacía.
         signal: AbortSignal.timeout(7_000),

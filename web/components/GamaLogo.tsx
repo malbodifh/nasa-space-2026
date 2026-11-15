@@ -1,7 +1,7 @@
 export default function GamaLogo({
   className,
   decorative = false,
-  label = "Memoria de Fuego",
+  label = "Gamma Alert",
 }: {
   className?: string;
   decorative?: boolean;
