@@ -36,6 +36,7 @@ type Props = {
   overlaysLoading: boolean;
   overlaysFailed: boolean;
   hiddenHazards: string[];
+  focusPoint: { lat: number; lon: number; id: string } | null;
 };
 
 const STYLE_URL = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
@@ -76,6 +77,7 @@ export default function MapCanvas({
   overlaysLoading,
   overlaysFailed,
   hiddenHazards,
+  focusPoint,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -550,6 +552,12 @@ export default function MapCanvas({
       map.setLayoutProperty(layerId, "visibility", layers[key] ? "visible" : "none");
     }
   }, [ready, layers]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !focusPoint) return;
+    map.flyTo({ center: [focusPoint.lon, focusPoint.lat], zoom: 11, duration: 900 });
+  }, [ready, focusPoint]);
 
   useEffect(() => {
     const map = mapRef.current;

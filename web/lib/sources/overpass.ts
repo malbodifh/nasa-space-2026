@@ -230,6 +230,7 @@ type SnapshotArea = {
   label: string;
   center: LatLon;
   radiusKm: number;
+  bbox: [number, number, number, number];
   roads: GeoCollection<RoadProps>;
   protectedAreas: GeoCollection<ProtectedAreaProps>;
 };
@@ -246,15 +247,25 @@ const snapshot = snapshotFile as unknown as {
  * consulta la API viva.
  */
 function fromSnapshot(point: LatLon): OsmOverlays | null {
+  // Solo servimos un snapshot si el punto cae dentro de su bbox: evita
+  // mostrar caminos de otra región por proximidad entre centros.
+  const margin = 0.12;
   const match = snapshot.areas
-    .map((area) => ({ area, distance: distanceKm(point, area.center) }))
-    .filter((item) => item.distance <= item.area.radiusKm + 25)
-    .sort((a, b) => a.distance - b.distance)[0];
+    .filter((area) => {
+      const [west, south, east, north] = area.bbox;
+      return (
+        point.lon >= west - margin &&
+        point.lon <= east + margin &&
+        point.lat >= south - margin &&
+        point.lat <= north + margin
+      );
+    })
+    .sort((a, b) => distanceKm(point, a.center) - distanceKm(point, b.center))[0];
 
   if (!match) return null;
   return {
-    roads: match.area.roads,
-    protectedAreas: match.area.protectedAreas,
+    roads: match.roads,
+    protectedAreas: match.protectedAreas,
     fallback: false,
     mode: "snapshot",
     fetchedAt: snapshot.generatedAt,
