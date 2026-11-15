@@ -17,7 +17,7 @@ Cada paso tiene una regla distinta por tipo de amenaza.
 | Amenaza | Le afecta si… |
 |---|---|
 | Sismo | M4+ a ≤50 km, M5+ a ≤150 km, M6,5+ a ≤400 km, o fue sentido a ≤60 km |
-| Tsunami | el centro de alerta emite nivel rojo o naranja (vigilancia, aviso o advertencia) |
+| Tsunami | se muestra si el centro de alerta emite nivel rojo o naranja (vigilancia, aviso o advertencia), **pero la app no afirma que su costa esté incluida** |
 | Ciclón o tormenta | a ≤500 km, o con nivel serio |
 | Volcán | a ≤30 km |
 | Inundación | a ≤50 km, o con nivel serio a ≤150 km |
@@ -76,7 +76,15 @@ Los radios son **estimaciones simples de proximidad**, no zonas oficiales ni ár
 y así se dice en el popup y en la leyenda.
 Para tsunami se muestra el punto del reporte sin radio: no identifica qué costas están amenazadas.
 Consultar el boletín oficial para conocer las zonas bajo aviso. Eliminar el círculo no significa
-que no haya peligro y no cambia las reglas de alertas ni notificaciones.
+que no haya peligro.
+
+**Boletines de tsunami.** La app consulta el CAP enlazado por NOAA solo si coincide con la entrada
+Atom; una cancelación o un vencimiento explícitos pasan el boletín al historial, y si el CAP falta
+la vigencia queda como desconocida. Lo que no hace: interpretar el `areaDesc` ni la lista de costas
+para decidir si una playa concreta está incluida. Por eso el titular, la orientación y el aviso
+dicen «alcance local desconocido» en lugar de «alerta para su ubicación», el punto no se pinta con
+radio y el aviso enlaza a los reportes de SINAMOT y a la CNE. La ausencia de un reporte no prueba
+que la costa esté a salvo.
 
 ## 5. Varias fuentes, un solo evento
 

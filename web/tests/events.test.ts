@@ -46,7 +46,7 @@ describe("events", () => {
   it("presenta un boletín de tsunami como regional, sin afirmar afectación local", () => {
     const tsunami = alert({ category: "tsunami", source: "PTWC", level: "red", distanceKm: 500 });
     expect(locationStatus([tsunami])).toMatchObject({
-      tone: "peligro",
+      tone: "aviso",
       title: "Boletín regional de tsunami: alcance local desconocido",
       nearest: tsunami,
     });
