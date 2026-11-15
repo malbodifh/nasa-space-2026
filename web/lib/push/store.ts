@@ -1,5 +1,7 @@
 import "server-only";
 
+import { supabaseEnv, supabaseRest } from "@/lib/supabase-rest";
+
 /**
  * Suscripciones push y registro de lo ya enviado. Con SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY
  * usa Supabase (REST, sin dependencias); sin ellas usa memoria, solo útil en desarrollo local.
@@ -11,6 +13,8 @@ export type PushSub = {
   lat: number;
   lon: number;
   lang: "es" | "en";
+  /** Dispositivo con seres queridos vinculados, si lo tiene. */
+  deviceId?: string | null;
 };
 
 export type PushStore = {
@@ -31,7 +35,9 @@ export function memoryStore(): PushStore {
   return {
     persistent: false,
     async upsert(sub) {
-      subs.set(sub.endpoint, sub);
+      // Como en Supabase: sin dispositivo nuevo se conserva el que ya tenía.
+      const deviceId = sub.deviceId ?? subs.get(sub.endpoint)?.deviceId;
+      subs.set(sub.endpoint, deviceId ? { ...sub, deviceId } : sub);
     },
     async remove(endpoint) {
       subs.delete(endpoint);
@@ -50,35 +56,26 @@ export function memoryStore(): PushStore {
 }
 
 export function supabaseStore(baseUrl: string, key: string): PushStore {
-  const root = `${baseUrl.replace(/\/$/, "")}/rest/v1`;
-  const headers = { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
-
-  async function call(path: string, init: RequestInit = {}): Promise<Response> {
-    const response = await fetch(`${root}${path}`, {
-      ...init,
-      headers: { ...headers, ...(init.headers as Record<string, string> | undefined) },
-      signal: AbortSignal.timeout(10_000),
-      cache: "no-store",
-    });
-    if (!response.ok) throw new Error(`Supabase ${response.status} ${path.split("?")[0]}`);
-    return response;
-  }
+  const call = supabaseRest(baseUrl, key);
 
   return {
     persistent: true,
     async upsert(sub) {
+      const { deviceId, ...rest } = sub;
       await call("/push_subscriptions?on_conflict=endpoint", {
         method: "POST",
         headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-        body: JSON.stringify({ ...sub, updated_at: new Date().toISOString() }),
+        // Sin dispositivo vinculado no se toca la columna: una suscripción vieja no lo borra.
+        body: JSON.stringify({ ...rest, ...(deviceId ? { device_id: deviceId } : {}), updated_at: new Date().toISOString() }),
       });
     },
     async remove(endpoint) {
       await call(`/push_subscriptions?endpoint=eq.${encodeURIComponent(endpoint)}`, { method: "DELETE" });
     },
     async list() {
-      const response = await call("/push_subscriptions?select=endpoint,p256dh,auth,lat,lon,lang&limit=5000");
-      return (await response.json()) as PushSub[];
+      const response = await call("/push_subscriptions?select=endpoint,p256dh,auth,lat,lon,lang,device_id&limit=5000");
+      const rows = (await response.json()) as (Omit<PushSub, "deviceId"> & { device_id: string | null })[];
+      return rows.map(({ device_id, ...row }) => ({ ...row, deviceId: device_id }));
     },
     async sent() {
       const since = new Date(Date.now() - SENT_TTL_MS).toISOString();
@@ -104,9 +101,8 @@ let instance: PushStore | null = null;
 
 export function getPushStore(): PushStore {
   if (!instance) {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    instance = url && key ? supabaseStore(url, key) : memoryStore();
+    const env = supabaseEnv();
+    instance = env ? supabaseStore(env.url, env.key) : memoryStore();
   }
   return instance;
 }

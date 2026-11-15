@@ -1,4 +1,6 @@
 /** Suscripción push del navegador. Solo corre en el cliente. */
+import { linkedCredentials } from "@/lib/device";
+
 export type PushResult = "ok" | "unsupported" | "denied" | "not-configured" | "error";
 
 const PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -23,7 +25,7 @@ async function send(subscription: PushSubscription, point: { lat: number; lon: n
   const response = await fetch("/api/push/subscribe", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ subscription: subscription.toJSON(), lat: point.lat, lon: point.lon, lang }),
+    body: JSON.stringify({ subscription: subscription.toJSON(), lat: point.lat, lon: point.lon, lang, device: linkedCredentials() ?? undefined }),
   });
   if (response.status === 503) return "not-configured";
   return response.ok ? "ok" : "error";

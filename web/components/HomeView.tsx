@@ -2,15 +2,18 @@
 
 import { Bell, BellRing, FlaskConical, LocateFixed, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 
 import AlertToasts from "@/components/AlertToasts";
 import EventList from "@/components/EventList";
+import LovedOnes, { lovedStatus } from "@/components/LovedOnes";
+import { useLovedOnes } from "@/components/useLovedOnes";
 import SafetyDialog from "@/components/SafetyDialog";
 import { useLocale } from "@/components/LocaleProvider";
 import { useAlertNotifications } from "@/components/useAlertNotifications";
 import { DEMO_POINT } from "@/lib/demo";
+import { readSavedLocation, saveLocation } from "@/lib/saved-location";
 import { buildDemoAlerts, DEMO_ALL, DEMO_SCENARIOS } from "@/lib/demo-scenarios";
 import { categoryLabel, demoScenarioText, displayDate, displayDetail, displayTimeAgo, displayWhen, eventTitle, intlLocale, officialLabel, sourceLabel } from "@/lib/display-i18n";
 import {
@@ -26,6 +29,9 @@ import {
 } from "@/lib/events";
 import { SAR_ZONES } from "@/lib/sar";
 import type { AssessResponse, EventsResponse, LatLon } from "@/lib/types";
+
+import type { LovedPin } from "@/components/HomeMap";
+import type { LovedOne } from "@/lib/links/types";
 
 const HomeMap = dynamic(() => import("@/components/HomeMap"), {
   ssr: false,
@@ -96,26 +102,44 @@ export default function HomeView() {
   const [demoOpen, setDemoOpen] = useState(false);
   const mapReady = useAfterFirstPaint();
 
-  const locate = useCallback(() => {
+  /** Pide el GPS. En modo silencioso (al abrir la app) no muestra errores ni pierde la ubicación guardada. */
+  const locate = useCallback((quiet = false) => {
     setLocationError(false);
     if (!("geolocation" in navigator)) {
-      setLocationError(true);
+      if (!quiet) setLocationError(true);
       return;
     }
-    setLocation((current) => ({ ...current, status: "buscando" }));
+    if (!quiet) setLocation((current) => ({ ...current, status: "buscando" }));
     navigator.geolocation.getCurrentPosition(
-      (position) =>
-        setLocation({
-          point: { lat: position.coords.latitude, lon: position.coords.longitude },
-          status: "gps",
-        }),
+      (position) => {
+        const found = { lat: position.coords.latitude, lon: position.coords.longitude };
+        saveLocation(found);
+        setLocation({ point: found, status: "gps" });
+      },
       () => {
-        setLocation((current) => ({ ...current, status: "ejemplo" }));
+        if (quiet) return;
+        // Si había una ubicación real guardada, se conserva; si no, sigue la de ejemplo.
+        setLocation((current) => ({ ...current, status: current.point === DEMO_POINT ? "ejemplo" : "gps" }));
         setLocationError(true);
       },
       { timeout: 8000, maximumAge: 5 * 60_000 },
     );
   }, []);
+
+  // Al abrir: se recupera la última ubicación real y, si el permiso ya fue dado, se actualiza sola.
+  useEffect(() => {
+    const saved = readSavedLocation();
+    const timer = window.setTimeout(() => {
+      if (saved) setLocation({ point: saved, status: "gps" });
+    }, 0);
+    navigator.permissions
+      ?.query({ name: "geolocation" })
+      .then((state) => {
+        if (state.state === "granted") locate(true);
+      })
+      .catch(() => {});
+    return () => window.clearTimeout(timer);
+  }, [locate]);
 
   const { point } = location;
   const query = `lat=${point.lat.toFixed(3)}&lon=${point.lon.toFixed(3)}`;
@@ -159,7 +183,36 @@ export default function HomeView() {
 
   const status = locationStatus(active);
   const relevant = useMemo(() => (events || demoAlerts.length ? affecting(allAlerts) : null), [events, demoAlerts.length, allAlerts]);
-  const notifications = useAlertNotifications(relevant, location.status === "buscando" ? null : point);
+  // Solo una ubicación real llega al servidor de avisos: la de ejemplo pisaría la de la persona.
+  const notifications = useAlertNotifications(relevant, location.status === "gps" ? point : null);
+  const lovedOnes = useLovedOnes(location.status === "gps" ? point : null, locale);
+  const [focus, setFocus] = useState<{ lat: number; lon: number; key: number } | null>(null);
+  const lovedPins = useMemo<LovedPin[]>(
+    () =>
+      lovedOnes.following.flatMap((person) =>
+        person.point && person.risk
+          ? [{ id: person.id, alias: person.alias, ...person.point, tone: person.risk.tone === "peligro" ? "peligro" : "aviso", label: lovedStatus(person, locale, t) }]
+          : [],
+      ),
+    [lovedOnes.following, locale, t],
+  );
+  const showOnMap = useCallback((person: LovedOne) => {
+    if (!person.point) return;
+    setFocus({ ...person.point, key: Date.now() });
+    document.getElementById("mapa")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
+  // Un aviso push por un ser querido abre «/?ser=<id>»: se acerca el mapa a esa persona.
+  const focusedFromLink = useRef(false);
+  useEffect(() => {
+    if (focusedFromLink.current) return;
+    const wanted = new URLSearchParams(window.location.search).get("ser");
+    const person = wanted ? lovedOnes.following.find((item) => item.id === wanted && item.point) : undefined;
+    if (!person) return;
+    focusedFromLink.current = true;
+    const timer = window.setTimeout(() => showOnMap(person), 0);
+    return () => window.clearTimeout(timer);
+  }, [lovedOnes.following, showOnMap]);
+
   function exitDemo() {
     setDemo(null);
     for (const toast of notifications.toasts) {
@@ -211,12 +264,13 @@ export default function HomeView() {
         ) : null}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px]">
           <section
+            id="mapa"
             className="h-[46vh] min-h-[300px] min-w-0 overflow-hidden rounded-[14px] bg-hundida lg:h-auto lg:min-h-[560px]"
             style={{ boxShadow: "var(--sombra-tarjeta)" }}
             aria-label={t("Mapa", "Map")}
           >
             {mapReady ? (
-              <HomeMap point={point} radiusKm={NEAR_KM} active={activeItems} history={history} />
+              <HomeMap point={point} radiusKm={NEAR_KM} active={activeItems} history={history} loved={lovedPins} focus={focus} />
             ) : null}
           </section>
 
@@ -336,7 +390,7 @@ export default function HomeView() {
                   </div>
                 ) : null}
                 {location.status !== "gps" ? (
-                  <button type="button" onClick={locate} disabled={location.status === "buscando"} aria-busy={location.status === "buscando"} className="boton boton-principal w-full disabled:opacity-60">
+                  <button type="button" onClick={() => locate()} disabled={location.status === "buscando"} aria-busy={location.status === "buscando"} className="boton boton-principal w-full disabled:opacity-60">
                     <LocateFixed className="size-4" aria-hidden />
                     {location.status === "buscando" ? t("Buscando su ubicación…", "Finding your location…") : t("Usar mi ubicación", "Use my location")}
                   </button>
@@ -385,6 +439,15 @@ export default function HomeView() {
               </div>
             </section>
 
+            <LovedOnes
+              following={lovedOnes.following}
+              followers={lovedOnes.followers}
+              loading={lovedOnes.loading}
+              error={lovedOnes.error}
+              invite={lovedOnes.invite}
+              remove={lovedOnes.remove}
+              onShowOnMap={showOnMap}
+            />
           </div>
         </div>
 

@@ -155,3 +155,16 @@ La app es instalable (`web/app/manifest.ts`, íconos en `web/public/icons/`) y e
 - **Disparador:** `.github/workflows/push-cron.yml` cada 5 min (Vercel Hobby solo admite crons diarios). Necesita los secretos `PUSH_CRON_URL` y `CRON_SECRET` en GitHub.
 - **Variables:** ver `web/.env.example`. Las claves VAPID se generan con `web-push`; la privada nunca va al repositorio.
 - **iOS:** el push solo funciona con la app instalada en la pantalla de inicio (iOS 16.4+).
+- **Ubicación guardada:** la última ubicación real (GPS) se guarda en el teléfono (`web/lib/saved-location.ts`, ~100 m). Al reabrir la app se recupera y, si el permiso ya fue dado, se actualiza sola. La ubicación de ejemplo nunca se envía al servidor de avisos.
+
+## 12. Seres queridos
+
+Una persona puede recibir avisos (y ver un pin en el mapa) cuando un ser querido está en riesgo, aunque ambos tengan la app cerrada.
+
+- **Vínculo por link:** «Invitar a un ser querido» crea un link `/vincular?c=<código>` de un solo uso que vence a las 48 h. El invitado ve quién lo invita, acepta compartir su zona aproximada (~1 km) y puede elegir recibir también los avisos de quien lo invitó.
+- **Sin cuentas:** cada teléfono genera un id y una clave secreta (`web/lib/device.ts`); el servidor guarda solo el hash SHA-256 de la clave y del código de invitación.
+- **Riesgo:** se aplican las mismas reglas (`affecting`) que para la propia ubicación, sobre la zona del ser querido. El pin solo aparece cuando está en riesgo; si no, nadie recibe su zona.
+- **Avisos:** el mismo cron de push revisa también la zona de cada ser querido y envía «Mamá podría estar en riesgo», una sola vez por alerta y persona. El aviso abre la app con el mapa centrado en esa persona.
+- **Zona:** se actualiza cada vez que el ser querido abre la app con ubicación real. No hay seguimiento en segundo plano.
+- **Quitar:** cualquiera de los dos puede quitar el vínculo desde la sección «Seres queridos».
+- **Almacenamiento:** `web/supabase/seres-queridos.sql` (tablas `devices`, `link_invites`, `links` y la columna `push_subscriptions.device_id`), con RLS activo y sin acceso para `anon`/`authenticated`.
