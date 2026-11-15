@@ -117,11 +117,15 @@ export default function SurfaceStudy() {
     if (byId) return sarZone(byId) ?? null;
     return hasPoint ? zoneForPoint({ lat, lon }, 0) : null;
   }, [byId, hasPoint, lat, lon]);
-  const invalidField: "coordinates" | "date" | null = !hasPoint && !zone
-    ? "coordinates"
-    : dateInput.status === "invalid"
-      ? "date"
-      : null;
+  // Una zona pedida por id que no existe merece un mensaje propio, no "faltan coordenadas".
+  const unknownZone = Boolean(byId) && !zone && !hasPoint;
+  const invalidField: "coordinates" | "date" | "zone" | null = unknownZone
+    ? "zone"
+    : !hasPoint && !zone
+      ? "coordinates"
+      : dateInput.status === "invalid"
+        ? "date"
+        : null;
   const title = params.get("titulo") ?? t("Cambio de la superficie", "Surface change");
   const kind = params.get("tipo") ?? "";
 
@@ -255,7 +259,9 @@ export default function SurfaceStudy() {
 
       {invalidField ? (
         <p role="alert" className="tarjeta mt-8 text-[16px] text-tinta-suave">
-          {pointInput.status === "missing"
+          {invalidField === "zone"
+            ? t("La zona solicitada no existe. Abra el estudio desde un evento o indique coordenadas.", "The requested area does not exist. Open the study from an event or provide coordinates.")
+            : pointInput.status === "missing"
             ? t("Falta el lugar del evento: indique latitud y longitud.", "The event location is missing: provide both latitude and longitude.")
             : invalidField === "date"
               ? t("La fecha no es válida. Use una fecha real en formato AAAA-MM-DD.", "The date is invalid. Use a real calendar date in YYYY-MM-DD format.")
