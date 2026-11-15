@@ -29,10 +29,13 @@
 - [Arquitectura de la app (capas, contratos y deploy)](docs/24-arquitectura-app.md)
 - [APIs verificadas y core NASA (endpoints, límites y fallbacks)](docs/25-api-research.md)
 - [Spike de datos: cómo conectar la idea base](docs/26-spike-datos.md)
+- [Benchmark de apps de alerta y datos NASA](docs/27-benchmark-apps.md)
+- [Investigación de APIs para Samuel](docs/apis_research_samuel.md)
 - [Workflow del equipo](docs/18-workflow.md)
 - [Herramientas del repo](docs/19-herramientas.md)
 - [Bitácora del reinicio](docs/bitacora/2026-11-14.md)
 - [Guía visual de retos (PDF)](guides/dist/06-retos.pdf)
+- [Documentación completa (PDF, Typst)](guides/dist/07-documentacion.pdf)
 - [Archivo del proyecto anterior](https://github.com/malbodifh/nasa-space-2026/tree/archive/mission-trainer)
 
 ---
