@@ -25,7 +25,7 @@ export async function fetchLimited(url: string, maxBytes: number, timeoutMs = 8_
       redirect: "manual",
       signal,
       cache: "no-store",
-      headers: { Accept: "*/*", "User-Agent": "AstralCodes-MemoriaDeFuego/0.3" },
+      headers: { Accept: "*/*", "User-Agent": "AstralCodes-GammaAlert/0.3" },
     });
     if ([301, 302, 303, 307, 308].includes(response.status)) {
       const location = response.headers.get("location");

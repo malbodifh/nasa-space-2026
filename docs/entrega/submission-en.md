@@ -1,4 +1,4 @@
-# Memoria de Fuego — submission draft
+# Gamma Alert — submission draft
 
 > Draft for team review, 15 November 2026. This is not a submitted entry or an official
 > assessment. Confirm the registered challenge, final deployment, licensing and submission
@@ -19,7 +19,7 @@ Fill in the video link and confirm the deployed URL before submitting.
 
 ## Project summary
 
-Memoria de Fuego connects natural-hazard reports in Costa Rica with an interactive exploration
+Gamma Alert connects natural-hazard reports in Costa Rica with an interactive exploration
 of surface change using NASA–ISRO NISAR radar. People can examine a report's source and time,
 then explore available radar acquisitions, compare two dates and investigate possible physical
 explanations for changes in image brightness.
@@ -85,7 +85,7 @@ alone does not establish an open-source license; the team must confirm its licen
 ## Suggested 30-second demo script
 
 “A disaster report tells us what happened. Radar helps us explore what changed.
-Memoria de Fuego brings Costa Rican hazard reports together with NASA–ISRO NISAR.
+Gamma Alert brings Costa Rican hazard reports together with NASA–ISRO NISAR.
 Open a report, check its source and time, then compare available radar dates.
 Explore wetlands and volcanic landscapes even when clouds block optical images.
 Our change layer is an exploratory comparison of browse-image brightness—not confirmed damage.

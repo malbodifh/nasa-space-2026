@@ -113,7 +113,7 @@ export default function AboutPage() {
   ];
 
   return (
-    <main id="contenido" className="mx-auto w-full max-w-[1180px] px-4 pt-6 pb-20 sm:px-6">
+    <main id="contenido" className="mx-auto w-full max-w-[1760px] px-4 pt-6 pb-20 sm:px-6 lg:px-10">
       <section className="max-w-[820px]" aria-labelledby="about-title">
         <div className="mb-6 flex items-center gap-4">
           <GamaLogo className="size-14 shrink-0" />
@@ -126,7 +126,7 @@ export default function AboutPage() {
           {t("Entender lo que pasa cerca. Explorar qué cambió.", "Understand nearby events. Explore what changed.")}
         </h1>
         <p className="mt-5 text-lg leading-relaxed text-tinta-suave">
-          {t("Memoria de Fuego es un prototipo educativo y exploratorio: reúne reportes de desastres naturales en Costa Rica y permite explorar cambios de superficie con radar NASA–ISRO NISAR. Las alertas son la entrada; el radar aporta evidencia visual para investigar, no una confirmación automática de daños. Esta guía es un tutorial, no una autoridad de emergencias.", "Memoria de Fuego is an educational, exploratory prototype: it brings together natural-hazard reports for Costa Rica and lets you explore surface changes with NASA–ISRO NISAR radar. Alerts are the entry point; radar provides visual evidence to investigate, not automatic confirmation of damage. This guide is a tutorial, not an emergency authority.")}
+          {t("Gamma Alert es un prototipo educativo y exploratorio: reúne reportes de desastres naturales en Costa Rica y permite explorar cambios de superficie con radar NASA–ISRO NISAR. Las alertas son la entrada; el radar aporta evidencia visual para investigar, no una confirmación automática de daños. Esta guía es un tutorial, no una autoridad de emergencias.", "Gamma Alert is an educational, exploratory prototype: it brings together natural-hazard reports for Costa Rica and lets you explore surface changes with NASA–ISRO NISAR radar. Alerts are the entry point; radar provides visual evidence to investigate, not automatic confirmation of damage. This guide is a tutorial, not an emergency authority.")}
         </p>
         <div className="mt-6 rounded-xl border border-aviso/30 bg-aviso/5 p-4 text-sm leading-relaxed">
           <strong>{t("No es una alerta oficial ni un sistema de predicción.", "Not an official warning or a prediction system.")}</strong>{" "}
@@ -244,7 +244,7 @@ export default function AboutPage() {
       </section>
 
       <footer className="mt-12 border-t border-linea pt-6 text-sm leading-relaxed text-tinta-suave">
-        <p>{t("Hecho por Astral Codes para NASA Space Apps 2026. Identidad gráfica propia de Memoria de Fuego; no implica afiliación ni respaldo de NASA, ISRO o las agencias citadas.", "Built by Astral Codes for NASA Space Apps 2026. Memoria de Fuego's own visual identity does not imply affiliation with or endorsement by NASA, ISRO or the cited agencies.")}</p>
+        <p>{t("Hecho por Astral Codes para NASA Space Apps 2026. Identidad gráfica propia de Gamma Alert; no implica afiliación ni respaldo de NASA, ISRO o las agencias citadas.", "Built by Astral Codes for NASA Space Apps 2026. Gamma Alert's own visual identity does not imply affiliation with or endorsement by NASA, ISRO or the cited agencies.")}</p>
         <p className="mt-2">{t("Se usó asistencia de IA para desarrollar código y textos de esta interfaz. Las interpretaciones científicas requieren revisión humana.", "AI assistance was used to develop code and text for this interface. Scientific interpretations require human review.")}</p>
         <p className="mt-2">{t("Referencia del conjunto precalculado: manifiesto generado el 15 de noviembre de 2026 a las 04:06 UTC; no es la hora de actualización de cada fuente ni la fecha de cada imagen. Código disponible públicamente; la licencia de reutilización aún debe confirmarse.", "Precomputed dataset reference: manifest generated November 15, 2026 at 04:06 UTC; this is not each feed's update time or each image's acquisition date. Code is publicly available; its reuse license remains to be confirmed.")}</p>
       </footer>

@@ -101,8 +101,17 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null, point: L
       if (toSend.length === 0) return;
       const items = toSend.map((alert) => ({
         id: alert.id,
-        title: alert.id.startsWith("demo-") ? `${t("[Demostración]", "[Simulated]")} ${eventTitle(fromAlert(alert), locale)}` : eventTitle(fromAlert(alert), locale),
-        body: [alert.detail ? displayDetail(alert.detail, locale) : null, `${t("A", "At")} ${Math.round(alert.distanceKm).toLocaleString(intlLocale(locale))} km · ${alert.source === "Demostración" ? t("Demostración", "Simulation") : alert.source}`].filter(Boolean).join(" · "),
+        title: [
+          alert.id.startsWith("demo-") ? t("[Demostración]", "[Simulated]") : "",
+          // Nunca se presenta un boletín regional como peligro en la ubicación de quien lo recibe.
+          alert.category === "tsunami" ? t("Boletín regional de tsunami", "Regional tsunami bulletin") : "",
+          eventTitle(fromAlert(alert), locale),
+        ].filter(Boolean).join(" · "),
+        body: [
+          alert.detail ? displayDetail(alert.detail, locale) : null,
+          alert.category === "tsunami" ? t("No determina si su costa está incluida; verifique en fuentes oficiales.", "Does not determine whether your coast is included; check official sources.") : null,
+          `${t("A", "At")} ${Math.round(alert.distanceKm).toLocaleString(intlLocale(locale))} km · ${alert.source === "Demostración" ? t("Demostración", "Simulation") : alert.source}`,
+        ].filter(Boolean).join(" · "),
         href: studyHref(fromAlert(alert)),
         alert,
       }));

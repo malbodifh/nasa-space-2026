@@ -4,7 +4,7 @@
 
 ## En una frase
 
-**Memoria de Fuego** le dice a una persona en Costa Rica si hay un desastre natural cerca de
+**Gamma Alert** le dice a una persona en Costa Rica si hay un desastre natural cerca de
 ella ahora mismo y, por cada evento, le muestra cómo cambió la superficie de la Tierra con radar
 satelital.
 

@@ -53,7 +53,9 @@ export default function SafetyAdvice({
                   ? t(`Magnitud M${alert.magnitudeValue}: no es la intensidad que usted sintió.`, `Magnitude M${alert.magnitudeValue}: not the shaking intensity at your location.`)
                   : t("No hay magnitud verificada en este reporte.", "No verified magnitude is available in this report.")}</p>
               ) : null}
-              <p>{!advice.current
+              <p>{alert.category === "tsunami"
+                ? t("El alcance territorial no está determinado: consulte el reporte y las autoridades oficiales. La distancia al epicentro no determina qué costas están amenazadas.", "The territorial scope is unknown: check the report and official authorities. Distance to the epicenter does not determine which coasts are threatened.")
+                : !advice.current
                 ? t("Reporte vencido o fecha no verificable: consulte información actual.", "Report expired or date unverifiable: check current information.")
                 : !advice.distanceKnown
                   ? t("Sin distancia verificable no se puede aplicar el criterio de cercanía; consulte el reporte original.", "Without a verifiable distance the proximity rule cannot be applied; check the original report.")
@@ -72,6 +74,7 @@ export default function SafetyAdvice({
       <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[13px] font-semibold">
         <a href={advice.guide[locale]} target="_blank" rel="noreferrer" className="underline underline-offset-4">{advice.guide.source}</a>
         <a href="https://www.cne.go.cr/" target="_blank" rel="noreferrer" className="underline underline-offset-4">{t("CNE Costa Rica", "Costa Rica CNE")}</a>
+        {alert?.category === "tsunami" ? <a href="https://unacostasegura.una.ac.cr/webServices/" target="_blank" rel="noreferrer" className="underline underline-offset-4">{t("Reportes SINAMOT", "SINAMOT reports")}</a> : null}
         {alert?.url && alert.source !== "Demostración" ? <a href={alert.url} target="_blank" rel="noreferrer" className="underline underline-offset-4">{t("Reporte original", "Original report")}</a> : null}
         <a href="tel:911" className="underline underline-offset-4">{t("Emergencia inmediata: 9-1-1", "Immediate emergency: 9-1-1")}</a>
       </div>

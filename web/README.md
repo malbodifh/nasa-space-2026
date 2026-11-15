@@ -1,4 +1,4 @@
-# Memoria de Fuego · web
+# Gamma Alert · web
 
 Cambios de la superficie de Costa Rica vistos con el radar **NASA-ISRO NISAR**, más un
 observatorio de alertas de desastres naturales.

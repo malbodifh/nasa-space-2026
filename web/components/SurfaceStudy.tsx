@@ -250,7 +250,7 @@ export default function SurfaceStudy() {
   const mixedStatus = Boolean(before && after && before.status !== after.status);
 
   return (
-    <main id="contenido" className="mx-auto w-full max-w-[1180px] px-4 pb-20 sm:px-6">
+    <main id="contenido" className="mx-auto w-full max-w-[1760px] px-4 pb-20 sm:px-6 lg:px-10">
       <Link href="/" className="boton boton-cristal boton-chico">
         <ArrowLeft className="size-4" aria-hidden />
         {t("Volver", "Back")}
@@ -448,7 +448,7 @@ export default function SurfaceStudy() {
 
               <section>
                 <p className="mb-4 rounded-[10px] bg-hundida p-4 text-[13px] leading-relaxed text-tinta-suave">
-                  {t("Vista previa de 8 bits no calibrada: los porcentajes describen píxeles comparables con cambio aparente de brillo, no superficie dañada ni inundación confirmada. Un cambio no identifica su causa.", "Uncalibrated 8-bit preview: percentages describe comparable pixels with apparent brightness change, not damaged land or confirmed flooding. A change does not identify its cause.")}
+                  {t("Vista previa de 8 bits no calibrada: los porcentajes describen píxeles comparables con cambio aparente de brillo, no superficie dañada ni inundación confirmada. Un cambio no identifica su causa. Las imágenes corresponden a las fechas seleccionadas, no a una alerta en tiempo real.", "Uncalibrated 8-bit preview: percentages describe comparable pixels with apparent brightness change, not damaged land or confirmed flooding. A change does not identify its cause. Images correspond to the selected dates, not a real-time alert.")}
                   {mixedStatus
                     ? ` ${t("Esta comparación mezcla una pasada provisional y una validada; las diferencias de procesamiento o calibración pueden influir en el resultado. «Validado» describe el producto, no nuestra interpretación.", "This comparison mixes a provisional and a validated pass; processing or calibration differences may affect the result. “Validated” describes the product, not our interpretation.")}`
                     : provisional

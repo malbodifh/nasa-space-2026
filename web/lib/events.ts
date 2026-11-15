@@ -114,8 +114,15 @@ export function locationStatus(active: DisasterAlert[]): {
 } {
   const relevant = affecting(active);
   if (relevant.length === 0) return { tone: "exito", title: "Sin alertas para su ubicación", nearest: null };
-  const serious = relevant.find((alert) => alert.level === "red" || alert.level === "orange");
-  if (serious) return { tone: "peligro", title: "Alerta para su ubicación", nearest: serious };
+  const serious = relevant.find((alert) => alert.category !== "tsunami" && (alert.level === "red" || alert.level === "orange"))
+    ?? relevant.find((alert) => alert.level === "red" || alert.level === "orange");
+  if (serious) return {
+    // Un boletín regional no confirma que la costa de la persona esté incluida: se destaca, pero
+    // no se afirma peligro en su ubicación.
+    tone: serious.category === "tsunami" ? "aviso" : "peligro",
+    title: serious.category === "tsunami" ? "Boletín regional de tsunami: alcance local desconocido" : "Alerta para su ubicación",
+    nearest: serious,
+  };
   return {
     tone: "aviso",
     title: relevant.length === 1 ? "1 aviso para su ubicación" : `${relevant.length} avisos para su ubicación`,

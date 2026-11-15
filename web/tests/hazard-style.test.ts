@@ -40,10 +40,11 @@ describe("áreas de alerta", () => {
     ).toBeNull();
   });
 
-  it("un boletín de tsunami informativo no tiene área; una advertencia sí", () => {
+  it("ningún boletín de tsunami genera círculos que simulen costas amenazadas", () => {
     const base = { category: "tsunami", source: "PTWC", date: recent, title: "Boletín" } as const;
     expect(alertZones({ ...base, level: "info" }, NOW)).toBeNull();
-    expect(alertZones({ ...base, level: "red" }, NOW)).toEqual({ red: 300, yellow: 1000 });
+    expect(alertZones({ ...base, level: "orange" }, NOW)).toBeNull();
+    expect(alertZones({ ...base, level: "red" }, NOW)).toBeNull();
   });
 
   it("un huracán tiene áreas más grandes que una tormenta", () => {

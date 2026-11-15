@@ -25,11 +25,11 @@ afterEach(() => {
 describe("menú compartido", () => {
   it("incluye la marca visible en el nombre del enlace y evita duplicar el icono", () => {
     const html = renderToStaticMarkup(createElement(LocaleProvider, null, createElement(SiteHeader)));
-    expect(html).toContain('aria-label="Memoria de Fuego · Inicio"');
+    expect(html).toContain('aria-label="Gamma Alert · Inicio"');
     expect(html).toMatch(/<svg[^>]*aria-hidden="true"/);
     const standalone = renderToStaticMarkup(createElement(BrandMark));
     expect(standalone).toContain('role="img"');
-    expect(standalone).toContain('aria-label="Memoria de Fuego"');
+    expect(standalone).toContain('aria-label="Gamma Alert"');
   });
 
   it("mantiene las rutas públicas estables", () => {

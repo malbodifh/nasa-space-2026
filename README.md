@@ -4,7 +4,7 @@
 **Repo:** [malbodifh/nasa-space-2026](https://github.com/malbodifh/nasa-space-2026)
 **Estado:** MVP en revisión — reto de trabajo **Dancing with the SARs** (NISAR)
 
-> Memoria de Fuego combina alertas de desastres para Costa Rica con estudios de superficie NISAR.
+> Gamma Alert combina alertas de desastres para Costa Rica con estudios de superficie NISAR.
 > Estado y decisiones vigentes en [`docs/estado.md`](docs/estado.md).
 > Inicio del frontend: [`web/README.md`](web/README.md).
 

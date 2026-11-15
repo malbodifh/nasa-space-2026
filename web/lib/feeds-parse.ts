@@ -31,7 +31,7 @@ function tag(text: string, name: string): string | null {
  * Boletines de los centros de alerta de tsunamis de NOAA. Los informativos solo se muestran
  * si el sismo está a menos de 1.500 km; vigilancias, avisos y advertencias, hasta 4.000 km.
  */
-export function parsePtwc(xml: string, point: LatLon): DisasterAlert[] {
+export function parsePtwc(xml: string, point: LatLon, source: "PTWC" | "NTWC" = "PTWC"): DisasterAlert[] {
   const alerts: DisasterAlert[] = [];
   for (const entry of xml.split("<entry>").slice(1)) {
     const lat = numberOrNaN(tag(entry, "geo:lat"));
@@ -48,8 +48,8 @@ export function parsePtwc(xml: string, point: LatLon): DisasterAlert[] {
     const bulletin = entry.match(/rel="alternate"[^>]*href="([^"]+)"/)?.[1];
     const noDanger = /NO tsunami danger/i.test(summary);
     alerts.push({
-      id: `ptwc:${tag(entry, "id") ?? region}`,
-      source: "PTWC",
+      id: `${source.toLowerCase()}:${tag(entry, "id") ?? region}`,
+      source,
       category: "tsunami",
       categoryLabel: "Tsunami",
       title: `${label}: ${region.toLowerCase().replace(/^\w/, (c) => c.toUpperCase())}`,
@@ -60,7 +60,9 @@ export function parsePtwc(xml: string, point: LatLon): DisasterAlert[] {
       distanceKm: round1(distance),
       url: bulletin ?? "https://www.tsunami.gov/",
       magnitudeValue: Number.isFinite(magnitude) ? magnitude : undefined,
-      detail: noDanger ? "Sin peligro de tsunami según el centro de alerta." : label,
+      detail: noDanger
+        ? "El boletín indica que no hay peligro de tsunami; consulte su alcance y vigencia en la fuente oficial."
+        : `${label}. Alcance territorial no determinado; consulte el boletín y las autoridades de Costa Rica.`,
     });
   }
   return alerts;

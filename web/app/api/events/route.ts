@@ -28,7 +28,7 @@ export async function GET(request: Request) {
   const { lat, lon, radius } = parsed.data;
   const { value: events, cached, stale } = await withCacheTracking(() => getEvents({ lat, lon }));
   const { alerts, history, fallbackSources, sources } = events;
-  // Un tsunami o un ciclón lejano puede afectar igual: las reglas por amenaza mandan sobre el radio.
+  // Mostrar boletines regionales no determina si afectan al punto consultado.
   const near = (alert: DisasterAlert) => alert.distanceKm <= radius || affects(alert);
   const visibleAlerts = alerts.filter(near);
   const visibleHistory = history.filter((alert) => alert.distanceKm <= radius);
@@ -40,7 +40,8 @@ export async function GET(request: Request) {
   const visibleSources = sources.map((source) => ({
     ...source,
     visibleCount: [...visibleAlerts, ...visibleHistory].filter((alert) =>
-      alert.source === sourceNames[source.id] || alert.alsoReportedBy?.includes(sourceNames[source.id]),
+      alert.source === sourceNames[source.id] || (source.id === "ptwc" && alert.source === "NTWC")
+        || alert.alsoReportedBy?.includes(sourceNames[source.id]),
     ).length,
   }));
 

@@ -43,6 +43,17 @@ describe("events", () => {
     expect(status.nearest?.id).toBe("y");
   });
 
+  it("presenta un boletín de tsunami como regional, sin afirmar afectación local", () => {
+    const tsunami = alert({ category: "tsunami", source: "PTWC", level: "red", distanceKm: 500 });
+    expect(locationStatus([tsunami])).toMatchObject({
+      tone: "aviso",
+      title: "Boletín regional de tsunami: alcance local desconocido",
+      nearest: tsunami,
+    });
+    const flood = alert({ id: "flood", level: "orange", distanceKm: 20 });
+    expect(locationStatus([tsunami, flood]).nearest).toEqual(flood);
+  });
+
   it("cuenta los eventos activos cercanos", () => {
     const status = locationStatus([alert({ id: "x", distanceKm: 20 }), alert({ id: "y", distanceKm: 40 })]);
     expect(status.title).toBe("2 avisos para su ubicación");

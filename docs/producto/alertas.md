@@ -17,7 +17,7 @@ Cada paso tiene una regla distinta por tipo de amenaza.
 | Amenaza | Le afecta si… |
 |---|---|
 | Sismo | M4+ a ≤50 km, M5+ a ≤150 km, M6,5+ a ≤400 km, o fue sentido a ≤60 km |
-| Tsunami | el centro de alerta emite nivel rojo o naranja (vigilancia, aviso o advertencia) |
+| Tsunami | se muestra si el centro de alerta emite nivel rojo o naranja (vigilancia, aviso o advertencia), **pero la app no afirma que su costa esté incluida** |
 | Ciclón o tormenta | a ≤500 km, o con nivel serio |
 | Volcán | a ≤30 km |
 | Inundación | a ≤50 km, o con nivel serio a ≤150 km |
@@ -58,14 +58,13 @@ nota «Sin reportes nuevos desde esta fecha.».
 Cada tipo de desastre tiene su color (`HAZARD_STYLE`): sismo café, tsunami azul, volcán naranja,
 inundación turquesa, ciclón violeta, lluvia celeste, deslizamiento ocre, radar azul de marca.
 
-Si la amenaza está **en curso**, el mapa dibuja dos radios de proximidad; si no, ninguno:
+Para algunas amenazas **en curso**, el mapa dibuja radios de proximidad; si no, ninguno:
 
 | Amenaza | Roja | Amarilla |
 |---|---|---|
 | Sismo | 10^(0,45·M − 1,1) km (1–150) | 10^(0,45·M − 0,3) km (5–400) |
 | Volcán | 5 km | 15 km |
-| Tsunami rojo | 300 km | 1000 km |
-| Tsunami naranja | sin área | 500 km |
+| Tsunami | sin círculo | sin círculo |
 | Huracán | 100 km | 300 km |
 | Tormenta o depresión | 50 km | 200 km |
 | Inundación | 10 km | 30 km |
@@ -75,6 +74,17 @@ Si la amenaza está **en curso**, el mapa dibuja dos radios de proximidad; si no
 
 Los radios son **estimaciones simples de proximidad**, no zonas oficiales ni áreas de afectación,
 y así se dice en el popup y en la leyenda.
+Para tsunami se muestra el punto del reporte sin radio: no identifica qué costas están amenazadas.
+Consultar el boletín oficial para conocer las zonas bajo aviso. Eliminar el círculo no significa
+que no haya peligro.
+
+**Boletines de tsunami.** La app consulta el CAP enlazado por NOAA solo si coincide con la entrada
+Atom; una cancelación o un vencimiento explícitos pasan el boletín al historial, y si el CAP falta
+la vigencia queda como desconocida. Lo que no hace: interpretar el `areaDesc` ni la lista de costas
+para decidir si una playa concreta está incluida. Por eso el titular, la orientación y el aviso
+dicen «alcance local desconocido» en lugar de «alerta para su ubicación», el punto no se pinta con
+radio y el aviso enlaza a los reportes de SINAMOT y a la CNE. La ausencia de un reporte no prueba
+que la costa esté a salvo.
 
 ## 5. Varias fuentes, un solo evento
 
