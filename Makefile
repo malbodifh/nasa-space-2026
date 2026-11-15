@@ -3,10 +3,11 @@ VENV := .venv
 PY := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
 TYPST := typst
+PANDOC ?= pandoc
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup test lint format check guides clean branches sync
+.PHONY: help setup test lint format check guides docs docs-convert clean branches sync
 
 help: ## Mostrar esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -33,8 +34,22 @@ check: lint test ## Lint + tests (lo mismo que corre CI)
 guides: ## Compilar las guías Typst a PDF y PNG
 	mkdir -p guides/dist
 	$(TYPST) compile guides/src/06-retos.typ guides/dist/06-retos.pdf
+	$(TYPST) compile --root . guides/src/07-documentacion.typ guides/dist/07-documentacion.pdf
 	$(TYPST) compile --format png --ppi 200 guides/src/06-retos.typ "guides/dist/06-retos-{p}.png"
 	@echo "Guías en guides/dist/"
+
+docs: ## Compilar la documentación completa (libro + un PDF por documento)
+	mkdir -p guides/dist
+	$(TYPST) compile --root . guides/src/07-documentacion.typ guides/dist/07-documentacion.pdf
+	@bash scripts/build_docs_pdf.sh
+	@echo "Documentación: guides/dist/07-documentacion.pdf"
+
+docs-convert: ## Convertir los .md a .typ para el libro (requiere pandoc)
+	@command -v $(PANDOC) >/dev/null 2>&1 || { \
+		echo "Falta pandoc. Instalalo o usá: make docs-convert PANDOC=/ruta/a/pandoc"; \
+		exit 1; \
+	}
+	$(PY) scripts/md_to_typst.py --pandoc $(PANDOC)
 
 branches: ## Crear las ramas del equipo si faltan (main, develop, staging, persona)
 	@bash scripts/setup_branches.sh
