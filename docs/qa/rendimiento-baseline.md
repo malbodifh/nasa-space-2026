@@ -48,6 +48,19 @@ Las correcciones concretas se registran en
 [`rendimiento-cambios.md`](rendimiento-cambios.md). Los hallazgos son evidencia de prioridades,
 no una garantía de cuánto subirá el puntaje.
 
+## Intento de medir la versión nueva (15/11, noche)
+
+La corrección de rendimiento **no está medida**. Dos bloqueos concretos:
+
+1. El preview de `develop` que generó Vercel está protegido por SSO: al abrirlo redirige a
+   `vercel.com/login`. Hace falta una sesión con acceso al proyecto o desactivar temporalmente
+   la protección de despliegues.
+2. Lighthouse local no arranca en este entorno: falla al lanzar Chrome por bibliotecas del
+   sistema ausentes. No es un problema de la app.
+
+Para medir mañana: abrir el preview autenticado y correr PageSpeed Insights sobre esa URL,
+móvil y escritorio, dos veces. Comparar TBT y LCP contra los valores de arriba.
+
 ## Repetición después de integrar
 
 1. Pasar lint, tests y build de producción.
