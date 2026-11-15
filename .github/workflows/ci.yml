@@ -28,22 +28,29 @@ jobs:
         run: pytest -q
 
   frontend:
-    name: Frontend · build (si existe)
+    name: Frontend · lint + test + build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.28.5
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm lint
+      - name: Tests
+        run: pnpm test
       - name: Build
-        run: |
-          if [ -f src/frontend/package.json ]; then
-            cd src/frontend
-            npm ci
-            npm run build
-          else
-            echo "Todavía no hay frontend. Skip."
-          fi
+        run: pnpm build
 
   guides:
     name: Guías · Typst

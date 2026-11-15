@@ -27,6 +27,8 @@
 - [Investigación: alerta temprana de desastres con datos NASA](docs/22-investigacion-desastres.md)
 - [Plan de la app web (Next.js + TypeScript + Tailwind)](docs/23-plan-app.md)
 - [Arquitectura de la app (capas, contratos y deploy)](docs/24-arquitectura-app.md)
+- [APIs verificadas y core NASA (endpoints, límites y fallbacks)](docs/25-api-research.md)
+- [Spike de datos: cómo conectar la idea base](docs/26-spike-datos.md)
 - [Workflow del equipo](docs/18-workflow.md)
 - [Herramientas del repo](docs/19-herramientas.md)
 - [Bitácora del reinicio](docs/bitacora/2026-11-14.md)

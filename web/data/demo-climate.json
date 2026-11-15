@@ -1,0 +1,12 @@
+{
+  "lastDate": "2026-11-11",
+  "rain30mm": 17.2,
+  "rain30Percentile": 93.5,
+  "daysSinceRain": 20,
+  "tMaxC": 19.4,
+  "rhPct": 93.3,
+  "windMs": 3.0,
+  "years": 45,
+  "source": "POWER_FALLBACK",
+  "fallback": true
+}
