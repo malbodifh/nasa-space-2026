@@ -6,7 +6,7 @@ import { displayDetail, eventTitle, intlLocale } from "@/lib/display-i18n";
 
 import type { Toast } from "@/components/AlertToasts";
 import { fromAlert, studyHref } from "@/lib/events";
-import { refreshPush, subscribePush, unsubscribePush, type PushResult } from "@/lib/push-client";
+import { refreshPush, subscribePush, type PushResult } from "@/lib/push-client";
 import type { DisasterAlert, LatLon } from "@/lib/types";
 
 type Permission = NotificationPermission | "unsupported";
@@ -145,12 +145,6 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null, point: L
     }
   }, [lat, lon, locale]);
 
-  /** Desactiva los avisos con la página cerrada. */
-  const disablePush = useCallback(async () => {
-    await unsubscribePush();
-    setPushOn(false);
-  }, []);
-
   /** Pide permiso si falta y envía un aviso de prueba; `notice` cuenta qué pasó. */
   const test = useCallback(async () => {
     setToasts((current) => [
@@ -182,5 +176,5 @@ export function useAlertNotifications(relevant: DisasterAlert[] | null, point: L
 
   const dismiss = useCallback((id: string) => setToasts((current) => current.filter((toast) => toast.id !== id)), []);
 
-  return { permission, enable, test, pushOn, disablePush, notice: notice ? t(notice.es, notice.en) : null, toasts, dismiss };
+  return { permission, enable, test, pushOn, notice: notice ? t(notice.es, notice.en) : null, toasts, dismiss };
 }

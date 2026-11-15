@@ -13,7 +13,6 @@ const subscribeSchema = z.object({
   lang: z.enum(["es", "en"]).default("es"),
 });
 
-const removeSchema = z.object({ endpoint: z.url().max(1024) });
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
@@ -39,9 +38,3 @@ export async function POST(request: Request) {
   return Response.json({ ok: true }, { headers: NO_STORE });
 }
 
-export async function DELETE(request: Request) {
-  const parsed = removeSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return Response.json({ error: "Suscripción inválida" }, { status: 400, headers: NO_STORE });
-  await getPushStore().remove(parsed.data.endpoint);
-  return Response.json({ ok: true }, { headers: NO_STORE });
-}

@@ -371,14 +371,6 @@ export default function HomeView() {
                     {notifications.pushOn
                       ? t("Recibirá los avisos aunque cierre la página. Se usa su ubicación aproximada.", "You will get alerts even with the page closed. Your approximate location is used.")
                       : t("Los avisos llegan mientras la página esté abierta.", "Alerts arrive while the page is open.")}
-                    {notifications.pushOn ? (
-                      <>
-                        {" "}
-                        <button type="button" onClick={() => void notifications.disablePush()} className="font-semibold underline underline-offset-4">
-                          {t("Dejar de recibirlos", "Stop receiving them")}
-                        </button>
-                      </>
-                    ) : null}
                   </p>
                 ) : null}
                 {notifications.notice ? (

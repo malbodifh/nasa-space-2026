@@ -51,20 +51,3 @@ export async function refreshPush(point: { lat: number; lon: number }, lang: "es
     return false;
   }
 }
-
-export async function unsubscribePush(): Promise<void> {
-  if (!pushSupported()) return;
-  try {
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
-    if (!subscription) return;
-    await fetch("/api/push/subscribe", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ endpoint: subscription.endpoint }),
-    });
-    await subscription.unsubscribe();
-  } catch {
-    // Sin suscripción que quitar.
-  }
-}
