@@ -4,6 +4,7 @@ import { distanceKm } from "@/lib/geo";
 import { getEonetAlerts } from "@/lib/sources/eonet";
 import { getGdacsAlerts } from "@/lib/sources/gdacs";
 import { getOsmOverlays } from "@/lib/sources/overpass";
+import { getSeismic } from "@/lib/sources/seismic";
 import { getBorders, getVolcanoes } from "@/lib/sources/static-overlays";
 import type {
   DisasterAlert,
@@ -13,6 +14,7 @@ import type {
   OverlaysData,
   ProtectedAreaProps,
   RoadProps,
+  SeismicEvent,
   VolcanoProps,
 } from "@/lib/types";
 
@@ -35,14 +37,43 @@ function dedupe(alerts: DisasterAlert[]): DisasterAlert[] {
     .sort((a, b) => a.distanceKm - b.distanceKm);
 }
 
+function seismicLevel(magnitude: number): DisasterAlert["level"] {
+  if (magnitude >= 6) return "red";
+  if (magnitude >= 5) return "orange";
+  if (magnitude >= 4) return "green";
+  return "info";
+}
+
+/** Solo los sismos recientes y perceptibles entran al inbox de alertas. */
+function seismicAlerts(events: SeismicEvent[]): DisasterAlert[] {
+  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  return events
+    .filter((event) => event.magnitude >= 3.5 && Date.parse(event.time) >= cutoff)
+    .map((event) => ({
+      id: `seismic:${event.source}:${event.id}`,
+      source: event.source,
+      category: "earthquakes",
+      categoryLabel: "Sismo",
+      title: `M ${event.magnitude.toFixed(1)} · ${event.place}`,
+      level: seismicLevel(event.magnitude),
+      date: event.time,
+      lat: event.lat,
+      lon: event.lon,
+      distanceKm: event.distanceKm,
+      url: event.url ?? "https://www.ovsicori.una.ac.cr/",
+      magnitude: event.depthKm !== null ? `Profundidad ${event.depthKm} km` : null,
+    }));
+}
+
 export async function getOverlays(
   point: LatLon,
   radiusKm: number,
 ): Promise<{ data: Omit<OverlaysData, "sources"> & { sources: OverlaySource[] }; fallbackSources: string[] }> {
-  const [osmResult, eonetResult, gdacsResult] = await Promise.allSettled([
+  const [osmResult, eonetResult, gdacsResult, seismicResult] = await Promise.allSettled([
     getOsmOverlays(point, radiusKm),
     getEonetAlerts(point),
     getGdacsAlerts(point),
+    getSeismic(point),
   ]);
 
   const fallbackSources: string[] = [];
@@ -65,6 +96,10 @@ export async function getOverlays(
 
   const gdacs = gdacsResult.status === "fulfilled" ? gdacsResult.value : [];
   if (gdacsResult.status === "rejected") fallbackSources.push("gdacs");
+
+  const seismic: SeismicEvent[] =
+    seismicResult.status === "fulfilled" ? seismicResult.value.events : [];
+  if (seismicResult.status === "rejected") fallbackSources.push("seismic");
 
   const volcanoes = getVolcanoes(point, radiusKm);
   const borders = getBorders(point, radiusKm);
@@ -119,6 +154,28 @@ export async function getOverlays(
       live: true,
       fallback: gdacsResult.status === "rejected",
     },
+    {
+      id: "usgs",
+      label: "Sismos · USGS",
+      url: "https://earthquake.usgs.gov/",
+      note:
+        seismicResult.status === "fulfilled" && seismicResult.value.global > 0
+          ? "Catálogo FDSN de los últimos 30 días; revisado y automático."
+          : "Sin sismos M≥2,5 en 600 km o USGS no respondió.",
+      live: true,
+      fallback: seismicResult.status === "rejected",
+    },
+    {
+      id: "ovsicori",
+      label: "Sismos locales · OVSICORI-UNA",
+      url: "https://www.ovsicori.una.ac.cr/",
+      note:
+        seismicResult.status === "fulfilled" && seismicResult.value.local > 0
+          ? "Red sísmica local de Costa Rica; datos preliminares."
+          : "Sin sismos locales M≥2,5 o OVSICORI no respondió.",
+      live: true,
+      fallback: seismicResult.status === "rejected",
+    },
   ];
 
   return {
@@ -127,7 +184,8 @@ export async function getOverlays(
       protectedAreas: osm.protectedAreas,
       volcanoes: volcanoes.collection as GeoCollection<VolcanoProps>,
       borders: borders as GeoCollection<Record<string, never>>,
-      alerts: dedupe([...eonet, ...gdacs]),
+      alerts: dedupe([...eonet, ...gdacs, ...seismicAlerts(seismic)]),
+      seismic,
       sources,
     },
     fallbackSources,

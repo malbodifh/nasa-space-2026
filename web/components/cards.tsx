@@ -183,6 +183,11 @@ export function MemoryCard({
       <p className="mt-2 font-display text-[13px] italic leading-snug text-ash">
         Esto ya pasó. La memoria no estima lo que va a pasar.
       </p>
+      <p className="mt-1 text-[10px] leading-relaxed text-ash">
+        Cada detección es el centro de un píxel de ~1 km (MODIS) o 375 m (VIIRS), no una casa.
+        Sin detección no significa sin fuego: nubes, humo o un fuego entre sobrevuelos pueden
+        ocultarlo.
+      </p>
     </section>
   );
 }

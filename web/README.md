@@ -42,6 +42,8 @@ Todas responden `{ data, meta: { cached, updatedAt, fallback, durationMs } }`.
 | NASA Worldview Snapshots | antes/después | no |
 | NASA EONET v3 | eventos naturales abiertos | no |
 | GDACS | alertas oficiales con nivel | no |
+| USGS | sismos regionales (30 días) | no |
+| OVSICORI-UNA | sismos locales de Costa Rica | no |
 | OpenStreetMap / Overpass | caminos y áreas protegidas | no |
 | Smithsonian GVP | volcanes holocenos (snapshot) | no |
 | Natural Earth 110m | fronteras (snapshot) | no |
