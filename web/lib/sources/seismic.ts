@@ -32,8 +32,8 @@ const newest = (events: SeismicEvent[]) =>
 export async function getSeismic(point: LatLon): Promise<SeismicResult> {
   const key = `seismic:${point.lat.toFixed(1)}:${point.lon.toFixed(1)}`;
 
-  // Los sismos cambian por minuto: caché corta.
-  return cached(key, 2 * 60 * 1000, async () => {
+  // Los sismos cambian por minuto: caché de 45 s.
+  return cached(key, 45 * 1000, async () => {
     const [west, south, east, north] = bboxForRadius(point, MAX_KM);
     const start = new Date(Date.now() - WINDOW_DAYS * 24 * 60 * 60 * 1000)
       .toISOString()

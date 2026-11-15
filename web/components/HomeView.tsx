@@ -123,7 +123,7 @@ export default function HomeView() {
   const { data: events, error: eventsError } = useSWR<EventsResponse>(
     ready ? `/api/events?${query}&radius=${REGION_KM}` : null,
     fetcher,
-    { revalidateOnFocus: true, refreshInterval: 60_000 },
+    { revalidateOnFocus: true, refreshInterval: 30_000 },
   );
   const { data: assess, error: assessError } = useSWR<AssessResponse>(ready ? `/api/assess?${query}&radius=25` : null, fetcher, {
     revalidateOnFocus: false,
