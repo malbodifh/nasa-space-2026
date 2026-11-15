@@ -1,14 +1,16 @@
 "use client";
 
-import { Bell, BellRing, LocateFixed } from "lucide-react";
+import { Bell, BellRing, FlaskConical, LocateFixed, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
+import AlertToasts from "@/components/AlertToasts";
 import EventList from "@/components/EventList";
 import SiteHeader from "@/components/SiteHeader";
 import { useAlertNotifications } from "@/components/useAlertNotifications";
 import { DEMO_POINT, shortDate } from "@/lib/demo";
+import { buildDemoAlerts, DEMO_ALL, DEMO_SCENARIOS } from "@/lib/demo-scenarios";
 import {
   affecting,
   buildHistory,
@@ -70,6 +72,9 @@ export default function HomeView() {
   const [activeLimit, setActiveLimit] = useState(5);
   const [historyLimit, setHistoryLimit] = useState(6);
   const [filter, setFilter] = useState("todos");
+  // Modo demo: alertas simuladas para probar la app. `at` es el momento en que se activó.
+  const [demo, setDemo] = useState<{ id: string; at: number } | null>(null);
+  const [demoOpen, setDemoOpen] = useState(false);
 
   const locate = useCallback(() => {
     navigator.geolocation.getCurrentPosition(
@@ -104,10 +109,9 @@ export default function HomeView() {
     revalidateOnFocus: false,
   });
 
-  const active = useMemo(
-    () => [...(events?.data.alerts ?? [])].sort((a, b) => a.distanceKm - b.distanceKm),
-    [events],
-  );
+  const demoAlerts = useMemo(() => (demo ? buildDemoAlerts(demo.id, point, demo.at) : []), [demo, point]);
+  const allAlerts = useMemo(() => [...demoAlerts, ...(events?.data.alerts ?? [])], [demoAlerts, events]);
+  const active = useMemo(() => [...allAlerts].sort((a, b) => a.distanceKm - b.distanceKm), [allAlerts]);
   const history = useMemo(
     () =>
       buildHistory(
@@ -133,7 +137,7 @@ export default function HomeView() {
   const filtered = filter === "todos" ? history : history.filter((item) => item.category === filter);
 
   const status = locationStatus(active);
-  const relevant = useMemo(() => (events ? affecting(events.data.alerts) : null), [events]);
+  const relevant = useMemo(() => (events ? affecting(allAlerts) : null), [events, allAlerts]);
   const notifications = useAlertNotifications(relevant);
   const sources = events?.meta.sources ?? [];
   const online = sources.filter((source) => source.ok).length;
@@ -148,8 +152,28 @@ export default function HomeView() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
+      <AlertToasts toasts={notifications.toasts} onClose={notifications.dismiss} />
 
       <main className="mx-auto w-full max-w-[1180px] px-4 pb-20 sm:px-6">
+        {demo ? (
+          <div
+            role="status"
+            className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[10px] bg-aviso px-4 py-3 text-[14px] font-semibold text-white"
+          >
+            <span className="inline-flex items-center gap-2">
+              <FlaskConical className="size-4" aria-hidden />
+              Modo demo: está viendo alertas simuladas, no eventos reales.
+            </span>
+            <button
+              type="button"
+              onClick={() => setDemo(null)}
+              className="inline-flex items-center gap-1 underline underline-offset-4"
+            >
+              <X className="size-4" aria-hidden />
+              Salir del demo
+            </button>
+          </div>
+        ) : null}
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
           <section
             className="h-[46vh] min-h-[300px] overflow-hidden rounded-[14px] bg-hundida lg:h-auto lg:min-h-[540px]"
@@ -192,15 +216,20 @@ export default function HomeView() {
                   ) : null}
                   {status.nearest ? (
                     <p className="mt-2 text-[13px] text-tinta-suave">
-                      {formatWhen(status.nearest.date)} ·{" "}
-                      <a
-                        href={status.nearest.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-semibold text-tinta underline underline-offset-4"
-                      >
-                        {OFFICIAL_LABEL[status.nearest.source] ?? "Reporte original"}
-                      </a>
+                      {formatWhen(status.nearest.date)}
+                      {status.nearest.url ? (
+                        <>
+                          {" · "}
+                          <a
+                            href={status.nearest.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-semibold text-tinta underline underline-offset-4"
+                          >
+                            {OFFICIAL_LABEL[status.nearest.source] ?? "Reporte original"}
+                          </a>
+                        </>
+                      ) : null}
                     </p>
                   ) : null}
                 </>
@@ -212,6 +241,46 @@ export default function HomeView() {
               </div>
 
               <div className="mt-5 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDemoOpen((open) => !open)}
+                  aria-expanded={demoOpen}
+                  className="boton boton-cristal w-full"
+                >
+                  <FlaskConical className="size-4" aria-hidden />
+                  Probar la app con una alerta simulada
+                </button>
+                {demoOpen ? (
+                  <div className="rounded-[10px] border border-linea bg-hundida p-3">
+                    <p className="text-[13px] leading-snug text-tinta-suave">
+                      Elija un escenario: aparece en el mapa, la lista y el estado de su ubicación, y llega el aviso
+                      si lo activó. No es un evento real.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {[...DEMO_SCENARIOS, { id: DEMO_ALL, label: "Todo a la vez", hint: "" }].map((scenario) => (
+                        <button
+                          key={scenario.id}
+                          type="button"
+                          aria-pressed={demo?.id === scenario.id}
+                          title={scenario.hint}
+                          onClick={() => setDemo({ id: scenario.id, at: Date.now() })}
+                          className={`boton boton-chico ${demo?.id === scenario.id ? "boton-principal" : "boton-cristal"}`}
+                        >
+                          {scenario.label}
+                        </button>
+                      ))}
+                    </div>
+                    {demo ? (
+                      <button
+                        type="button"
+                        onClick={() => setDemo(null)}
+                        className="mt-3 text-[13px] font-semibold text-tinta underline underline-offset-4"
+                      >
+                        Quitar la simulación
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
                 {location.status === "ejemplo" ? (
                   <button type="button" onClick={locate} className="boton boton-principal w-full">
                     <LocateFixed className="size-4" aria-hidden />
@@ -224,24 +293,31 @@ export default function HomeView() {
                       <BellRing className="size-4" aria-hidden />
                       Avisos activados
                     </span>
-                    <button type="button" onClick={notifications.test} className="text-[13px] font-semibold text-primario-fuerte underline underline-offset-4">
-                      Probar
+                    <button
+                      type="button"
+                      onClick={() => void notifications.test()}
+                      className="text-[13px] font-semibold text-primario-fuerte underline underline-offset-4"
+                    >
+                      Probar aviso
                     </button>
                   </div>
-                ) : notifications.permission === "denied" ? (
-                  <p className="text-[13px] text-tinta-suave">
-                    Los avisos están bloqueados en este navegador. Puede activarlos en la configuración del sitio.
-                  </p>
-                ) : notifications.permission === "unsupported" ? null : (
+                ) : notifications.permission === "unsupported" ? (
+                  <p className="text-[13px] text-tinta-suave">Este navegador no permite avisos del sistema.</p>
+                ) : (
                   <button
                     type="button"
-                    onClick={notifications.enable}
+                    onClick={() => void (notifications.permission === "denied" ? notifications.test() : notifications.enable())}
                     className={`boton w-full ${location.status === "ejemplo" ? "boton-cristal" : "boton-principal"}`}
                   >
                     <Bell className="size-4" aria-hidden />
-                    Avisarme de alertas nuevas
+                    {notifications.permission === "denied" ? "Probar aviso" : "Avisarme de alertas nuevas"}
                   </button>
                 )}
+                {notifications.notice ? (
+                  <p role="status" className="text-[13px] leading-snug text-tinta-suave">
+                    {notifications.notice}
+                  </p>
+                ) : null}
               </div>
             </section>
 

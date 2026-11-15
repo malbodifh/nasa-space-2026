@@ -32,6 +32,9 @@ function EventRow({ item }: { item: EventItem }) {
           {item.kind === "alerta" && isOngoing(item) ? (
             <span className="rounded-full bg-peligro px-2 py-0.5 text-[11px] font-semibold text-white">En curso</span>
           ) : null}
+          {item.source === "Demostración" ? (
+            <span className="rounded-full bg-aviso px-2 py-0.5 text-[11px] font-semibold text-white">Simulación</span>
+          ) : null}
           {item.quality ? (
             <span
               className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${

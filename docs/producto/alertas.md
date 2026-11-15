@@ -95,3 +95,27 @@ casi todos los focos satelitales resultaron falsos. El interruptor es `SHOW_FIRE
 Fuente, hora (hora de Costa Rica y «hace X»), calidad (revisado, preliminar, pronóstico) y enlace
 al reporte oficial. Una fuente caída se marca «sin respuesta» en «Fuentes en vivo»; no se
 inventa el dato.
+
+## 8. Modo demo
+
+El botón «Probar la app con una alerta simulada» (portada, tarjeta de estado) inyecta alertas
+ficticias alrededor de la ubicación de la persona: sismo M6,1, tsunami, huracán, erupción,
+inundación o todo a la vez. Pasan por las mismas reglas que las reales, así que se ve el estado de
+riesgo, el mapa con áreas roja y amarilla, la lista y el aviso del navegador.
+
+- Siempre se marcan: franja «Modo demo», etiqueta «Simulación», fuente «Demostración» y sin
+  enlace oficial.
+- Viven solo en el navegador (no pasan por `/api/events`) y se quitan con «Salir del demo».
+- Código: `web/lib/demo-scenarios.ts`.
+
+## 9. Avisos
+
+Cada alerta nueva que afecta a la persona se avisa de dos formas:
+
+1. **Dentro de la página** (siempre): un aviso en la esquina que se cierra solo a los 9 s. No
+   depende de ningún permiso, así que funciona también en navegadores que bloquean notificaciones.
+2. **Del sistema** (opcional): si la persona pulsó «Avisarme de alertas nuevas» y aceptó el permiso.
+   Pasa por un service worker (`web/public/sw.js`), necesario en el celular.
+
+Solo funcionan con la página abierta. Al abrir la página por primera vez no se avisa de lo que ya
+estaba, salvo las simulaciones del modo demo. «Probar aviso» envía los dos tipos y dice qué pasó.

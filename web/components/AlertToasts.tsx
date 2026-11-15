@@ -1,0 +1,52 @@
+"use client";
+
+import { BellRing, X } from "lucide-react";
+import Link from "next/link";
+import { useEffect } from "react";
+
+export type Toast = { id: string; title: string; body: string; href: string | null };
+
+const SHOW_MS = 9000;
+
+function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => void }) {
+  useEffect(() => {
+    const timer = window.setTimeout(() => onClose(toast.id), SHOW_MS);
+    return () => window.clearTimeout(timer);
+  }, [toast.id, onClose]);
+
+  return (
+    <li
+      role="alert"
+      className="pointer-events-auto flex gap-3 rounded-[14px] border border-linea bg-elevada p-4"
+      style={{ boxShadow: "var(--sombra-tarjeta)" }}
+    >
+      <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-primario-suave text-primario-fuerte">
+        <BellRing className="size-4" aria-hidden />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[15px] leading-snug font-semibold text-tinta">{toast.title}</p>
+        {toast.body ? <p className="mt-0.5 text-[13px] leading-snug text-tinta-suave">{toast.body}</p> : null}
+        {toast.href ? (
+          <Link href={toast.href} className="mt-1.5 inline-block text-[13px] font-semibold text-primario-fuerte underline underline-offset-4">
+            Ver cómo cambió la superficie
+          </Link>
+        ) : null}
+      </div>
+      <button type="button" onClick={() => onClose(toast.id)} aria-label="Cerrar aviso" className="h-fit text-tinta-suave hover:text-tinta">
+        <X className="size-4" aria-hidden />
+      </button>
+    </li>
+  );
+}
+
+/** Avisos dentro de la página: funcionan aunque el navegador bloquee las notificaciones del sistema. */
+export default function AlertToasts({ toasts, onClose }: { toasts: Toast[]; onClose: (id: string) => void }) {
+  if (toasts.length === 0) return null;
+  return (
+    <ul className="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[380px]">
+      {toasts.map((toast) => (
+        <ToastItem key={toast.id} toast={toast} onClose={onClose} />
+      ))}
+    </ul>
+  );
+}

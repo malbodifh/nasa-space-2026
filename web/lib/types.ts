@@ -131,7 +131,8 @@ export type AlertSource =
   | "PTWC"
   | "NHC"
   | "NASA FIRMS"
-  | "Open-Meteo";
+  | "Open-Meteo"
+  | "Demostración";
 
 export type DisasterAlert = {
   id: string;
