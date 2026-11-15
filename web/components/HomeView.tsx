@@ -208,7 +208,7 @@ export default function HomeView() {
             </button>
           </div>
         ) : null}
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
           <section
             className="h-[46vh] min-h-[300px] overflow-hidden rounded-[14px] bg-hundida lg:h-auto lg:min-h-[540px]"
             style={{ boxShadow: "var(--sombra-tarjeta)" }}

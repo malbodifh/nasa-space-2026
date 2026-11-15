@@ -224,8 +224,8 @@ const EN_STORIES: Record<string, DisplayStory> = {
     lead: "Dense forest, canals and year-round rain. A comparison area: a suitable method should flag very little change here.",
     look: [
       "The forest appears white and greenish throughout the period: strong HH and HV.",
-      "The change map is almost empty on land (less than 0.5 % of comparable preview pixels).",
-      "Wind changes the sea's tone; the method ignores it because it is water on both dates.",
+      "The map shows few land pixels with apparent change; this is not a measurement of affected surface area.",
+      "Wind can change the sea's tone; pixels dark on both dates are excluded, not a validated water mask.",
     ],
     hypotheses: [
       "L-band (24 cm) penetrates part of the canopy: the signal scatters among branches and trunks and returns in HV. This helps explain the green and white forest.",

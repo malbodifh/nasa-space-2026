@@ -18,7 +18,7 @@ Identidad visual: paleta, tipografía (Plus Jakarta Sans), radios y botones de A
 **No es una alerta oficial**: informa con observación satelital y memoria histórica.
 
 - Next.js 16.4.6 (App Router) + React 19 + TypeScript estricto
-- Tailwind 4 + shadcn/ui (Radix)
+- Tailwind 4 + componentes propios
 - MapLibre GL 6 + Carto Positron
 - pnpm 11 · Node 22
 

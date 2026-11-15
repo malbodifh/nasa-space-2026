@@ -4,6 +4,7 @@ type CanvasMock = {
   width: number;
   height: number;
   getContext: ReturnType<typeof vi.fn>;
+  toDataURL: () => string;
 };
 
 describe("sar-image: caché de vistas previas", () => {
@@ -13,6 +14,7 @@ describe("sar-image: caché de vistas previas", () => {
   let canvases: CanvasMock[];
   let width: number;
   let height: number;
+  let pixels: Uint8ClampedArray[];
 
   beforeEach(async () => {
     vi.resetModules();
@@ -20,6 +22,7 @@ describe("sar-image: caché de vistas previas", () => {
     height = 8;
     images = [];
     canvases = [];
+    pixels = [];
     decode = vi.fn(async () => {});
     vi.stubGlobal("Image", class {
       src = "";
@@ -40,13 +43,18 @@ describe("sar-image: caché de vistas previas", () => {
             getImageData: vi.fn(() => ({
               width: canvas.width,
               height: canvas.height,
-              data: new Uint8ClampedArray(canvas.width * canvas.height * 4),
+              data: pixels.shift() ?? new Uint8ClampedArray(canvas.width * canvas.height * 4),
             })),
+            putImageData: vi.fn(),
           })),
+          toDataURL: () => "data:image/png;base64,test",
         };
         canvases.push(canvas);
         return canvas;
       }),
+    });
+    vi.stubGlobal("ImageData", class {
+      constructor(public data: Uint8ClampedArray, public width: number, public height: number) {}
     });
     ({ loadImageData } = await import("@/lib/sar-image"));
   });
@@ -63,6 +71,25 @@ describe("sar-image: caché de vistas previas", () => {
     expect(await loadImageData("/radar/a.png")).toBe(pixels);
     expect(decode).toHaveBeenCalledTimes(1);
     expect(pixels.data).toHaveLength(8 * 8 * 4);
+  });
+
+  it.each(["dark", "no-overlap"])("propaga cero píxeles comparables: %s", async (scenario) => {
+    const before = new Uint8ClampedArray(8 * 8 * 4);
+    const after = new Uint8ClampedArray(before.length);
+    for (let k = 0; k < 64; k += 1) {
+      if (scenario === "dark" || k < 32) before.set([20, 20, 20, 255], k * 4);
+      if (scenario === "dark" || k >= 32) after.set([60, 60, 60, 255], k * 4);
+      if (scenario === "no-overlap") {
+        if (k < 32) before.set([100, 100, 100, 255], k * 4);
+        else after.set([150, 150, 150, 255], k * 4);
+      }
+    }
+    pixels = [before, after];
+    const { comparePair } = await import("@/lib/sar-image");
+    const result = await comparePair("/before.png", "/after.png", [-86, 9, -84, 11], null);
+    expect(result.comparableCount).toBe(0);
+    expect(result.before).toMatch(/^data:image/);
+    expect(result.after).toMatch(/^data:image/);
   });
 
   it("libera canvas e imagen después de leer los píxeles", async () => {

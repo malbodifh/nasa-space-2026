@@ -4,8 +4,14 @@ import { GET as assess } from "@/app/api/assess/route";
 import { GET as events } from "@/app/api/events/route";
 import { GET as search } from "@/app/api/nisar/search/route";
 import { GET as overlays } from "@/app/api/overlays/route";
+import { fetchLimited } from "@/app/api/_lib/remote";
 import { getEvents } from "@/lib/sources/overlays";
 
+vi.mock("@/app/api/_lib/remote", () => ({
+  fetchLimited: vi.fn(async () => ({
+    status: 200, bytes: new TextEncoder().encode('{"feed":{"entry":[]}}'),
+  })),
+}));
 vi.mock("@/lib/sources/gibs", () => ({
   getFireStats: vi.fn(async (_point, _radius, date) => ({
     date, count: 0, nearestKm: null, maxFrp: null, points: [], available: false, fallback: true,
@@ -14,7 +20,16 @@ vi.mock("@/lib/sources/gibs", () => ({
 vi.mock("@/lib/sources/power", () => ({ getClimate: vi.fn(async () => { throw new Error("offline"); }) }));
 vi.mock("@/lib/sources/overlays", () => ({
   getEvents: vi.fn(async () => ({ alerts: [], history: [], fallbackSources: [], sources: [] })),
-  getOverlays: vi.fn(async () => ({ data: {}, fallbackSources: [] })),
+  getOverlays: vi.fn(async () => ({
+    data: {
+      roads: { type: "FeatureCollection", features: [] },
+      protectedAreas: { type: "FeatureCollection", features: [] },
+      volcanoes: { type: "FeatureCollection", features: [] },
+      borders: { type: "FeatureCollection", features: [] },
+      alerts: [], seismic: [], sources: [],
+    },
+    fallbackSources: [],
+  })),
 }));
 
 beforeEach(() => vi.clearAllMocks());
@@ -22,11 +37,11 @@ const handlers = { assess, events, search, overlays };
 
 describe.each(Object.entries(handlers))("parámetros extra /api/%s", (name, handler) => {
   // Un enlace compartido con ?utm_source=… no debe romper la consulta.
-  it("ignora parámetros desconocidos y no consulta con coordenadas inválidas", async () => {
+  it("ignora parámetros desconocidos sin depender de la red", async () => {
     const response = await handler(
       new Request(`https://app.test/api/${name}?lat=9.9&lon=-84.1&utm_source=whatsapp&fbclid=x`),
     );
-    expect(response.status).not.toBe(400);
+    expect(response.status).toBe(200);
   });
 });
 
@@ -38,6 +53,7 @@ describe.each(Object.entries(handlers))("validación /api/%s", (name, handler) =
   ])("no consulta fuentes con %s", async (query) => {
     const response = await handler(new Request(`https://app.test/api/${name}?${query}`));
     expect(response.status).toBe(400);
+    expect(fetchLimited).not.toHaveBeenCalled();
   });
 });
 

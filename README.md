@@ -2,10 +2,11 @@
 
 **Equipo:** Andy, David, Samuel, Jorge, Leo
 **Repo:** [malbodifh/nasa-space-2026](https://github.com/malbodifh/nasa-space-2026)
-**Estado:** reinicio — challenge **sin elegir**
+**Estado:** MVP en revisión — reto de trabajo **Dancing with the SARs** (NISAR)
 
-> Estamos eligiendo entre los 14 retos oficiales de 2026.
-> El mapa de decisión está en [`guides/dist/06-retos.pdf`](guides/dist/06-retos.pdf).
+> Memoria de Fuego combina alertas de desastres para Costa Rica con estudios de superficie NISAR.
+> Estado y decisiones vigentes en [`docs/estado.md`](docs/estado.md).
+> Inicio del frontend: [`web/README.md`](web/README.md).
 
 ---
 
@@ -32,9 +33,7 @@ make guides     # compila las guías Typst a PDF
 ## Ramas
 
 ```text
-main        producción (solo merge desde staging)
-  ↑
-staging     puente de integración / pre-producción
+main        producción (solo mediante PR revisado)
   ↑
 develop     desarrollo diario
   ↑

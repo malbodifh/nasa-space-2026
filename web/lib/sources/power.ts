@@ -43,7 +43,7 @@ function parseSeries(payload: unknown): DailySeries[] {
 }
 
 export async function getClimate(point: LatLon): Promise<ClimateStats> {
-  const key = `power:${point.lat.toFixed(2)}:${point.lon.toFixed(2)}`;
+  const key = `power:${point.lat}:${point.lon}`;
 
   return cached(key, 24 * 60 * 60 * 1000, async () => {
     const end = new Date().toISOString().slice(0, 10).replaceAll("-", "");

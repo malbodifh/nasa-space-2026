@@ -42,10 +42,16 @@ export function dedupe(alerts: DisasterAlert[]): DisasterAlert[] {
       merged.push({ ...alert, alsoReportedBy: [...(alert.alsoReportedBy ?? [])] });
       continue;
     }
-    same.alsoReportedBy = [...new Set([
-      ...(same.alsoReportedBy ?? []), alert.source, ...(alert.alsoReportedBy ?? []),
-    ])].filter((source) => source !== same.source);
-    if (alert.quality === "revisado") same.quality = "revisado";
+    const sources = [same.source, ...(same.alsoReportedBy ?? []), alert.source, ...(alert.alsoReportedBy ?? [])];
+    const reviewed = same.quality === "revisado" || alert.quality === "revisado";
+    // El catálogo agregado puede carecer de magnitud y «sentido en»: no debe tapar la red sísmica.
+    if (category(alert) === "earthquakes") {
+      const felt = same.felt || alert.felt;
+      if (same.magnitudeValue == null && alert.magnitudeValue != null) Object.assign(same, alert);
+      if (felt) same.felt = felt;
+    }
+    same.alsoReportedBy = [...new Set(sources)].filter((source) => source !== same.source);
+    if (reviewed) same.quality = "revisado";
   }
   return merged.sort((a, b) => a.distanceKm - b.distanceKm);
 }

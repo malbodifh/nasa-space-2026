@@ -9,6 +9,37 @@ function source(relative: string): string {
 
 const home = source("../components/HomeView.tsx");
 const study = source("../components/SurfaceStudy.tsx");
+const slider = source("../components/CompareSlider.tsx");
+
+describe("SAR/UI audit regressions", () => {
+  it("no concluye poco cambio ni muestra porcentajes sin píxeles comparables", () => {
+    expect(study.indexOf("result.comparableCount === 0")).toBeLessThan(study.indexOf("if (total < 2)"));
+    expect(study).toContain("Sin píxeles comparables");
+    expect(study).toContain("No comparable pixels");
+    expect(study).toMatch(/result\.comparableCount > 0 \? <Stat/);
+    expect(study).toMatch(/result\.comparableCount > 0 \? <p/);
+  });
+  it("usa el par radar validado y separa su estado al cambiar la base", () => {
+    expect(study).toContain("parseRadarPair(params, zone)");
+    expect(study).toContain('radarPair.status === "valid" ? radarPair');
+    expect(study).toContain('radarPair.status === "invalid" ? "pair"');
+    expect(study).toMatch(/sourceKey = .*params\.get\("base"\)/);
+  });
+  it("oculta imágenes fallidas y permite reintentar sin retirar la otra imagen", () => {
+    expect(slider).toContain('onError={() => onStatus("error")}');
+    expect(slider).toContain('onLoad={() => onStatus("ready")}');
+    expect(slider).toContain('status === "ready" ? "" : "invisible"');
+    expect(slider).toContain('status: "loading", attempt: current[side].attempt + 1');
+    expect(slider).toContain("Reintentar imagen");
+    expect(slider).toContain("Retry image");
+    expect(slider).toContain('<ComparisonImage {...right}');
+    expect(slider).toContain('<ComparisonImage {...left}');
+  });
+  it("muestra el foco del range transparente en el contenedor", () => {
+    expect(slider).toContain("has-[:focus-visible]:ring-4");
+    expect(slider).toContain("has-[:focus-visible]:ring-primario");
+  });
+});
 
 describe("SurfaceStudy validation wiring", () => {
   it("valida punto y fecha con los helpers puros", () => {

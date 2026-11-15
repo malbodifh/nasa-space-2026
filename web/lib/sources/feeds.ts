@@ -18,7 +18,7 @@ async function get(url: string, as: "text" | "json"): Promise<unknown> {
   return as === "json" ? response.json() : response.text();
 }
 
-const cell = (point: LatLon) => `${point.lat.toFixed(1)}:${point.lon.toFixed(1)}`;
+const cell = (point: LatLon) => `${point.lat}:${point.lon}`;
 
 /** Boletines de tsunami: Pacífico (PHEB) y Atlántico/Caribe (PAAQ). Se renuevan cada 2 min. */
 export async function getTsunamiBulletins(point: LatLon): Promise<DisasterAlert[]> {
@@ -73,7 +73,7 @@ export async function getFires(point: LatLon): Promise<DisasterAlert[]> {
 
 /** Lluvia pronosticada en las próximas 24 h en el punto. Cada 30 min. */
 export async function getRainForecast(point: LatLon): Promise<DisasterAlert[]> {
-  return cached(`rain:${point.lat.toFixed(2)}:${point.lon.toFixed(2)}`, 30 * 60 * 1000, async () => {
+  return cached(`rain:${cell(point)}`, 30 * 60 * 1000, async () => {
     const url =
       `https://api.open-meteo.com/v1/forecast?latitude=${point.lat.toFixed(3)}` +
       `&longitude=${point.lon.toFixed(3)}&hourly=precipitation&forecast_days=2&timezone=UTC`;

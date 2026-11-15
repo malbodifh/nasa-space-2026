@@ -22,13 +22,6 @@ else
   echo "creada: $BASE"
 fi
 
-if exists staging; then
-  echo "existe: staging"
-else
-  git branch staging "$BASE"
-  echo "creada: staging"
-fi
-
 for p in "${PERSONAS[@]}"; do
   if exists "$p"; then
     echo "existe: $p"
@@ -39,5 +32,5 @@ for p in "${PERSONAS[@]}"; do
 done
 
 echo
-echo "Modelo: persona -> $BASE -> staging -> main"
+echo "Modelo: persona -> $BASE -> main"
 git branch --list

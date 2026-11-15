@@ -324,6 +324,6 @@ Opciones, de mejor a peor:
 
 - [APIs y endpoints](04-apis.md)
 - [Arquitectura](05-arquitectura.md)
-- [Plan de 48 h](06-plan-48h.md)
+- Plan de 48 h (`06-plan-48h.md`, documento histórico no conservado)
 - [Problemas de astrofísica](08-problemas-astrofisica.md)
-- [Fuentes](11-fuentes.md)
+- Fuentes (`11-fuentes.md`, documento histórico no conservado)

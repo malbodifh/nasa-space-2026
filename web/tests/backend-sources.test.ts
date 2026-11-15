@@ -6,6 +6,7 @@ import { getGdacsAlerts } from "@/lib/sources/gdacs";
 import { getOsmOverlays } from "@/lib/sources/overpass";
 import { dedupe, getEvents, getOverlays } from "@/lib/sources/overlays";
 import { getSeismic } from "@/lib/sources/seismic";
+import { affects } from "@/lib/alert-rules";
 import type { DisasterAlert } from "@/lib/types";
 
 vi.mock("server-only", () => ({}));
@@ -47,6 +48,19 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("BUG-API-5 deduplicación conservadora", () => {
+  it.each([false, true])("prefiere metadata sísmica sobre GDACS sin depender del orden (%s)", (reverse) => {
+    const reports = [
+      alert({ source: "GDACS", category: "EQ", level: "green", quality: "revisado" }),
+      alert({ id: "seismic", magnitudeValue: 5.1, felt: "San José", quality: "preliminar", distanceKm: 100 }),
+    ];
+    const merged = dedupe(reverse ? reports.reverse() : reports);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]).toMatchObject({
+      id: "seismic", source: "USGS", level: "orange", magnitudeValue: 5.1,
+      felt: "San José", quality: "revisado", alsoReportedBy: ["GDACS"],
+    });
+    expect(affects(merged[0])).toBe(true);
+  });
   it("no borra un sismo cercano por un GDACS de otro mes", () => {
     const merged = dedupe([
       alert({ id: "old", source: "GDACS", category: "EQ", date: "2026-10-09T11:00:00Z" }),
