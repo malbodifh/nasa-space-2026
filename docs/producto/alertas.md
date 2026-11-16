@@ -168,3 +168,26 @@ Una persona puede recibir avisos (y ver un pin en el mapa) cuando un ser querido
 - **Zona:** se actualiza cada vez que el ser querido abre la app con ubicación real. No hay seguimiento en segundo plano.
 - **Quitar:** cualquiera de los dos puede quitar el vínculo desde la sección «Seres queridos».
 - **Almacenamiento:** `web/supabase/seres-queridos.sql` (tablas `devices`, `link_invites`, `links` y la columna `push_subscriptions.device_id`), con RLS activo y sin acceso para `anon`/`authenticated`.
+
+### Limitación: la ubicación no se actualiza con la app cerrada
+
+Los avisos sí llegan con la app cerrada (los envía el servidor), pero la **zona** del ser querido solo se actualiza cuando abre la app. Si nunca la abre, el riesgo se calcula sobre la última zona conocida (la que mandó al aceptar la invitación); si viaja o se muda, los avisos siguen siendo de su lugar anterior.
+
+**Por qué:** en una PWA el navegador solo da la ubicación con la app abierta en pantalla. El service worker (lo que corre en segundo plano y recibe los push) no tiene acceso a `navigator.geolocation`, ni en Android ni en iPhone, y las APIs de segundo plano de la web (Periodic Background Sync, push) tampoco lo dan.
+
+**Otras causas por las que los avisos pueden dejar de llegar si la app no se abre:**
+
+- El navegador o el sistema puede renovar o anular la suscripción push; el servidor borra las que responden 404/410 y ese teléfono no recibe más avisos hasta que vuelve a abrir la app (se resuscribe sola).
+- Android puede quitar permisos a las apps que no se usan en meses (no verificado para PWA).
+- En iPhone el push web requiere iOS 16.4+ y la app instalada en la pantalla de inicio; Safari y la app instalada no comparten datos, así que el vínculo debe aceptarse desde la app instalada.
+- GitHub desactiva los workflows programados de un repo público tras 60 días sin commits; si eso pasa, el cron deja de enviar avisos para todos hasta reactivarlo en la pestaña Actions.
+
+**Posibles soluciones:**
+
+| Opción | Qué resuelve | Costo |
+|---|---|---|
+| Lugares fijos («Casa de Mamá», «Trabajo») marcados al vincularse | Avisos sobre lugares que importan, sin GPS ni abrir la app | Bajo: una tabla de lugares por dispositivo y revisarlos en el cron |
+| Mostrar la antigüedad de la zona («Ubicación de hace 12 días») | Que quien sigue sepa si el pin es confiable | Muy bajo: ya se guarda la fecha de actualización |
+| App nativa con Capacitor + plugin de ubicación en segundo plano | Ubicación real con la app cerrada (iOS: cambios significativos ~500 m; Android: permiso «todo el tiempo») | Alto: publicar en App Store y Play Store, justificar el permiso ante Apple y Google |
+
+Mientras tanto, se recomienda al ser querido abrir la app de vez en cuando (por ejemplo una vez al mes o al cambiar de lugar) para actualizar su zona y su suscripción.
