@@ -118,7 +118,7 @@ export default function SiteMenu() {
         <div className="mt-3 border-t border-linea px-2 pt-4 pb-1">
           <p id={languageId} className="mb-2 text-xs font-semibold text-tinta-suave">{t("Idioma", "Language")}</p>
           <div role="group" aria-labelledby={languageId} className="grid grid-cols-2 gap-2">
-            {(["es", "en"] as const).map((option) => (
+            {(["en", "es"] as const).map((option) => (
               <button
                 key={option}
                 type="button"

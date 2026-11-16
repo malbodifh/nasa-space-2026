@@ -9,7 +9,7 @@ const createSchema = z.object({
   inviterName: nameSchema,
   /** Cómo llama quien invita a su ser querido («Mamá»). */
   alias: nameSchema,
-  lang: z.enum(["es", "en"]).default("es"),
+  lang: z.enum(["es", "en"]).default("en"),
 });
 
 /** Crea una invitación de un solo uso y devuelve el código que va en el link. */

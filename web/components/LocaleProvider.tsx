@@ -60,7 +60,7 @@ type LocaleContextValue = {
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 export default function LocaleProvider({ children }: { children: React.ReactNode }) {
-  // The server and hydration render use ES; the saved preference is read after hydration.
+  // The server and hydration render use EN; the saved preference is read after hydration.
   const locale = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const initialized = useRef(false);
   const setLocale = useCallback((next: Locale) => {

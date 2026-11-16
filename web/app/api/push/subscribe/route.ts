@@ -12,7 +12,7 @@ const subscribeSchema = z.object({
   }),
   lat: z.number().min(-90).max(90),
   lon: z.number().min(-180).max(180),
-  lang: z.enum(["es", "en"]).default("es"),
+  lang: z.enum(["es", "en"]).default("en"),
   /** Dispositivo con seres queridos: así el envío sabe a quién avisar por ellos. */
   device: credentialsSchema.optional(),
 });

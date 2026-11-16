@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import AcceptInvite from "@/components/AcceptInvite";
 
 export const metadata: Metadata = {
-  title: "Invitación · Gamma Alert",
+  title: "Invitation · Gamma Alert",
   // Cada link es privado y de un solo uso: no debe aparecer en buscadores ni filtrarse al salir.
   robots: { index: false, follow: false },
   referrer: "no-referrer",
