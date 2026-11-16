@@ -103,8 +103,23 @@ export function sourceLabel(label: string, locale: DisplayLocale): string {
     .replace(/^Historial · /, "History · ");
 }
 
+const COMPASS_EN: Record<string, string> = { N: "N", S: "S", E: "E", O: "W" };
+
+/** Place phrases the app writes in Spanish for earthquakes (`ovsicoriPlace`, `usgsPlace`). */
+function generatedPlace(title: string): string {
+  return title
+    .replace(/Frente a la costa, cerca de /g, "Offshore, near ")
+    .replace(/Frente a la costa de Costa Rica/g, "Off the coast of Costa Rica")
+    .replace(/Frontera con Panamá, cerca de /g, "Panama border, near ")
+    .replace(/[Ff]rontera Costa Rica–Panamá/g, "Costa Rica–Panama border")
+    .replace(/costa de Nicaragua/g, "coast of Nicaragua")
+    .replace(/\b(Sur|Norte) de Panamá/g, (_, side: string) => `${side === "Sur" ? "South" : "North"} of Panama`)
+    .replace(/(\d+) km al ([NSEO]{1,3}) de /g, (_, km: string, dir: string) => `${km} km ${dir.split("").map((l) => COMPASS_EN[l]).join("")} of `)
+    .replace(/Sismo regional/g, "Regional earthquake");
+}
+
 function generatedTitle(title: string): string {
-  return title.replace(/^Se pronostican (.+) mm de lluvia en 24 horas$/, "$1 mm of rain forecast over 24 hours");
+  return generatedPlace(title).replace(/^Se pronostican (.+) mm de lluvia en 24 horas$/, "$1 mm of rain forecast over 24 hours");
 }
 
 /** Translate only app-authored radar headings. Source report titles remain verbatim. */
