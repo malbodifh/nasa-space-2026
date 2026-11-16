@@ -41,7 +41,7 @@ export async function authenticate(
   const device = await store.getDevice(credentials.id);
   if (!device) {
     if (!options.create) return null;
-    const created: Device = { id: credentials.id, keyHash: hash, lat: null, lon: null, lang: options.lang ?? "es" };
+    const created: Device = { id: credentials.id, keyHash: hash, lat: null, lon: null, lang: options.lang ?? "en" };
     await store.saveDevice(created);
     return created;
   }

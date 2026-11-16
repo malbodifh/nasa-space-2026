@@ -1,6 +1,6 @@
 export type Locale = "es" | "en";
 
-export const DEFAULT_LOCALE: Locale = "es";
+export const DEFAULT_LOCALE: Locale = "en";
 export const LOCALE_STORAGE_KEY = "memoria-de-fuego:locale";
 
 export function isLocale(value: unknown): value is Locale {

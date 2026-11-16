@@ -25,7 +25,7 @@ afterEach(() => {
 describe("menú compartido", () => {
   it("incluye la marca visible en el nombre del enlace y evita duplicar el icono", () => {
     const html = renderToStaticMarkup(createElement(LocaleProvider, null, createElement(SiteHeader)));
-    expect(html).toContain('aria-label="Gamma Alert · Inicio"');
+    expect(html).toContain('aria-label="Gamma Alert · Home"');
     expect(html).toMatch(/<svg[^>]*aria-hidden="true"/);
     const standalone = renderToStaticMarkup(createElement(BrandMark));
     expect(standalone).toContain('role="img"');
@@ -42,10 +42,10 @@ describe("menú compartido", () => {
 
   it("se renderiza cerrado con controles accesibles y no simula un menú de aplicación", () => {
     const html = renderMenu();
-    expect(html).toContain('aria-label="Abrir menú"');
+    expect(html).toContain('aria-label="Open menu"');
     expect(html).toContain('aria-expanded="false"');
     expect(html).toContain('hidden=""');
-    expect(html).toContain('aria-label="Navegación principal"');
+    expect(html).toContain('aria-label="Main navigation"');
     expect(html).not.toContain('role="menu"');
     const controlledId = html.match(/aria-controls="([^"]+)"/)?.[1];
     expect(controlledId).toBeTruthy();
@@ -62,12 +62,12 @@ describe("menú compartido", () => {
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
   });
 
-  it("el HTML inicial sigue en ES aunque el cliente tenga EN guardado", () => {
-    const getItem = vi.fn(() => "en");
-    vi.stubGlobal("window", { localStorage: { getItem }, location: { search: "?lang=en" } });
+  it("el HTML inicial sigue en EN aunque el cliente tenga ES guardado", () => {
+    const getItem = vi.fn(() => "es");
+    vi.stubGlobal("window", { localStorage: { getItem }, location: { search: "?lang=es" } });
     const html = renderMenu();
-    expect(html).toContain("Inicio");
-    expect(html).toContain('aria-label="Abrir menú"');
+    expect(html).toContain("Home");
+    expect(html).toContain('aria-label="Open menu"');
     expect(getItem).not.toHaveBeenCalled();
   });
 

@@ -4,8 +4,8 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Gamma Alert",
     short_name: "Gamma Alert",
-    description: "Alertas de desastres cerca de usted y cómo cambió la superficie de la Tierra. No es una alerta oficial.",
-    lang: "es",
+    description: "Disaster alerts near you and how the Earth's surface changed. Not an official alert.",
+    lang: "en",
     start_url: "/",
     scope: "/",
     display: "standalone",

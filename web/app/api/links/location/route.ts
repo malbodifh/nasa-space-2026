@@ -7,7 +7,7 @@ const schema = z.object({
   device: credentialsSchema,
   lat: z.number().min(-90).max(90),
   lon: z.number().min(-180).max(180),
-  lang: z.enum(["es", "en"]).default("es"),
+  lang: z.enum(["es", "en"]).default("en"),
 });
 
 /** Actualiza la zona aproximada del dispositivo para que sus seres queridos sepan si está en riesgo. */

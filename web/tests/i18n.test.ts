@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_LOCALE, isLocale, LOCALE_STORAGE_KEY, localeFromSearch, readLocale, searchWithLocale, translated } from "@/lib/i18n";
 
 describe("idioma explícito", () => {
-  it("usa español por defecto y solo admite es/en", () => {
-    expect(DEFAULT_LOCALE).toBe("es");
+  it("usa inglés por defecto y solo admite es/en", () => {
+    expect(DEFAULT_LOCALE).toBe("en");
     expect(isLocale("es")).toBe(true);
     expect(isLocale("en")).toBe(true);
     for (const value of [null, undefined, "EN", "fr", "", 1, {}]) {
@@ -47,14 +47,14 @@ describe("idioma explícito", () => {
       },
     };
     expect(readLocale(storage)).toBe("en");
-    expect(readLocale({ getItem: () => "fr" })).toBe("es");
-    expect(readLocale({ getItem: () => null })).toBe("es");
-    expect(readLocale({ getItem: () => null }, "en")).toBe("en");
+    expect(readLocale({ getItem: () => "fr" })).toBe("en");
+    expect(readLocale({ getItem: () => null })).toBe("en");
+    expect(readLocale({ getItem: () => null }, "es")).toBe("es");
   });
 
   it("falla suave si el navegador bloquea el almacenamiento", () => {
     const blocked = { getItem: () => { throw new Error("SecurityError"); } };
-    expect(readLocale(blocked)).toBe("es");
-    expect(readLocale(blocked, "en")).toBe("en");
+    expect(readLocale(blocked)).toBe("en");
+    expect(readLocale(blocked, "es")).toBe("es");
   });
 });

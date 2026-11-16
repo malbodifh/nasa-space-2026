@@ -8,7 +8,7 @@ const schema = z.object({
   code: z.string().regex(/^[A-Za-z0-9_-]{16,64}$/),
   lat: z.number().min(-90).max(90),
   lon: z.number().min(-180).max(180),
-  lang: z.enum(["es", "en"]).default("es"),
+  lang: z.enum(["es", "en"]).default("en"),
   /** El invitado también quiere avisos cuando quien invita esté en riesgo. */
   reciprocal: z.boolean().default(false),
 });
