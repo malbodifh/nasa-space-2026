@@ -195,7 +195,7 @@ export default function AboutPage() {
       </section>
 
       <footer className="mt-12 border-t border-linea pt-6 text-sm leading-relaxed text-tinta-suave">
-        <p>{t("Hecho por Astral Codes para NASA Space Apps 2026. Identidad gráfica propia de Gamma Alert; no implica afiliación ni respaldo de NASA, ISRO o las agencias citadas.", "Built by Astral Codes for NASA Space Apps 2026. Gamma Alert's own visual identity does not imply affiliation with or endorsement by NASA, ISRO or the cited agencies.")}</p>
+        <p>{t("Creada por Astral Codes para el NASA International Space Apps Challenge 2026, con datos abiertos de NASA, NASA–ISRO NISAR y agencias científicas de todo el mundo.", "Created by Astral Codes for the NASA International Space Apps Challenge 2026, powered by open data from NASA, NASA–ISRO NISAR and scientific agencies around the world.")}</p>
         <p className="mt-2">{t("Código abierto y disponible en GitHub.", "Open source and available on GitHub.")} <SourceLink href="https://github.com/malbodifh/nasa-space-2026">GitHub</SourceLink></p>
       </footer>
     </main>
